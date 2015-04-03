@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <modules>
+        <Mailigen_Synchronizer>
+            <version>1.0.1</version>
+        </Mailigen_Synchronizer>
+    </modules>
+    <global>
+        <helpers>
+            <Mailigen_Synchronizer>
+                <class>Mailigen_Synchronizer_Helper</class>
+            </Mailigen_Synchronizer>
+        </helpers>
+         <models>
+            <mailigen_synchronizer>
+                <class>Mailigen_Synchronizer_Model</class>
+            </mailigen_synchronizer>
+            <!-- we rewrite Newsletter Module -->
+            <newsletter>
+                <rewrite>
+                    <subscriber>Mailigen_Synchronizer_Model_Newsletter_Subscriber</subscriber>
+                </rewrite>
+            </newsletter>
+        </models>
+        <blocks>
+            <adminhtml>
+                <rewrite>
+                    <newsletter_subscriber_grid>Mailigen_Synchronizer_Block_Newsletter_Subscriber_Grid</newsletter_subscriber_grid>
+                </rewrite>
+            </adminhtml>
+        </blocks>
+        <events>
+            <newsletter_subscriber_save_commit_after>
+                <observers>
+                    <newsletter_subscriber_newsletter_subscriber_create_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>newsletter_subscriber_create_after</method>
+                    </newsletter_subscriber_newsletter_subscriber_create_after>
+                </observers>
+            </newsletter_subscriber_save_commit_after>
+            <admin_system_config_changed_section_mailigen_settings>
+                <observers>
+                    <newsletter_subscriber_admin_system_config_changed_section_mailigen_settings>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>admin_system_config_changed_section_mailigen_settings</method>
+                    </newsletter_subscriber_admin_system_config_changed_section_mailigen_settings>
+                </observers>
+            </admin_system_config_changed_section_mailigen_settings>
+        </events>
+    </global>
+    <admin>
+        <routers>
+            <adminhtml>
+                <args>
+                    <modules>
+                        <newsletter_subscriber before="Mage_Adminhtml">Mailigen_Synchronizer_Adminhtml</newsletter_subscriber>
+                    </modules>
+                </args>
+            </adminhtml>
+        </routers>
+    </admin>
+    <adminhtml>
+        <acl>
+            <resources>
+                <all>
+                    <title>Allow Everything</title>
+                </all>
+                <admin>
+                    <children>
+                        <system>
+                            <children>
+                                <config>
+                                    <children>
+                                        <mailigen_settings>
+                                            <title>Mailigen - Settings</title>
+                                        </mailigen_settings>
+                                    </children>
+                                </config>
+                            </children>
+                        </system>
+                    </children>
+                </admin>
+            </resources>
+        </acl>
+    </adminhtml>
+    <crontab>
+        <jobs>
+            <Mailigen_Synchronizer>
+                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
+                <run><model>newsletter_subscriber/observer::daily_sync</model></run>
+            </Mailigen_Synchronizer>
+        </jobs>
+    </crontab>
+</config>
+

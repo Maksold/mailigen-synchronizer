@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Mailigen_Synchronizer>
+            <active>true</active>
+            <codePool>community</codePool>
+        </Mailigen_Synchronizer>
+    </modules>
+</config>

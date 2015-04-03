@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+    <name>Mailigen_Synchronizer</name>
+    <version>1.0.1</version>
+    <stability>stable</stability>
+    <license>GNU General Public License (GPL)</license>
+    <channel>community</channel>
+    <extends/>
+    <summary>Two-way sync between Magento email newsletter subscriber list and Mailigen email list</summary>
+    <description>This extension enables a two-way synchronization between your Magento email newsletter subscriber list and your Mailigen email list. It is easy and quick to install and configure, no complex actions or knowledge of programming needed.&#xD;
+&#xD;
+Feature-rich synchronization&#xD;
+&#xD;
+- Automatic synchronization between your Magento email subscriber list and one of your Mailigen email lists. When users subscribe to the newsletter in Magento, they will be added to the selected Mailigen contact list.&#xD;
+- Two-way synchronization when it comes to subscriber status change. When users unsubscribe from your Magento list, they will be removed also from your Mailigen list. And vice versa, users will be removed from your Magento list when unsubscribed from your Mailigen list.&#xD;
+&#xD;
+For more detailed information, instructions and usage of this extension, please visit Mailigen Integrations page or contact our support team.&#xD;
+&#xD;
+Mailigen provides email and integrated marketing services covering full email automation. See a full integration list in Mailigen Integrations page.</description>
+    <notes>- Automatic synchronization between your Magento email subscriber list and one of your Mailigen email lists. When users subscribe to the newsletter in Magento, they will be added to the selected Mailigen contact list.&#xD;
+- Two-way synchronization when it comes to subscriber status change. When users unsubscribe from your Magento list, they will be removed also from your Mailigen list. And vice versa, users will be removed from your Magento list when unsubscribed from your Mailigen list.</notes>
+    <authors><author><name>Thomas Nelson</name><user>mailigen</user><email>info@mailigen.com</email></author></authors>
+    <date>2014-11-27</date>
+    <time>19:21:24</time>
+    <contents><target name="magecommunity"><dir name="Mailigen"><dir name="Synchronizer"><dir name="Block"><dir name="Newsletter"><dir name="Subscriber"><file name="Grid.php" hash="0806d62b81980578a09e5c6210530337"/></dir></dir></dir><dir name="Helper"><file name="Data.php" hash="45ff744e45e50f035bfcc81534f96dad"/></dir><dir name="Model"><file name="List.php" hash="1f17c0f455adc4024140f22ebe5d6554"/><file name="Mailigen.php" hash="56b6c239c2863384756fc41e3617f804"/><dir name="Newsletter"><file name="Subscriber.php" hash="31cd322f6d00250b672b3e4929559e75"/></dir><file name="Observer.php" hash="fdeaaf4e3a6af3b632de65968e077a41"/></dir><dir name="api"><file name="MGAPI.class.php" hash="904de870b0896a4ffd5c5c144b76d6bb"/></dir><dir name="controllers"><dir name="Adminhtml"><file name="MailigenController.php" hash="2ecc61ae8c037d48a810cc9802b5a507"/></dir></dir><dir name="etc"><file name="config.xml" hash="a90af7455f1c48dc07e53f7be2e5ceee"/><file name="system.xml" hash="ba6c34ba2c4256e9cad3f34fe483beff"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Mailigen_Synchronizer.xml" hash="6a07537f8d139cba241548e9e11c3e8b"/></dir></target></contents>
+    <compatible/>
+    <dependencies><required><php><min>5.4.0</min><max>6.0.0</max></php></required></dependencies>
+</package>
