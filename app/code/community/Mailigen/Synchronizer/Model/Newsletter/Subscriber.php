@@ -1,16 +1,22 @@
 <?php
 
-class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter_Model_Subscriber {
-    
-    public function subscribe($email) {
+class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_Model_Subscriber
+{
+    /**
+     * @param $email
+     * @return mixed
+     * @throws Exception
+     */
+    public function subscribe($email)
+    {
         $this->loadByEmail($email);
         $customerSession = Mage::getSingleton('customer/session');
 
-        if(!$this->getId()) {
+        if (!$this->getId()) {
             $this->setSubscriberConfirmCode($this->randomSequence());
         }
 
-        $isConfirmNeed   = (Mage::getStoreConfig(self::XML_PATH_CONFIRMATION_FLAG) == 1) ? true : false;
+        $isConfirmNeed = (Mage::getStoreConfig(self::XML_PATH_CONFIRMATION_FLAG) == 1) ? true : false;
         $isOwnSubscribes = false;
         $ownerId = Mage::getModel('customer/customer')
             ->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
@@ -24,7 +30,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
             if ($isConfirmNeed === true) {
                 // if user subscribes own login email - confirmation is not needed
                 $isOwnSubscribes = $isSubscribeOwnEmail;
-                if ($isOwnSubscribes == true){
+                if ($isOwnSubscribes == true) {
                     $this->setStatus(self::STATUS_SUBSCRIBED);
                 } else {
                     $this->setStatus(self::STATUS_NOT_ACTIVE);
@@ -47,10 +53,9 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
 
         try {
             $this->save();
-            
-            
+
             $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
-            if ( !$send_flag ) {
+            if (!$send_flag) {
                 if ($isConfirmNeed === true
                     && $isOwnSubscribes === false
                 ) {
@@ -58,7 +63,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
                 } else {
                     $this->sendConfirmationSuccessEmail();
                 }
-            
+
             }
 
             return $this->getStatus();
@@ -66,10 +71,11 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
             throw new Exception($e->getMessage());
         }
     }
-    
+
+
     /**
      * Unsubscribes loaded subscription
-     *
+     * @return $this
      */
     public function unsubscribe()
     {
@@ -79,15 +85,15 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
 
         $this->setSubscriberStatus(self::STATUS_UNSUBSCRIBED)
             ->save();
-        
+
         $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
-        if ( !$send_flag ) {
+        if (!$send_flag) {
             $this->sendUnsubscriptionEmail();
         }
-        
+
         return $this;
     }
-    
+
     /**
      * Saving customer subscription status
      *
@@ -108,17 +114,17 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
             return $this;
         }
 
-        if(!$this->getId()) {
+        if (!$this->getId()) {
             $this->setSubscriberConfirmCode($this->randomSequence());
         }
 
-       /*
-        * Logical mismatch between customer registration confirmation code and customer password confirmation
-        */
-       $confirmation = null;
-       if ($customer->isConfirmationRequired() && ($customer->getConfirmation() != $customer->getPassword())) {
-           $confirmation = $customer->getConfirmation();
-       }
+        /*
+         * Logical mismatch between customer registration confirmation code and customer password confirmation
+         */
+        $confirmation = null;
+        if ($customer->isConfirmationRequired() && ($customer->getConfirmation() != $customer->getPassword())) {
+            $confirmation = $customer->getConfirmation();
+        }
 
         $sendInformationEmail = false;
         if ($customer->hasIsSubscribed()) {
@@ -138,13 +144,13 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
             $status = ($this->getStatus() == self::STATUS_NOT_ACTIVE ? self::STATUS_UNSUBSCRIBED : $this->getStatus());
         }
 
-        if($status != $this->getStatus()) {
+        if ($status != $this->getStatus()) {
             $this->setIsStatusChanged(true);
         }
 
         $this->setStatus($status);
 
-        if(!$this->getId()) {
+        if (!$this->getId()) {
             $storeId = $customer->getStoreId();
             if ($customer->getStoreId() == 0) {
                 $storeId = Mage::app()->getWebsite($customer->getWebsiteId())->getDefaultStore()->getId();
@@ -160,9 +166,9 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber  extends Mage_Newsletter
         $this->save();
         $sendSubscription = $customer->getData('sendSubscription') || $sendInformationEmail;
         if (is_null($sendSubscription) xor $sendSubscription) {
-            
+
             $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
-            if ( !$send_flag ) {
+            if (!$send_flag) {
                 if ($this->getIsStatusChanged() && $status == self::STATUS_UNSUBSCRIBED) {
                     $this->sendUnsubscriptionEmail();
                 } elseif ($this->getIsStatusChanged() && $status == self::STATUS_SUBSCRIBED) {

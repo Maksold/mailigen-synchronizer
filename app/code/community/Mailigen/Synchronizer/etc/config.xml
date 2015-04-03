@@ -11,7 +11,7 @@
                 <class>Mailigen_Synchronizer_Helper</class>
             </Mailigen_Synchronizer>
         </helpers>
-         <models>
+        <models>
             <mailigen_synchronizer>
                 <class>Mailigen_Synchronizer_Model</class>
             </mailigen_synchronizer>
