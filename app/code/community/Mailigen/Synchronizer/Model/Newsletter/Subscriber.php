@@ -54,7 +54,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
         try {
             $this->save();
 
-            $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
+            $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
             if (!$send_flag) {
                 if ($isConfirmNeed === true
                     && $isOwnSubscribes === false
@@ -86,7 +86,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
         $this->setSubscriberStatus(self::STATUS_UNSUBSCRIBED)
             ->save();
 
-        $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
+        $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
         if (!$send_flag) {
             $this->sendUnsubscriptionEmail();
         }
@@ -167,7 +167,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
         $sendSubscription = $customer->getData('sendSubscription') || $sendInformationEmail;
         if (is_null($sendSubscription) xor $sendSubscription) {
 
-            $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
+            $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
             if (!$send_flag) {
                 if ($this->getIsStatusChanged() && $status == self::STATUS_UNSUBSCRIBED) {
                     $this->sendUnsubscriptionEmail();

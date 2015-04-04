@@ -4,12 +4,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 {
     public function sync()
     {
-        $mgapi = Mage::getModuleDir('', 'Mailigen_Synchronizer') . DS . 'api' . DS . 'MGAPI.class.php';
-        $apikey = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_api_key');
-        $listid = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_list');
-
-        require_once($mgapi);
-        $api = new MGAPI($apikey);
+        $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
+        $listid = Mage::helper('mailigen_synchronizer')->getNewsletterContactList();
 
         //First we pull all unsubscribers from Mailigen
         $unsubscribers = $api->listMembers($listid, "unsubscribed", 0, 500);

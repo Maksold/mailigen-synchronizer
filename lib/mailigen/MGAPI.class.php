@@ -1143,6 +1143,31 @@ class MGAPI {
 	}
 	
 	/**
+	* Atrodam epastus
+	*
+	* @example mgapi_listSegmentMembers.php
+	* @example xml-rpc_listSegmentMembers.php
+	*
+	* @param string $id Segmenta ID. Saraksta ID var atrast ar listSegments() metodi
+	* @param string $status Epasta statuss (subscribed, unsubscribed, inactive, bounced), pec noklusejuma subscribed
+	* @param integer $start Nav obligats. Nepiecieams lielam sarakstam. Lapas numurs, no kuras sakt. Pirmajai lapai atbilst numurs 0
+	* @param integer $limit Nav obligats. Nepiecieams lielam sarakstam. Skaits, cik daudz atgriezt epastus. Pec noklusejuma 100, maksimalais ir 15000
+	* @return array Masivs ar lietotaju sarakstu
+	* @returnf string email Lietotaja epasts
+	* @returnf string id Lietotaja ID
+	* @returnf string list Saraksta ID
+	* @returnf date timestamp Peivienoanas datums
+	*/
+	function listSegmentMembers($id, $status = 'subscribed', $start = 0, $limit = 100) {
+		$params = array();
+		$params["id"] = $id;
+		$params["status"] = $status;
+		$params["start"] = $start;
+		$params["limit"] = $limit;
+		return $this->callServer("listSegmentMembers", $params);
+	}
+
+	/**
 	* Noņemam nost statusu, kas lika SMS kampaņu izsūtīt kaut kad nākotnē
 	*
 	* @example mgapi_smsCampaignUnschedule.php

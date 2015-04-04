@@ -9,9 +9,8 @@ class Mailigen_Synchronizer_Model_Observer
     public function newsletter_subscriber_create_after(Varien_Event_Observer $observer)
     {
 
-        $enabled = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_status');
-        $delete_on_unsubscribe = Mage::getStoreConfig('mailigen_settings/mailigen_unsubscribe_group/mailigen_unsubscribe_delete');
-
+        $enabled = Mage::helper('mailigen_synchronizer')->isEnabled();
+        $delete_on_unsubscribe = Mage::getStoreConfig('mailigen_synchronizer/mailigen_unsubscribe_group/mailigen_unsubscribe_delete');
 
         $subscriber = $observer->getDataObject();
         $data = $subscriber->getData();
@@ -19,12 +18,8 @@ class Mailigen_Synchronizer_Model_Observer
 
         if ($enabled && $statusChange == true) {
 
-            $mgapi = Mage::getModuleDir('', 'Mailigen_Synchronizer') . DS . 'api' . DS . 'MGAPI.class.php';
-            $apikey = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_api_key');
-            $listid = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_list');
-
-            require_once($mgapi);
-            $api = new MGAPI($apikey);
+            $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
+            $listid = Mage::helper('mailigen_synchronizer')->getNewsletterContactList();
 
             $email_address = $observer['subscriber']->getSubscriberEmail();
             $merge_vars = array('EMAIL' => $email_address); // or $merge_vars = array();
@@ -34,7 +29,7 @@ class Mailigen_Synchronizer_Model_Observer
 
 
             //If mailigen transational emails are set from admin.
-            $send_flag = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
+            $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
 
             if ($send_flag) {
                 $send_welcome = true;
@@ -79,8 +74,9 @@ class Mailigen_Synchronizer_Model_Observer
      */
     public function daily_sync(Varien_Event_Observer $observer)
     {
-        $autosync = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_default_emails');
+        $autosync = Mage::helper('mailigen_synchronizer')->canAutoSyncNewsletter();
         if ($autosync == 'yes') {
+            /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
             $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
             $mailigen->sync();
         }
@@ -92,7 +88,7 @@ class Mailigen_Synchronizer_Model_Observer
     public function admin_system_config_changed_section_mailigen_settings(Varien_Event_Observer $observer)
     {
 
-        $new_list_name = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_new_list');
+        $new_list_name = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE);
         $notify_to = Mage::getStoreConfig('trans_email/ident_general/email');
 
         if ($new_list_name) {
@@ -124,10 +120,7 @@ class Mailigen_Synchronizer_Model_Observer
                     'has_email_type_option' => true
                 );
 
-                $mgapi = Mage::getModuleDir('', 'Mailigen_Synchronizer') . DS . 'api' . DS . 'MGAPI.class.php';
-                $apikey = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_api_key');
-                require_once($mgapi);
-                $api = new MGAPI($apikey);
+                $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
 
                 $retval = $api->listCreate($new_list_name, $options);
 
@@ -142,16 +135,13 @@ class Mailigen_Synchronizer_Model_Observer
                 foreach ($lists as $list) {
                     if ($list['label'] == $new_list_name) {
                         //We make the new submitted list default
-                        $config_model->saveConfig('mailigen_settings/mailigen_general_group/mailigen_general_list',
-                            $list['value'], 'default', 0);
+                        $config_model->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $list['value'], 'default', 0);
                         continue;
                     }
                 }
             }
 
-            $config_model->saveConfig('mailigen_settings/mailigen_general_group/mailigen_general_new_list', "",
-                'default', 0);
-
+            $config_model->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, "", 'default', 0);
         }
     }
 }

@@ -7,9 +7,9 @@
     </modules>
     <global>
         <helpers>
-            <Mailigen_Synchronizer>
+            <mailigen_synchronizer>
                 <class>Mailigen_Synchronizer_Helper</class>
-            </Mailigen_Synchronizer>
+            </mailigen_synchronizer>
         </helpers>
         <models>
             <mailigen_synchronizer>
@@ -73,9 +73,9 @@
                             <children>
                                 <config>
                                     <children>
-                                        <mailigen_settings>
+                                        <mailigen_synchronizer>
                                             <title>Mailigen - Settings</title>
-                                        </mailigen_settings>
+                                        </mailigen_synchronizer>
                                     </children>
                                 </config>
                             </children>
@@ -87,10 +87,10 @@
     </adminhtml>
     <crontab>
         <jobs>
-            <Mailigen_Synchronizer>
+            <mailigen_synchronizer>
                 <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
                 <run><model>newsletter_subscriber/observer::daily_sync</model></run>
-            </Mailigen_Synchronizer>
+            </mailigen_synchronizer>
         </jobs>
     </crontab>
 </config>

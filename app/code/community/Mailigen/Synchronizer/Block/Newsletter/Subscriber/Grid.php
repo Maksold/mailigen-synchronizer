@@ -24,8 +24,7 @@ class Mailigen_Synchronizer_Block_Newsletter_Subscriber_Grid extends Mage_Adminh
     public function getMainButtonsHtml()
     {
         $html = parent::getMainButtonsHtml();
-
-        $enabled = Mage::getStoreConfig('mailigen_settings/mailigen_general_group/mailigen_general_status');
+        $enabled = $this->helper('mailigen_synchronizer')->isEnabled();
 
         if ($enabled) {
             $html .= $this->getSyncButtonHtml();
