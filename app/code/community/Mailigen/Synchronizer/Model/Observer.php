@@ -84,60 +84,43 @@ class Mailigen_Synchronizer_Model_Observer
      */
     public function adminSystemConfigChangedSectionMailigenSettings(Varien_Event_Observer $observer)
     {
-        $new_list_name = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE);
-        $notify_to = Mage::getStoreConfig('trans_email/ident_general/email');
+        /** @var $list Mailigen_Synchronizer_Model_List */
+        $list = Mage::getModel('mailigen_synchronizer/list');
+        /** @var $config Mage_Core_Model_Config */
+        $config = new Mage_Core_Model_Config();
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
 
-        if ($new_list_name) {
-
-            //Get the list with current lists
-            $lists = Mage::getModel('mailigen_synchronizer/list')->toOptionArray();
-
-            //We need this later on
-            $config_model = new Mage_Core_Model_Config();
-
-            //Check if a similar list name doesn't exists already.
-            $continue = true;
-            foreach ($lists as $list) {
-                if ($list['label'] == $new_list_name) {
-                    $continue = false;
-                    Mage::getSingleton('adminhtml/session')->addError("A list with a simiar name already exists");
-                    break;
-                }
+        /**
+         * Create new newsletter list
+         */
+        $newsletterNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE);
+        if ($newsletterNewListName) {
+            $newListValue = $list->createNewList($newsletterNewListName);
+            if ($newListValue) {
+                $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, 'default', 0);
             }
+            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, '', 'default', 0);
+        }
 
-            //Only if a list with a similar name is not doesn't exists we move further.
-            if ($continue) {
-
-                $options = array(
-                    'permission_reminder' => ' ',
-                    'notify_to' => $notify_to,
-                    'subscription_notify' => true,
-                    'unsubscription_notify' => true,
-                    'has_email_type_option' => true
-                );
-
-                $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
-
-                $retval = $api->listCreate($new_list_name, $options);
-
-                if ($api->errorCode) {
-                    Mage::log("Mailigen API Error: " . "Code=" . $api->errorCode . " Msg=" . $api->errorMessage);
-                } else {
-                    Mage::log("Returned: " . $retval);
-                }
-
-                //We grab the list one more time
-                $lists = Mage::getModel('mailigen_synchronizer/list')->toOptionArray();
-                foreach ($lists as $list) {
-                    if ($list['label'] == $new_list_name) {
-                        //We make the new submitted list default
-                        $config_model->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $list['value'], 'default', 0);
-                        continue;
-                    }
-                }
+        /**
+         * Create new customers list
+         */
+        $customersNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE);
+        if ($customersNewListName) {
+            $newListValue = $list->createNewList($customersNewListName);
+            if ($newListValue) {
+                $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, 'default', 0);
             }
+            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, '', 'default', 0);
+        }
 
-            $config_model->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, "", 'default', 0);
+        /**
+         * Check if user selected the same contact lists for newsletter and customers
+         */
+        if ($helper->getNewsletterContactList() == $helper->getCustomersContactList()) {
+            Mage::getSingleton('adminhtml/session')->addError("Please select different contact lists for newsletter and customers");
+            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, '', 'default', 0);
         }
     }
 }
