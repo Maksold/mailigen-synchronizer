@@ -2,10 +2,13 @@
 
 class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 {
-    public function sync()
+    public function syncNewsletter()
     {
         $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
         $listid = Mage::helper('mailigen_synchronizer')->getNewsletterContactList();
+        if (!$listid) {
+            return;
+        }
 
         //First we pull all unsubscribers from Mailigen
         $unsubscribers = $api->listMembers($listid, "unsubscribed", 0, 500);
@@ -71,4 +74,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         }
     }
 
+    public function syncCustomers()
+    {
+        // @todo
+    }
 }

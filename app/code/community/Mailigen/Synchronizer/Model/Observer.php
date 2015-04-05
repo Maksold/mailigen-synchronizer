@@ -68,6 +68,7 @@ class Mailigen_Synchronizer_Model_Observer
 
     /**
      * @param Varien_Event_Observer $observer
+     * @todo Sync Customers
      */
     public function daily_sync(Varien_Event_Observer $observer)
     {
@@ -75,7 +76,7 @@ class Mailigen_Synchronizer_Model_Observer
         if ($autosync == 'yes') {
             /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
             $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-            $mailigen->sync();
+            $mailigen->syncNewsletter();
         }
     }
 
@@ -118,9 +119,26 @@ class Mailigen_Synchronizer_Model_Observer
         /**
          * Check if user selected the same contact lists for newsletter and customers
          */
-        if ($helper->getNewsletterContactList() == $helper->getCustomersContactList()) {
+        if ($helper->getNewsletterContactList() == $helper->getCustomersContactList() && $helper->getNewsletterContactList() != '') {
             Mage::getSingleton('adminhtml/session')->addError("Please select different contact lists for newsletter and customers");
             $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, '', 'default', 0);
+        }
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function adminhtmlWidgetContainerHtmlBefore(Varien_Event_Observer $observer)
+    {
+        $block = $observer->getBlock();
+
+        if ($block instanceof Mage_Adminhtml_Block_Customer) {
+            $url = Mage::helper('adminhtml')->getUrl('*/mailigen/syncCustomers');
+            $block->addButton('synchronize', array(
+                'label' => Mage::helper('adminhtml')->__('Bulk synchronize with Mailigen'),
+                'onclick' => "setLocation('{$url}')",
+                'class' => 'task'
+            ));
         }
     }
 }
