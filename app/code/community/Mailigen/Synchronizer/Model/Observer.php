@@ -6,12 +6,9 @@ class Mailigen_Synchronizer_Model_Observer
      * @param Varien_Event_Observer $observer
      * @return Varien_Event_Observer
      */
-    public function newsletter_subscriber_create_after(Varien_Event_Observer $observer)
+    public function newsletterSubscriberSaveCommitAfter(Varien_Event_Observer $observer)
     {
-
         $enabled = Mage::helper('mailigen_synchronizer')->isEnabled();
-        $delete_on_unsubscribe = Mage::getStoreConfig('mailigen_synchronizer/mailigen_unsubscribe_group/mailigen_unsubscribe_delete');
-
         $subscriber = $observer->getDataObject();
         $data = $subscriber->getData();
         $statusChange = $subscriber->getIsStatusChanged();
@@ -85,9 +82,8 @@ class Mailigen_Synchronizer_Model_Observer
     /**
      * @param Varien_Event_Observer $observer
      */
-    public function admin_system_config_changed_section_mailigen_settings(Varien_Event_Observer $observer)
+    public function adminSystemConfigChangedSectionMailigenSettings(Varien_Event_Observer $observer)
     {
-
         $new_list_name = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE);
         $notify_to = Mage::getStoreConfig('trans_email/ident_general/email');
 

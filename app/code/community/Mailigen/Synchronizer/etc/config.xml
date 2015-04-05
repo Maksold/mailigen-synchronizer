@@ -35,19 +35,19 @@
                     <newsletter_subscriber_newsletter_subscriber_create_after>
                         <type>singleton</type>
                         <class>Mailigen_Synchronizer_Model_Observer</class>
-                        <method>newsletter_subscriber_create_after</method>
+                        <method>newsletterSubscriberSaveCommitAfter</method>
                     </newsletter_subscriber_newsletter_subscriber_create_after>
                 </observers>
             </newsletter_subscriber_save_commit_after>
-            <admin_system_config_changed_section_mailigen_settings>
+            <admin_system_config_changed_section_mailigen_synchronizer>
                 <observers>
-                    <newsletter_subscriber_admin_system_config_changed_section_mailigen_settings>
+                    <newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
                         <type>singleton</type>
                         <class>Mailigen_Synchronizer_Model_Observer</class>
-                        <method>admin_system_config_changed_section_mailigen_settings</method>
-                    </newsletter_subscriber_admin_system_config_changed_section_mailigen_settings>
+                        <method>adminSystemConfigChangedSectionMailigenSettings</method>
+                    </newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
                 </observers>
-            </admin_system_config_changed_section_mailigen_settings>
+            </admin_system_config_changed_section_mailigen_synchronizer>
         </events>
     </global>
     <admin>
