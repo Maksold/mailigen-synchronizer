@@ -76,6 +76,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     public function syncCustomers()
     {
-        // @todo
+        Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
+
+        // @todo Sync customers
     }
 }
