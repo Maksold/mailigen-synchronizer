@@ -45,7 +45,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             ),
             'CUSTOMERGROUP' => array(
                 'title' => 'Customer group',
-                'field_type' => 'grouping',
+                'field_type' => 'dropdown',
                 'req' => true
                 // @todo Add values
             ),
@@ -62,7 +62,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             'COUNTRY' => array(
                 'title' => 'Country',
                 'field_type' => 'dropdown',
-                'req' => true,
+                'req' => false,
                 'predefined_type' => 'countries'
                 // @todo Add Predefined values
             ),
@@ -85,7 +85,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             'LASTLOGIN' => array(
                 'title' => 'Last login',
                 'field_type' => 'date',
-                'req' => true
+                'req' => false
             ),
             'CLIENTID' => array(
                 'title' => 'Client id',
@@ -150,7 +150,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
         $listId = $helper->getCustomersContactList();
 
         if (empty($listId)) {
-            Mage::throwException("Contact list isn't selected");
+            Mage::throwException("Customer contact list isn't selected");
         }
 
         $createdFields = $this->_getCreatedMergeFields();
@@ -166,7 +166,8 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
 //                if ($api->errorCode) {
 //                    Mage::throwException("Unable to delete merge var. $api->errorCode: $api->errorMessage");
 //                }
-            } else {
+            }
+            else {
                 /**
                  * Create new merge field
                  */

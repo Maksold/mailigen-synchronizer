@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Mailigen_Synchronizer
+ *
+ * @category    Mailigen
+ * @package     Mailigen_Synchronizer
+ * @author      Maksim Soldatjonok <maksold@gmail.com>
+ */
 class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 {
     const XML_PATH_ENABLED = 'mailigen_synchronizer/general/enabled';
