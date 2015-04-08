@@ -1,0 +1,11 @@
+{
+  "name": "mailigen/synchronizer",
+  "license": "GPL-3.0",
+  "type": "magento-module",
+  "description": "Magento newsletter, customers synchronizer with Mailigen",
+  "homepage": "https://bitbucket.org/gkovjazin/mailigen-synchronizer",
+  "require": {
+    "php": ">=5.3",
+    "magento-hackathon/magento-composer-installer": "*"
+  }
+}
