@@ -99,8 +99,8 @@
     <crontab>
         <jobs>
             <mailigen_synchronizer>
-                <schedule><cron_expr>*/5 * * * *</cron_expr></schedule>
-                <run><model>newsletter_subscriber/observer::daily_sync</model></run>
+                <schedule><cron_expr>0 1 * * *</cron_expr></schedule>
+                <run><model>mailigen_synchronizer/observer::daily_sync</model></run>
             </mailigen_synchronizer>
         </jobs>
     </crontab>
