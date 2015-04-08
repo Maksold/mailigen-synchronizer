@@ -74,21 +74,30 @@ class Mailigen_Synchronizer_Model_Observer
         /**
          * Synchronize Newsletter
          */
-        $autosyncNewsletter = Mage::helper('mailigen_synchronizer')->canAutoSyncNewsletter();
-        if ($autosyncNewsletter) {
-            /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-            $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-            $mailigen->syncNewsletter();
+        try {
+            $autosyncNewsletter = Mage::helper('mailigen_synchronizer')->canAutoSyncNewsletter();
+            if ($autosyncNewsletter) {
+                /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
+                $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
+                $mailigen->syncNewsletter();
+            }
+        } catch (Exception $e) {
+            Mage::helper('mailigen_synchronizer/log')->logException($e);
         }
 
         /**
          * Synchronize Customers
          */
-        $autosyncCustomers = Mage::helper('mailigen_synchronizer')->canAutoSyncCustomers();
-        if ($autosyncCustomers) {
-            /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-            $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-            $mailigen->syncCustomers();
+        try {
+
+            $autosyncCustomers = Mage::helper('mailigen_synchronizer')->canAutoSyncCustomers();
+            if ($autosyncCustomers) {
+                /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
+                $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
+                $mailigen->syncCustomers();
+            }
+        } catch (Exception $e) {
+            Mage::helper('mailigen_synchronizer/log')->logException($e);
         }
     }
 

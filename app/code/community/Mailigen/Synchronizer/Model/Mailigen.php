@@ -74,13 +74,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         }
     }
 
-    /**
-     * @todo Add logging
-     */
     public function syncCustomers()
     {
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
+        $logger->log('Customers synchronization started');
         $listId = $helper->getCustomersContactList();
         if (!$listId) {
             Mage::throwException("Customer contact list isn't selected");
@@ -90,6 +90,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          * Create or update Merge fields
          */
         Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
+        $logger->log('Merge fields created and updated');
 
         /**
          * Sync Customers
@@ -99,42 +100,48 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $customerCount = Mage::getModel('customer/customer')->getCollection()->count();
         $customerPerStep = 100;
         $maxI = ceil($customerCount/$customerPerStep);
-        $maxI = 1; // @todo remove
+        $successSyncCount = 0;
+        $errorSyncCount = 0;
+        $syncErrors = array();
 
         for ($i = 1; $i <= $maxI; $i++) {
             $batchCustomers = $this->_getCustomers($i, $customerPerStep);
             $retval = $api->listBatchSubscribe($listId, $batchCustomers, false, true);
 
+            $logger->log("Processed " . ($i < $maxI ? $i * $customerPerStep : $customerCount) . "/$customerCount customers");
+
             if ($api->errorCode){
                 Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
             } else {
-                /**
-                 * @todo log
-                 */
-                $c = "success:".$retval['success_count']."\n";
-                $c = "errors:".$retval['error_count']."\n";
-                foreach($retval['errors'] as $val){
-                    $c = "\t*".$val['email']. " failed\n";
-                    $c = "\tcode:".$val['code']."\n";
-                    $c = "\tmsg :".$val['message']."\n\n";
+                $successSyncCount += $retval['success_count'];
+                $errorSyncCount += $retval['error_count'];
+                if (count($retval['errors'])) {
+                    $syncErrors = array_merge_recursive($syncErrors, $retval['errors']);
                 }
             }
+        }
+
+        $logger->log('Customers synchronization finished');
+        $logger->log("Synced successfully $successSyncCount/$customerCount customers");
+        $logger->log("Synced with error $errorSyncCount/$customerCount customers");
+        if (!empty($syncErrors)) {
+            $logger->log("Sync errors: " . var_export($syncErrors, true));
         }
     }
 
     /**
-     * @param int $start
+     * @param int $page
      * @param int $limit
      * @return array
      */
-    protected function _getCustomers($start = 1, $limit = 100)
+    protected function _getCustomers($page = 1, $limit = 100)
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Customer */
         $helper = Mage::helper('mailigen_synchronizer/customer');
         // @todo Walk collection
         $customers = Mage::getModel('customer/customer')->getCollection()
                 ->addAttributeToSelect('*')
-                ->setCurPage($start)
+                ->setCurPage($page)
                 ->setPageSize($limit);
         $customersArray = array();
 

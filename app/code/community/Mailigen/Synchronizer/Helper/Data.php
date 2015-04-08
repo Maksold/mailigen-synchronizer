@@ -96,16 +96,4 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
         return $this->_mgapi;
     }
-
-    /**
-     * @param string $message
-     * @todo Modify this function
-     */
-    public function log($message)
-    {
-//        if (!Mage::getStoreConfigFlag(self::XML_PATH_LOGGING_ENABLED)) {
-//            return;
-//        }
-        Mage::log($message, null, 'mailigen_synchronizer.log');
-    }
 }

@@ -20,7 +20,7 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
         }
         catch (Exception $e) {
             Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
-            Mage::logException($e); // @todo Log to custom log file
+            Mage::helper('mailigen_synchronizer/log')->logException($e);
         }
 
         $this->_redirect('*/customer/index');
