@@ -7,5 +7,21 @@
   "require": {
     "php": ">=5.3",
     "magento-hackathon/magento-composer-installer": "*"
+  },
+  "extra": {
+    "map": [
+      [
+        "app/code/community/Mailigen/Synchronizer",
+        "app/code/community/Mailigen/Synchronizer"
+      ],
+      [
+        "app/etc/modules/Mailigen_Synchronizer.xml",
+        "app/etc/modules/Mailigen_Synchronizer.xml"
+      ],
+      [
+        "lib/mailigen",
+        "lib/mailigen"
+      ]
+    ]
   }
 }
