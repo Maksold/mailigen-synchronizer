@@ -74,6 +74,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         }
     }
 
+    /**
+     * @todo Add logging
+     */
     public function syncCustomers()
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
@@ -105,6 +108,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             if ($api->errorCode){
                 Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
             } else {
+                /**
+                 * @todo log
+                 */
                 $c = "success:".$retval['success_count']."\n";
                 $c = "errors:".$retval['error_count']."\n";
                 foreach($retval['errors'] as $val){
@@ -138,6 +144,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $customerAddress = $customer->getDefaultBillingAddress();
 
             $customersArray[$customer->getEntityId()] = array(
+                /**
+                 * Customer info
+                 */
                 'EMAIL' => $customer->getEmail(),
                 'FNAME' => $customer->getFirstname(),
                 'LNAME' => $customer->getLastname(),
@@ -149,7 +158,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 'CUSTOMERGROUP' => $helper->getCustomerGroup($customer->getGroupId()),
                 'PHONE' => ($customerAddress ? $customerAddress->getTelephone() : ''),
                 'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
-                'COUNTRY' => $customerAddress ? $customerAddress->getCountryId() : '',
+                'COUNTRY' => $customerAddress ? $helper->getFormattedCountry($customerAddress->getCountryId()) : '',
                 'CITY' => $customerAddress ? $customerAddress->getCity() : '',
                 'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
                 'GENDER' => $helper->getFormattedGender($customer->getGender()),
@@ -157,8 +166,60 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 'CLIENTID' => $customer->getId(),
                 'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
             );
+
+            /**
+             * Add customer orders info
+             */
+            $customersArray[$customer->getEntityId()] = array_merge(
+                $customersArray[$customer->getEntityId()], $this->_getCustomerOrderInfo($customer)
+            );
         }
 
         return $customersArray;
+    }
+
+    /**
+     * @param Mage_Customer_Model_Customer $customer
+     * @return array
+     */
+    public function _getCustomerOrderInfo(Mage_Customer_Model_Customer $customer)
+    {
+        /** @var $helper Mailigen_Synchronizer_Helper_Customer */
+        $helper = Mage::helper('mailigen_synchronizer/customer');
+        /** @var $orders Mage_Sales_Model_Resource_Order_Collection */
+        $orders = Mage::getModel("sales/order")->getCollection()
+            ->addFieldToFilter('customer_id', $customer->getId())
+            ->addFieldToFilter('status', Mage_Sales_Model_Order::STATE_COMPLETE)
+            ->addAttributeToSort('created_at', 'desc')
+            ->addAttributeToSelect('*');
+        $lastOrder = $orders->getFirstItem();
+
+        /**
+         * Sum all orders grand total
+         */
+        $totalGrandTotal = 0;
+        if ($orders->count() > 0) {
+            foreach ($orders as $_order) {
+                $totalGrandTotal += $_order->getGrandTotal();
+            }
+        }
+
+        /**
+         * Get customer cart info
+         */
+        $website = $helper->getWebsite($customer->getStoreId());
+        /** @var $quote Mage_Sales_Model_Quote */
+        $quote = Mage::getModel('sales/quote')->setWebsite($website);
+        $quote->loadByCustomer($customer);
+
+        return array(
+            'LASTORDERDATE' => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
+            'VALUEOFLASTORDER' => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
+            'TOTALVALUEOFORDERS' => (float)$totalGrandTotal,
+            'TOTALNUMBEROFORDERS' => (int)$orders->count(),
+            'NUMBEROFITEMSINCART' => $quote ? (int)$quote->getItemsQty() : '',
+            'VALUEOFCURRENTCART' => $quote ? (float)$quote->getGrandTotal() : '',
+            'LASTITEMINCARTADDINGDATE' => $quote ? $helper->getFormattedDate($quote->getUpdatedAt()) : ''
+        );
     }
 }

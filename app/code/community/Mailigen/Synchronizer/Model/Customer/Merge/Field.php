@@ -10,10 +10,25 @@
 class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_Abstract
 {
     /**
+     * @param $values
+     * @return string
+     */
+    protected function _getFormattedPredefinedValues($values)
+    {
+        if (is_array($values)) {
+            return implode("||", $values);
+        }
+        return '';
+    }
+
+    /**
      * @return array
      */
     protected function _getMergeFieldsConfig()
     {
+        /** @var $helper Mailigen_Synchronizer_Helper_Customer */
+        $helper = Mage::helper('mailigen_synchronizer/customer');
+
         return array(
             /**
              * Customer fields
@@ -46,8 +61,8 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             'CUSTOMERGROUP' => array(
                 'title' => 'Customer group',
                 'field_type' => 'dropdown',
-                'req' => true
-                // @todo Add values
+                'req' => true,
+                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCustomerGroups())
             ),
             'PHONE' => array(
                 'title' => 'Phone',
@@ -63,8 +78,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'title' => 'Country',
                 'field_type' => 'dropdown',
                 'req' => false,
-                'predefined_type' => 'countries'
-                // @todo Add Predefined values
+                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCountries()),
             ),
             'CITY' => array(
                 'title' => 'City',
@@ -79,8 +93,8 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             'GENDER' => array(
                 'title' => 'Gender',
                 'field_type' => 'dropdown',
-                'req' => false
-                // @todo Add Predefined values
+                'req' => false,
+                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getGenders())
             ),
             'LASTLOGIN' => array(
                 'title' => 'Last login',
@@ -95,8 +109,8 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             'STATUSOFUSER' => array(
                 'title' => 'Status of user',
                 'field_type' => 'dropdown',
-                'req' => true
-                // @todo Add values
+                'req' => true,
+                'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerStatus)
             ),
             /**
              * Customer orders info
@@ -148,7 +162,6 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
         $helper = Mage::helper('mailigen_synchronizer');
         $api = $helper->getMailigenApi();
         $listId = $helper->getCustomersContactList();
-
         if (empty($listId)) {
             Mage::throwException("Customer contact list isn't selected");
         }
@@ -160,12 +173,14 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             if (isset($createdFields[$tag])) {
                 /**
                  * Merge Field already created
-                 * @todo Update field if necessary
+                 * Update only 'CUSTOMERGROUP' field
                  */
-//                $api->listMergeVarDel($listId, $tag);
-//                if ($api->errorCode) {
-//                    Mage::throwException("Unable to delete merge var. $api->errorCode: $api->errorMessage");
-//                }
+                if ($tag == 'CUSTOMERGROUP') {
+                    $api->listMergeVarUpdate($listId, $tag, $options);
+                    if ($api->errorCode) {
+                        Mage::throwException("Unable to update merge var. $api->errorCode: $api->errorMessage");
+                    }
+                }
             }
             else {
                 /**
