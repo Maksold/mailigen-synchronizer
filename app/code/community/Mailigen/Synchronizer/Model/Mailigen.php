@@ -138,18 +138,33 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Customer */
         $helper = Mage::helper('mailigen_synchronizer/customer');
-        // @todo Walk collection
+        /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
         $customers = Mage::getModel('customer/customer')->getCollection()
-                ->addAttributeToSelect('*')
-                ->setCurPage($page)
-                ->setPageSize($limit);
+            ->addAttributeToSelect(array(
+                'email',
+                'firstname',
+                'lastname',
+                'prefix',
+                'middlename',
+                'suffix',
+                'store_id',
+                'group_id',
+                'created_at',
+                'dob',
+                'gender',
+                'is_active'
+            ))
+            ->joinAttribute('billing_telephone', 'customer_address/telephone', 'default_billing', null, 'left')
+            ->joinAttribute('billing_city', 'customer_address/city', 'default_billing', null, 'left')
+            ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left')
+            ->setCurPage($page)
+            ->setPageSize($limit);
+        $logCustomerTableName = Mage::getSingleton('core/resource')->getTableName('log/customer');
+        $customers->getSelect()->columns(array('last_login_at' => new Zend_Db_Expr("(SELECT login_at FROM $logCustomerTableName WHERE customer_id = e.entity_id ORDER BY log_id DESC LIMIT 1)")));
         $customersArray = array();
 
         foreach ($customers as $customer)
         {
-            $logCustomer = Mage::getModel('log/customer')->load($customer->getId());
-            $customerAddress = $customer->getDefaultBillingAddress();
-
             $customersArray[$customer->getEntityId()] = array(
                 /**
                  * Customer info
@@ -163,13 +178,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 'STOREID' => $customer->getStoreId(),
                 'STORELANGUAGE' => $helper->getStoreLanguage($customer->getStoreId()),
                 'CUSTOMERGROUP' => $helper->getCustomerGroup($customer->getGroupId()),
-                'PHONE' => ($customerAddress ? $customerAddress->getTelephone() : ''),
+                'PHONE' => $customer->getBillingTelephone(),
                 'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
-                'COUNTRY' => $customerAddress ? $helper->getFormattedCountry($customerAddress->getCountryId()) : '',
-                'CITY' => $customerAddress ? $customerAddress->getCity() : '',
+                'COUNTRY' => $helper->getFormattedCountry($customer->getBillingCountryId()),
+                'CITY' => $customer->getBillingCity(),
                 'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
                 'GENDER' => $helper->getFormattedGender($customer->getGender()),
-                'LASTLOGIN' => $helper->getFormattedDate($logCustomer->getLoginAtTimestamp()),
+                'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
                 'CLIENTID' => $customer->getId(),
                 'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
             );
@@ -194,7 +209,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /** @var $helper Mailigen_Synchronizer_Helper_Customer */
         $helper = Mage::helper('mailigen_synchronizer/customer');
         /** @var $orders Mage_Sales_Model_Resource_Order_Collection */
-        $orders = Mage::getModel("sales/order")->getCollection()
+        $orders = Mage::getModel('sales/order')->getCollection()
             ->addFieldToFilter('customer_id', $customer->getId())
             ->addFieldToFilter('status', Mage_Sales_Model_Order::STATE_COMPLETE)
             ->addAttributeToSort('created_at', 'desc')
