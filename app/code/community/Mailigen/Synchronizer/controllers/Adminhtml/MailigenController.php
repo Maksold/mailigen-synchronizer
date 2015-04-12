@@ -14,12 +14,16 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
     public function syncCustomersAction()
     {
         try {
-            /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-            $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-            $mailigen->syncCustomers();
-        }
-        catch (Exception $e) {
-            Mage::getSingleton('adminhtml/session')->addError($e->getMessage());
+            Mage::getModel('cron/schedule')
+                ->setJobCode('mailigen_synchronizer')
+                ->setStatus(Mage_Cron_Model_Schedule::STATUS_PENDING)
+                ->setCreatedAt(strftime('%Y-%m-%d %H:%M:%S', time()))
+                ->setScheduledAt(strftime('%Y-%m-%d %H:%M:00', time()))
+                ->save();
+
+            $this->_getSession()->addSuccess($this->__('Mailigen customer synchronization task will start shortly.'));
+        } catch (Exception $e) {
+            $this->_getSession()->addError($e->getMessage());
             Mage::helper('mailigen_synchronizer/log')->logException($e);
         }
 
