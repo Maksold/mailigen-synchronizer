@@ -172,6 +172,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         unset($removeCustomerIds, $removeCustomers);
 
         /**
+         * Remove synced and removed customers from Flat table
+         */
+        Mage::getModel('mailigen_synchronizer/customer')->removeSyncedAndRemovedCustomers();
+
+        /**
          * Log remove info
          */
         $logger->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");

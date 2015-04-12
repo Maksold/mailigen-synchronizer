@@ -174,4 +174,15 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
         return $updated;
     }
+
+    /**
+     * @return int
+     */
+    public function removeSyncedAndRemovedCustomers()
+    {
+        $tableName = $this->getResource()->getMainTable();
+        $write = Mage::getSingleton('core/resource')->getConnection('core_write');
+        $deleted = $write->delete($tableName, array('is_removed = ?' => 1, 'is_synced = ?' => 1));
+        return $deleted;
+    }
 }
