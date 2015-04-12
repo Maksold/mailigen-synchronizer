@@ -2,6 +2,30 @@
 
 class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 {
+    /**
+     * @var null
+     */
+    protected $_customersListId = null;
+
+    /**
+     * @var array
+     */
+    protected $_batchedCustomersData = array();
+
+    /**
+     * @var array
+     */
+    protected $_customersLog = array(
+        'update_success_count' => 0,
+        'update_error_count' => 0,
+        'update_errors' => array(),
+        'update_count' => 0,
+        'remove_success_count' => 0,
+        'remove_error_count' => 0,
+        'remove_errors' => array(),
+        'remove_count' => 0,
+    );
+
     public function syncNewsletter()
     {
         $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
@@ -81,10 +105,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         $logger->log('Customers synchronization started');
-        $listId = $helper->getCustomersContactList();
-        if (!$listId) {
+        $this->_customersListId = $helper->getCustomersContactList();
+        if (!$this->_customersListId) {
             Mage::throwException("Customer contact list isn't selected");
         }
+
 
         /**
          * Create or update Merge fields
@@ -92,156 +117,182 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
         $logger->log('Merge fields created and updated');
 
+
         /**
-         * Sync Customers
+         * Update customers order info
          */
-        $api = $helper->getMailigenApi();
+        $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo();
+        $logger->log("Updated $updatedCustomers customers in flat table");
 
-        $customerCount = Mage::getModel('customer/customer')->getCollection()->count();
-        $customerPerStep = 100;
-        $maxI = ceil($customerCount/$customerPerStep);
-        $successSyncCount = 0;
-        $errorSyncCount = 0;
-        $syncErrors = array();
 
-        for ($i = 1; $i <= $maxI; $i++) {
-            $batchCustomers = $this->_getCustomers($i, $customerPerStep);
-            $retval = $api->listBatchSubscribe($listId, $batchCustomers, false, true);
+        /**
+         * Update Customers in Mailigen
+         */
+        $updateCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getAllIds(0, 0);
+        /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
+        $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
+        if (count($updateCustomerIds) > 0 && $updateCustomers) {
+            Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+                $updateCustomers,
+                array($this, '_prepareCustomerDataForUpdate'),
+                array($this, '_updateCustomersInMailigen'),
+                200
+            );
+        }
+        $this->_customersLog['update_count'] = count($updateCustomerIds);
+        unset($updateCustomerIds, $updateCustomers);
 
-            $logger->log("Processed " . ($i < $maxI ? $i * $customerPerStep : $customerCount) . "/$customerCount customers");
+        /**
+         * Log update info
+         */
+        $logger->log("Successfully updated {$this->_customersLog['update_success_count']}/{$this->_customersLog['update_count']} customers");
+        $logger->log("Updated with error {$this->_customersLog['update_error_count']}/{$this->_customersLog['update_count']} customers");
+        if (!empty($this->_customersLog['update_errors'])) {
+            $logger->log("Update errors: " . var_export($this->_customersLog['update_errors'], true));
+        }
 
-            if ($api->errorCode){
-                Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
-            } else {
-                $successSyncCount += $retval['success_count'];
-                $errorSyncCount += $retval['error_count'];
-                if (count($retval['errors'])) {
-                    $syncErrors = array_merge_recursive($syncErrors, $retval['errors']);
-                }
-            }
+
+        /**
+         * Remove Customers from Mailigen
+         */
+        $removeCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getAllIds(0, 1);
+        /** @var $removeCustomers Mage_Customer_Model_Resource_Customer_Collection */
+        $removeCustomers = Mage::getModel('customer/customer')->getCollection()
+            ->addAttributeToSelect('email')
+            ->addAttributeToFilter('entity_id', array('in' => $removeCustomerIds));
+        if (count($removeCustomerIds) > 0 && $removeCustomers) {
+            Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+                $removeCustomers,
+                array($this, '_prepareCustomerDataForRemove'),
+                array($this, '_removeCustomersFromMailigen'),
+                200
+            );
+        }
+        $this->_customersLog['remove_count'] = count($removeCustomerIds);
+        unset($removeCustomerIds, $removeCustomers);
+
+        /**
+         * Log remove info
+         */
+        $logger->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");
+        $logger->log("Removed with error {$this->_customersLog['remove_error_count']}/{$this->_customersLog['remove_count']} customers");
+        if (!empty($this->_customersLog['remove_errors'])) {
+            $logger->log("Remove errors: " . var_export($this->_customersLog['remove_errors'], true));
         }
 
         $logger->log('Customers synchronization finished');
-        $logger->log("Synced successfully $successSyncCount/$customerCount customers");
-        $logger->log("Synced with error $errorSyncCount/$customerCount customers");
-        if (!empty($syncErrors)) {
-            $logger->log("Sync errors: " . var_export($syncErrors, true));
-        }
-    }
-
-    /**
-     * @param int $page
-     * @param int $limit
-     * @return array
-     */
-    protected function _getCustomers($page = 1, $limit = 100)
-    {
-        /** @var $helper Mailigen_Synchronizer_Helper_Customer */
-        $helper = Mage::helper('mailigen_synchronizer/customer');
-        /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
-        $customers = Mage::getModel('customer/customer')->getCollection()
-            ->addAttributeToSelect(array(
-                'email',
-                'firstname',
-                'lastname',
-                'prefix',
-                'middlename',
-                'suffix',
-                'store_id',
-                'group_id',
-                'created_at',
-                'dob',
-                'gender',
-                'is_active'
-            ))
-            ->joinAttribute('billing_telephone', 'customer_address/telephone', 'default_billing', null, 'left')
-            ->joinAttribute('billing_city', 'customer_address/city', 'default_billing', null, 'left')
-            ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left')
-            ->setCurPage($page)
-            ->setPageSize($limit);
-        $logCustomerTableName = Mage::getSingleton('core/resource')->getTableName('log/customer');
-        $customers->getSelect()->columns(array('last_login_at' => new Zend_Db_Expr("(SELECT login_at FROM $logCustomerTableName WHERE customer_id = e.entity_id ORDER BY log_id DESC LIMIT 1)")));
-        $customersArray = array();
-
-        foreach ($customers as $customer)
-        {
-            $customersArray[$customer->getEntityId()] = array(
-                /**
-                 * Customer info
-                 */
-                'EMAIL' => $customer->getEmail(),
-                'FNAME' => $customer->getFirstname(),
-                'LNAME' => $customer->getLastname(),
-                'PREFIX' => $customer->getPrefix(),
-                'MIDDLENAME' => $customer->getMiddlename(),
-                'SUFFIX' => $customer->getSuffix(),
-                'STOREID' => $customer->getStoreId(),
-                'STORELANGUAGE' => $helper->getStoreLanguage($customer->getStoreId()),
-                'CUSTOMERGROUP' => $helper->getCustomerGroup($customer->getGroupId()),
-                'PHONE' => $customer->getBillingTelephone(),
-                'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
-                'COUNTRY' => $helper->getFormattedCountry($customer->getBillingCountryId()),
-                'CITY' => $customer->getBillingCity(),
-                'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
-                'GENDER' => $helper->getFormattedGender($customer->getGender()),
-                'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
-                'CLIENTID' => $customer->getId(),
-                'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
-            );
-
-            /**
-             * Add customer orders info
-             */
-            $customersArray[$customer->getEntityId()] = array_merge(
-                $customersArray[$customer->getEntityId()], $this->_getCustomerOrderInfo($customer)
-            );
-        }
-
-        return $customersArray;
     }
 
     /**
      * @param Mage_Customer_Model_Customer $customer
-     * @return array
      */
-    public function _getCustomerOrderInfo(Mage_Customer_Model_Customer $customer)
+    public function _prepareCustomerDataForUpdate($customer)
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Customer */
         $helper = Mage::helper('mailigen_synchronizer/customer');
-        /** @var $orders Mage_Sales_Model_Resource_Order_Collection */
-        $orders = Mage::getModel('sales/order')->getCollection()
-            ->addFieldToFilter('customer_id', $customer->getId())
-            ->addFieldToFilter('status', Mage_Sales_Model_Order::STATE_COMPLETE)
-            ->addAttributeToSort('created_at', 'desc')
-            ->addAttributeToSelect('*');
-        $lastOrder = $orders->getFirstItem();
+
+        $this->_batchedCustomersData[$customer->getId()] = array(
+            /**
+             * Customer info
+             */
+            'EMAIL' => $customer->getEmail(),
+            'FNAME' => $customer->getFirstname(),
+            'LNAME' => $customer->getLastname(),
+            'PREFIX' => $customer->getPrefix(),
+            'MIDDLENAME' => $customer->getMiddlename(),
+            'SUFFIX' => $customer->getSuffix(),
+            'STOREID' => $customer->getStoreId(),
+            'STORELANGUAGE' => $helper->getStoreLanguage($customer->getStoreId()),
+            'CUSTOMERGROUP' => $helper->getCustomerGroup($customer->getGroupId()),
+            'PHONE' => $customer->getBillingTelephone(),
+            'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
+            'COUNTRY' => $helper->getFormattedCountry($customer->getBillingCountryId()),
+            'CITY' => $customer->getBillingCity(),
+            'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
+            'GENDER' => $helper->getFormattedGender($customer->getGender()),
+            'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
+            'CLIENTID' => $customer->getId(),
+            'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
+            /**
+             * Customer orders info
+             */
+            'LASTORDERDATE' => $customer->getData('lastorderdate'),
+            'VALUEOFLASTORDER' => $customer->getData('valueoflastorder'),
+            'TOTALVALUEOFORDERS' => $customer->getData('totalvalueoforders'),
+            'TOTALNUMBEROFORDERS' => $customer->getData('totalnumberoforders'),
+            'NUMBEROFITEMSINCART' => $customer->getData('numberofitemsincart'),
+            'VALUEOFCURRENTCART' => $customer->getData('valueofcurrentcart'),
+            'LASTITEMINCARTADDINGDATE' => $customer->getData('lastitemincartaddingdate')
+        );
+    }
+
+    public function _updateCustomersInMailigen()
+    {
+        /**
+         * Send API request to Mailigen
+         */
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        $api = $helper->getMailigenApi();
+        $apiResponse = $api->listBatchSubscribe($this->_customersListId, $this->_batchedCustomersData, false, true);
 
         /**
-         * Sum all orders grand total
+         * Update Customer flat table
          */
-        $totalGrandTotal = 0;
-        if ($orders->count() > 0) {
-            foreach ($orders as $_order) {
-                $totalGrandTotal += $_order->getGrandTotal();
+        Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
+
+        /**
+         * Log results
+         */
+        if ($api->errorCode) {
+            Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
+        } else {
+            $this->_customersLog['update_success_count'] += $apiResponse['success_count'];
+            $this->_customersLog['update_error_count'] += $apiResponse['error_count'];
+            if (count($apiResponse['errors']) > 0) {
+                $this->_customersLog['update_errors'] = array_merge_recursive($this->_customersLog['update_errors'], $apiResponse['errors']);
             }
         }
 
-        /**
-         * Get customer cart info
-         */
-        $website = $helper->getWebsite($customer->getStoreId());
-        /** @var $quote Mage_Sales_Model_Quote */
-        $quote = Mage::getModel('sales/quote')->setWebsite($website);
-        $quote->loadByCustomer($customer);
+        $this->_batchedCustomersData = array();
+    }
 
-        return array(
-            'LASTORDERDATE' => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
-            'VALUEOFLASTORDER' => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
-            'TOTALVALUEOFORDERS' => (float)$totalGrandTotal,
-            'TOTALNUMBEROFORDERS' => (int)$orders->count(),
-            'NUMBEROFITEMSINCART' => $quote ? (int)$quote->getItemsQty() : '',
-            'VALUEOFCURRENTCART' => $quote ? (float)$quote->getGrandTotal() : '',
-            'LASTITEMINCARTADDINGDATE' => $quote ? $helper->getFormattedDate($quote->getUpdatedAt()) : ''
-        );
+    /**
+     * @param Mage_Customer_Model_Customer $customer
+     */
+    public function _prepareCustomerDataForRemove($customer)
+    {
+        $this->_batchedCustomersData[$customer->getId()] = $customer->getEmail();
+    }
+
+    public function _removeCustomersFromMailigen()
+    {
+        /**
+         * Send API request to Mailigen
+         */
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        $api = $helper->getMailigenApi();
+        $apiResponse = $api->listBatchUnsubscribe($this->_customersListId, $this->_batchedCustomersData, true, false, false);
+
+        /**
+         * Update Customer flat table
+         */
+        Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
+
+        /**
+         * Log results
+         */
+        if ($api->errorCode) {
+            Mage::throwException("Unable to batch unsubscribe. $api->errorCode: $api->errorMessage");
+        } else {
+            $this->_customersLog['remove_success_count'] += $apiResponse['success_count'];
+            $this->_customersLog['remove_error_count'] += $apiResponse['error_count'];
+            if (count($apiResponse['errors']) > 0) {
+                $this->_customersLog['remove_errors'] = array_merge_recursive($this->_customersLog['remove_errors'], $apiResponse['errors']);
+            }
+        }
+
+        $this->_batchedCustomersData = array();
     }
 }

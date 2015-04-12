@@ -2,7 +2,7 @@
 <config>
     <modules>
         <Mailigen_Synchronizer>
-            <version>1.0.1</version>
+            <version>1.1.0</version>
         </Mailigen_Synchronizer>
     </modules>
     <global>
@@ -11,17 +11,6 @@
                 <class>Mailigen_Synchronizer_Helper</class>
             </mailigen_synchronizer>
         </helpers>
-        <models>
-            <mailigen_synchronizer>
-                <class>Mailigen_Synchronizer_Model</class>
-            </mailigen_synchronizer>
-            <!-- we rewrite Newsletter Module -->
-            <newsletter>
-                <rewrite>
-                    <subscriber>Mailigen_Synchronizer_Model_Newsletter_Subscriber</subscriber>
-                </rewrite>
-            </newsletter>
-        </models>
         <blocks>
             <adminhtml>
                 <rewrite>
@@ -29,6 +18,46 @@
                 </rewrite>
             </adminhtml>
         </blocks>
+        <models>
+            <mailigen_synchronizer>
+                <class>Mailigen_Synchronizer_Model</class>
+                <resourceModel>mailigen_synchronizer_resource</resourceModel>
+            </mailigen_synchronizer>
+            <mailigen_synchronizer_resource>
+                <class>Mailigen_Synchronizer_Model_Resource</class>
+                <entities>
+                    <customer>
+                        <table>mailigen_synchronizer_customer</table>
+                    </customer>
+                </entities>
+            </mailigen_synchronizer_resource>
+            <newsletter>
+                <rewrite>
+                    <subscriber>Mailigen_Synchronizer_Model_Newsletter_Subscriber</subscriber>
+                </rewrite>
+            </newsletter>
+        </models>
+        <resources>
+            <mailigen_synchronizer_setup>
+                <setup>
+                    <module>Mailigen_Synchronizer</module>
+                    <class>Mage_Core_Model_Resource_Setup</class>
+                </setup>
+                <connection>
+                    <use>core_setup</use>
+                </connection>
+            </mailigen_synchronizer_setup>
+            <mailigen_synchronizer_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </mailigen_synchronizer_write>
+            <mailigen_synchronizer_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </mailigen_synchronizer_read>
+        </resources>
         <events>
             <newsletter_subscriber_save_commit_after>
                 <observers>
