@@ -77,6 +77,51 @@
                     </newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
                 </observers>
             </admin_system_config_changed_section_mailigen_synchronizer>
+            <customer_delete_after>
+                <observers>
+                    <mailigen_synchronizer_customer_delete_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>customerDeleteAfter</method>
+                    </mailigen_synchronizer_customer_delete_after>
+                </observers>
+            </customer_delete_after>
+            <customer_save_after>
+                <observers>
+                    <mailigen_synchronizer_customer_save_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>customerSaveAfter</method>
+                    </mailigen_synchronizer_customer_save_after>
+                </observers>
+            </customer_save_after>
+            <customer_address_save_after>
+                <observers>
+                    <mailigen_synchronizer_customer_address_save_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>customerAddressSaveAfter</method>
+                    </mailigen_synchronizer_customer_address_save_after>
+                </observers>
+            </customer_address_save_after>
+            <customer_login>
+                <observers>
+                    <mailigen_synchronizer_customer_login>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>customerLogin</method>
+                    </mailigen_synchronizer_customer_login>
+                </observers>
+            </customer_login>
+            <sales_order_save_after>
+                <observers>
+                    <mailigen_synchronizer_sales_order_save_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>salesOrderSaveAfter</method>
+                    </mailigen_synchronizer_sales_order_save_after>
+                </observers>
+            </sales_order_save_after>
         </events>
     </global>
     <admin>

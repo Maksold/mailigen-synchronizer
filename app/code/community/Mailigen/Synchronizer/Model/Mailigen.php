@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Mailigen_Synchronizer
+ *
+ * @category    Mailigen
+ * @package     Mailigen_Synchronizer
+ * @author      Maksim Soldatjonok <maksold@gmail.com>
+ */
 class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 {
     /**

@@ -29,8 +29,8 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
         if (count($newCustomerFlatIds) > 0) {
             $customers = Mage::getModel('customer/customer')->getCollection()
-                ->addAttributeToSelect('store_id')
-                ->addAttributeToFilter('entity_id', array('in' => $newCustomerFlatIds));
+                ->addAttributeToFilter('entity_id', array('in' => $newCustomerFlatIds))
+                ->addAttributeToSelect(array('store_id', 'email'));
 
             Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $customers,
@@ -183,6 +183,27 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         $tableName = $this->getResource()->getMainTable();
         $write = Mage::getSingleton('core/resource')->getConnection('core_write');
         $deleted = $write->delete($tableName, array('is_removed = ?' => 1, 'is_synced = ?' => 1));
+
         return $deleted;
+    }
+
+    /**
+     * @param      $customerId
+     * @param bool $is_removed
+     * @return int
+     */
+    public function setCustomerNotSynced($customerId, $is_removed = false)
+    {
+        $tableName = $this->getResource()->getMainTable();
+        $write = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+        $bind = array();
+        $bind['is_synced'] = 0;
+        if (is_int($is_removed)) {
+            $bind['is_removed'] = $is_removed;
+        }
+        $updated = $write->update($tableName, $bind, array('id = ?' => $customerId));
+
+        return $updated;
     }
 }

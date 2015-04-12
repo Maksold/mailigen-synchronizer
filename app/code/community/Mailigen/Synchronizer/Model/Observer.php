@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Mailigen_Synchronizer
+ *
+ * @category    Mailigen
+ * @package     Mailigen_Synchronizer
+ * @author      Maksim Soldatjonok <maksold@gmail.com>
+ */
 class Mailigen_Synchronizer_Model_Observer
 {
     /**
@@ -160,6 +167,61 @@ class Mailigen_Synchronizer_Model_Observer
                 'onclick' => "setLocation('{$url}')",
                 'class' => 'task'
             ));
+        }
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function customerDeleteAfter(Varien_Event_Observer $observer)
+    {
+        $customer = $observer->getDataObject();
+        if ($customer && $customer->getId()) {
+            Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId(), 1);
+        }
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function customerSaveAfter(Varien_Event_Observer $observer)
+    {
+        $customer = $observer->getDataObject();
+        if ($customer && $customer->getId()) {
+            Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+        }
+    }
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function customerAddressSaveAfter(Varien_Event_Observer $observer)
+    {
+        $customerAddress = $observer->getDataObject();
+        $customer = $customerAddress->getCustomer();
+        if ($customer && $customer->getId()) {
+            Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+        }
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function customerLogin(Varien_Event_Observer $observer)
+    {
+        $customer = $observer->getCustomer();
+        if ($customer && $customer->getId()) {
+            Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+        }
+    }
+
+    /**
+     * @param Varien_Event_Observer $observer
+     */
+    public function salesOrderSaveAfter(Varien_Event_Observer $observer)
+    {
+        $order = $observer->getOrder();
+        if ($order && $order->getState() == Mage_Sales_Model_Order::STATE_COMPLETE && $order->getCustomerId()) {
+            Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($order->getCustomerId());
         }
     }
 }
