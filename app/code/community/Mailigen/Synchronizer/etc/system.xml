@@ -89,7 +89,7 @@
                         </handle_default_emails>
                     </fields>
                 </newsletter>
-                <customers>
+                <customers translate="label" module="mailigen_synchronizer">
                     <label>Customers</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>30</sort_order>
@@ -129,6 +129,13 @@
                             <show_in_store>1</show_in_store>
                             <comment>If set to yes, this will perform batch syncronization of your list at 1:00 AM every night. You must have CRON setup on your store for this feature to work.</comment>
                         </autosync>
+                        <sycn_information>
+                            <frontend_model>mailigen_synchronizer/adminhtml_sync_information</frontend_model>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </sycn_information>
                     </fields>
                 </customers>
             </groups>

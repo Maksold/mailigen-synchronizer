@@ -12,6 +12,9 @@
             </mailigen_synchronizer>
         </helpers>
         <blocks>
+            <mailigen_synchronizer>
+                <class>Mailigen_Synchronizer_Block</class>
+            </mailigen_synchronizer>
             <adminhtml>
                 <rewrite>
                     <newsletter_subscriber_grid>Mailigen_Synchronizer_Block_Newsletter_Subscriber_Grid</newsletter_subscriber_grid>
