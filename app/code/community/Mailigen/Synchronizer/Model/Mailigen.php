@@ -162,12 +162,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /**
          * Remove Customers from Mailigen
          */
-        $removeCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getAllIds(0, 1);
-        /** @var $removeCustomers Mage_Customer_Model_Resource_Customer_Collection */
-        $removeCustomers = Mage::getModel('customer/customer')->getCollection()
-            ->addAttributeToSelect('email')
-            ->addAttributeToFilter('entity_id', array('in' => $removeCustomerIds));
-        if (count($removeCustomerIds) > 0 && $removeCustomers) {
+        /** @var $removeCustomer Mailigen_Synchronizer_Model_Resource_Customer_Collection */
+        $removeCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->addFieldToFilter('is_removed', 1)
+            ->addFieldToFilter('is_synced', 0)
+            ->addFieldToSelect(array('id', 'email'));
+        if ($removeCustomers && count($removeCustomers) > 0) {
             Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $removeCustomers,
                 array($this, '_prepareCustomerDataForRemove'),
@@ -175,8 +175,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 200
             );
         }
-        $this->_customersLog['remove_count'] = count($removeCustomerIds);
-        unset($removeCustomerIds, $removeCustomers);
+        $this->_customersLog['remove_count'] = count($removeCustomers);
+        unset($removeCustomers);
 
         /**
          * Remove synced and removed customers from Flat table

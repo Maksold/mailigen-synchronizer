@@ -77,6 +77,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
         $this->_newCustomersOrderInfoData[] = array(
             'id' => $customer->getId(),
+            'email' => $customer->getEmail(),
             'lastorderdate' => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
             'valueoflastorder' => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
             'totalvalueoforders' => (float)$totalGrandTotal,

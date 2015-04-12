@@ -24,6 +24,7 @@ $table = $installer->getConnection()
     ->addColumn('id', Varien_Db_Ddl_Table::TYPE_INTEGER, null,
         array('unsigned' => true, 'nullable' => false, 'primary' => true,), 'Customer Id'
     )
+    ->addColumn('email', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
     // Customer order fields
     ->addColumn('lastorderdate', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
     ->addColumn('valueoflastorder', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
