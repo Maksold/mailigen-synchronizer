@@ -19,17 +19,19 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        /** @var $customerCollection Mailigen_Synchronizer_Model_Resource_Customer_Collection */
-        $customerCollection = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
 
-        $totalCustomers = $customerCollection->count();
-        $customerCollection->resetData()->clear();
-        $syncedCustomers = $customerCollection->addFieldToFilter('is_synced', 1)->count();
-        $customerCollection->resetData()->clear();
+        $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getSize();
+        $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->addFieldToFilter('is_synced', 1)
+            ->getSize();
         $syncedCustomersPercent = round($syncedCustomers / $totalCustomers * 100);
         $syncedCustomersText = "$syncedCustomersPercent% ($syncedCustomers/$totalCustomers)";
 
-        $lastSynced = $customerCollection->setPageSize(1)->setCurPage(1)->setOrder('synced_at')->load();
+        $lastSynced = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->setPageSize(1)
+            ->setCurPage(1)
+            ->setOrder('synced_at')
+            ->load();
         if ($lastSynced && $lastSynced->getFirstItem()) {
             $lastSynced = $lastSynced->getFirstItem()->getSyncedAt();
 //            $lastSyncedText = $helper->time_elapsed_string($lastSynced, true);
