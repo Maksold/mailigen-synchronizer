@@ -207,4 +207,23 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
         return $updated;
     }
+
+    /**
+     * @param bool $is_removed
+     * @return int
+     */
+    public function setCustomersNotSynced($is_removed = false)
+    {
+        $tableName = $this->getResource()->getMainTable();
+        $write = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+        $bind = array();
+        $bind['is_synced'] = 0;
+        if (is_int($is_removed)) {
+            $bind['is_removed'] = $is_removed;
+        }
+        $updated = $write->update($tableName, $bind);
+
+        return $updated;
+    }
 }
