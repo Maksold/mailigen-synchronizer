@@ -41,6 +41,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             return;
         }
 
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
+
         //First we pull all unsubscribers from Mailigen
         $unsubscribers = $api->listMembers($listid, "unsubscribed", 0, 500);
 
@@ -98,10 +101,10 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
         if ($api->errorCode) {
             Mage::getSingleton('adminhtml/session')->addError("Something went wrong");
-            Mage::log("Mailigen API Error: " . "Code=" . $api->errorCode . " Msg=" . $api->errorMessage);
+            $logger->log("Sync newsletter error:  Code={$api->errorCode} Msg={$api->errorMessage}");
         } else {
             Mage::getSingleton('adminhtml/session')->addSuccess("Your contacts have been syncronized");
-            Mage::log("Returned: " . var_export($retval, true));
+            $logger->log("Sync newsletter success: " . var_export($retval, true));
         }
     }
 
@@ -139,12 +142,14 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
         $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
         if (count($updateCustomerIds) > 0 && $updateCustomers) {
+            $logger->log("Started updating customers in Mailigen");
             Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $updateCustomers,
                 array($this, '_prepareCustomerDataForUpdate'),
                 array($this, '_updateCustomersInMailigen'),
                 200
             );
+            $logger->log("Finished updating customers in Mailigen");
         }
         $this->_customersLog['update_count'] = count($updateCustomerIds);
         unset($updateCustomerIds, $updateCustomers);
@@ -168,12 +173,14 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             ->addFieldToFilter('is_synced', 0)
             ->addFieldToSelect(array('id', 'email'));
         if ($removeCustomers && count($removeCustomers) > 0) {
+            $logger->log("Started removing customers from Mailigen");
             Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $removeCustomers,
                 array($this, '_prepareCustomerDataForRemove'),
                 array($this, '_removeCustomersFromMailigen'),
                 200
             );
+            $logger->log("Finished removing customers from Mailigen");
         }
         $this->_customersLog['remove_count'] = count($removeCustomers);
         unset($removeCustomers);
