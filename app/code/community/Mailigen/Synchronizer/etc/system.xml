@@ -146,6 +146,18 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </sycn_information>
+                        <manual_sync>
+                            <frontend_type>hidden</frontend_type>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </manual_sync>
+                        <stop_sync>
+                            <frontend_type>hidden</frontend_type>
+                            <show_in_default>0</show_in_default>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </stop_sync>
                     </fields>
                 </customers>
             </groups>

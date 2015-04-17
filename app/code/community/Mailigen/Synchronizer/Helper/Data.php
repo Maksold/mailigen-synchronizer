@@ -18,6 +18,8 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_CUSTOMERS_CONTACT_LIST = 'mailigen_synchronizer/customers/contact_list';
     const XML_PATH_CUSTOMERS_NEW_LIST_TITLE = 'mailigen_synchronizer/customers/new_list_title';
     const XML_PATH_CUSTOMERS_AUTOSYNC = 'mailigen_synchronizer/customers/autosync';
+    const XML_PATH_CUSTOMERS_MANUAL_SYNC = 'mailigen_synchronizer/customers/manual_sync';
+    const XML_PATH_CUSTOMERS_STOP_SYNC = 'mailigen_synchronizer/customers/stop_sync';
 
     protected $_mgapi = null;
 
@@ -95,6 +97,41 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
         }
 
         return $this->_mgapi;
+    }
+
+    /**
+     * @param int $start
+     */
+    public function setManualSync($start = 1)
+    {
+        $config = new Mage_Core_Model_Config();
+        $config->saveConfig(self::XML_PATH_CUSTOMERS_MANUAL_SYNC, $start);
+    }
+
+    /**
+     * @return bool
+     */
+    public function getManualSync()
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_CUSTOMERS_MANUAL_SYNC);
+    }
+
+    /**
+     * @param int $stop
+     */
+    public function setStopSync($stop = 1)
+    {
+        $config = new Mage_Core_Model_Config();
+        $config->saveConfig(self::XML_PATH_CUSTOMERS_STOP_SYNC, $stop);
+    }
+
+    /**
+     * @return bool
+     * @todo get without reinit
+     */
+    public function getStopSync()
+    {
+        return Mage::getStoreConfigFlag(self::XML_PATH_CUSTOMERS_STOP_SYNC);
     }
 
     /**

@@ -78,12 +78,14 @@ class Mailigen_Synchronizer_Model_Observer
      */
     public function daily_sync()
     {
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+
         /**
          * Synchronize Newsletter
          */
         try {
-            $autosyncNewsletter = Mage::helper('mailigen_synchronizer')->canAutoSyncNewsletter();
-            if ($autosyncNewsletter) {
+            if ($helper->canAutoSyncNewsletter()) {
                 /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
                 $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
                 $mailigen->syncNewsletter();
@@ -96,9 +98,11 @@ class Mailigen_Synchronizer_Model_Observer
          * Synchronize Customers
          */
         try {
+            if ($helper->canAutoSyncCustomers() || $helper->getManualSync()) {
+                if ($helper->getManualSync()) {
+                    $helper->setManualSync(0);
+                }
 
-            $autosyncCustomers = Mage::helper('mailigen_synchronizer')->canAutoSyncCustomers();
-            if ($autosyncCustomers) {
                 /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
                 $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
                 $mailigen->syncCustomers();
