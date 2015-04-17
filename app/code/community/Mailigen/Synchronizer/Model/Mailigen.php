@@ -101,7 +101,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             Mage::log("Mailigen API Error: " . "Code=" . $api->errorCode . " Msg=" . $api->errorMessage);
         } else {
             Mage::getSingleton('adminhtml/session')->addSuccess("Your contacts have been syncronized");
-            Mage::log("Returned: " . $retval);
+            Mage::log("Returned: " . var_export($retval, true));
         }
     }
 

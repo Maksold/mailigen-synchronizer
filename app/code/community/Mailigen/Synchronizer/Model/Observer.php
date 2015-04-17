@@ -74,9 +74,9 @@ class Mailigen_Synchronizer_Model_Observer
     }
 
     /**
-     * @param Varien_Event_Observer $observer
+     * Sync newsletter and customers by cron job
      */
-    public function daily_sync(Varien_Event_Observer $observer)
+    public function daily_sync()
     {
         /**
          * Synchronize Newsletter
@@ -140,6 +140,13 @@ class Mailigen_Synchronizer_Model_Observer
             $newListValue = $list->createNewList($customersNewListName);
             if ($newListValue) {
                 $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, 'default', 0);
+
+                /**
+                 * Set customers not synced on contact list change
+                 */
+                /** @var $customer Mailigen_Synchronizer_Model_Customer */
+                $customer = Mage::getModel('mailigen_synchronizer/customer');
+                $customer->setCustomersNotSynced();
             }
             $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, '', 'default', 0);
         }
