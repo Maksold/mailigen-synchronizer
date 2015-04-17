@@ -20,25 +20,9 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
 
-        $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getSize();
-        $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-            ->addFieldToFilter('is_synced', 1)
-            ->getSize();
-        $syncedCustomersPercent = round($syncedCustomers / $totalCustomers * 100);
-        $syncedCustomersText = "$syncedCustomersPercent% ($syncedCustomers/$totalCustomers)";
-
-        $lastSynced = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-            ->setPageSize(1)
-            ->setCurPage(1)
-            ->setOrder('synced_at')
-            ->load();
-        if ($lastSynced && $lastSynced->getFirstItem()) {
-            $lastSynced = $lastSynced->getFirstItem()->getSyncedAt();
-//            $lastSyncedText = $helper->time_elapsed_string($lastSynced, true);
-            $lastSyncedText = Mage::helper('core')->formatDate($lastSynced, 'medium', true);
-        } else {
-            $lastSyncedText = $helper->__('Not synced yet');
-        }
+        $lastSyncedText = $this->_getLastSyncedText();
+        $syncedCustomersProgress = $this->_getSyncedCustomersProgress();
+        $syncStatusText = $this->_getSyncStatusText();
 
         $html = '<style type="text/css">
             .progress {
@@ -107,16 +91,151 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                     <td class="label">' . $helper->__('Synced Customers') . '</td>
                     <td class="value">
                         <div class="progress">
-                            <div class="progress-bar" style="width:' . $syncedCustomersPercent . '%;">
-                            ' .  $syncedCustomersText . '
+                            <div class="progress-bar" style="width:' . $syncedCustomersProgress['percent'] . '%;">
+                            ' .  $syncedCustomersProgress['text'] . '
                             </div>
                         </div>
                     </td>
                     <td class="scope-label"></td>
                     <td></td>
                 </tr>
+                <tr>
+                    <td class="label">' . $helper->__('Sync Status') . '</td>
+                    <td class="value">' . $syncStatusText . '</td>
+                    <td class="scope-label"></td>
+                    <td></td>
+                </tr>
             </table>';
 
         return $html;
+    }
+
+    /**
+     * Get last synced datetime
+     *
+     * @return string
+     */
+    protected function _getLastSyncedText()
+    {
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+
+        $lastSynced = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->setPageSize(1)
+            ->setCurPage(1)
+            ->setOrder('synced_at')
+            ->load();
+        if ($lastSynced && $lastSynced->getFirstItem()) {
+            $lastSynced = $lastSynced->getFirstItem()->getSyncedAt();
+//            $lastSyncedText = $helper->time_elapsed_string($lastSynced, true);
+            $lastSyncedText = Mage::helper('core')->formatDate($lastSynced, 'medium', true);
+        } else {
+            $lastSyncedText = $helper->__('Not synced yet');
+        }
+
+        return $lastSyncedText;
+    }
+
+    /**
+     * Get synced customers progress
+     *
+     * @return array
+     */
+    protected function _getSyncedCustomersProgress()
+    {
+        $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getSize();
+        $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->addFieldToFilter('is_synced', 1)
+            ->getSize();
+        $syncedCustomersPercent = round($syncedCustomers / $totalCustomers * 100);
+        $syncedCustomersText = "$syncedCustomersPercent% ($syncedCustomers/$totalCustomers)";
+
+        return array('percent' => $syncedCustomersPercent, 'text' => $syncedCustomersText);
+    }
+
+    /**
+     * Get Sync status and show stop button
+     *
+     * @return string
+     */
+    protected function _getSyncStatusText()
+    {
+        /** @var $runningJobs Mage_Cron_Model_Resource_Schedule_Collection */
+        $runningJobs = Mage::getModel('cron/schedule')->getCollection()
+            ->addFieldToFilter('job_code', 'mailigen_synchronizer')
+            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_RUNNING)
+            ->setOrder('executed_at')
+            ->setPageSize(1)->setCurPage(1);
+
+        /** @var $cronRunningJobs Mage_Cron_Model_Resource_Schedule_Collection */
+        $pendingJobs = Mage::getModel('cron/schedule')->getCollection()
+            ->addFieldToFilter('job_code', 'mailigen_synchronizer')
+            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_PENDING)
+            ->setOrder('scheduled_at')
+            ->setPageSize(1)->setCurPage(1);
+
+
+        if ($runningJobs->getSize()) {
+            $html = "Running";
+            $job = $runningJobs->getFirstItem();
+            if (strlen($job->getExecutedAt())) {
+                $html .= ' (Started at: ';
+                $html .= Mage::helper('core')->formatDate($job->getExecutedAt(), 'medium', true);
+                $html .= ') ';
+
+                /**
+                 * Show stop sync customers button
+                 */
+                $html .= $this->_getStopCustomersSyncButton();
+            }
+        }
+        elseif ($pendingJobs->getSize()) {
+            $html = "Pending";
+            $job = $pendingJobs->getFirstItem();
+            if (strlen($job->getScheduledAt())) {
+                $html .= ' (Scheduled at: ';
+                $html .= Mage::helper('core')->formatDate($job->getScheduledAt(), 'medium', true);
+                $html .= ')';
+            }
+            $job->getScheduledAt();
+        }
+        else {
+            $html = "Not scheduled";
+        }
+
+        return $html;
+    }
+
+    /**
+     * Get Stop customers sync button html
+     *
+     * @return string
+     */
+    protected function _getStopCustomersSyncButton()
+    {
+        $stopSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/stopSyncCustomers');
+        $buttonJs = '<script type="text/javascript">
+            //<![CDATA[
+            function stopMailigenSynchronizer() {
+                new Ajax.Request("' . $stopSyncUrl . '", {
+                    method: "get",
+                    onSuccess: function(transport){
+                        if (transport.responseText){
+                            alert(transport.responseText);
+                        }
+                    }
+                });
+            }
+            //]]>
+            </script>';
+
+        $button = $this->getLayout()->createBlock('adminhtml/widget_button')
+            ->setData(array(
+                'id' => 'stop_mailigen_synchronizer_button',
+                'label' => $this->helper('adminhtml')->__('Stop sync'),
+                'onclick' => 'javascript:stopMailigenSynchronizer(); return false;'
+            ));
+
+        return $buttonJs . $button->toHtml();
     }
 }

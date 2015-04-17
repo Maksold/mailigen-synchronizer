@@ -266,6 +266,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             }
         }
 
+        /**
+         * Check if sync should be stopped
+         */
+        $this->_checkSyncStop();
+
         $this->_batchedCustomersData = array();
     }
 
@@ -305,6 +310,28 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             }
         }
 
+        /**
+         * Check if sync should be stopped
+         */
+        $this->_checkSyncStop();
+
         $this->_batchedCustomersData = array();
+    }
+
+    /**
+     * Stop sync, if force sync stop is enabled
+     */
+    public function _checkSyncStop()
+    {
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        if ($helper->getStopSync()) {
+            $helper->setStopSync(0);
+
+            /** @var $logger Mailigen_Synchronizer_Helper_Log */
+            $logger = Mage::helper('mailigen_synchronizer/log');
+            $logger->log('Sync has been stopped manually');
+            die('Sync has been stopped manually');
+        }
     }
 }

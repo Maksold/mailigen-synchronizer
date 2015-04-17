@@ -34,4 +34,16 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
         $this->_redirect('*/customer/index');
     }
+
+    /**
+     * Force stop customer sync
+     */
+    public function stopSyncCustomersAction()
+    {
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        $helper->setStopSync(1);
+
+        $this->getResponse()->setBody($this->__('Customer sync will be stopped within a minute'));
+    }
 }

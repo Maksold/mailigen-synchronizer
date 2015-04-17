@@ -126,12 +126,26 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * Get stop sync value directly from DB
+     *
      * @return bool
-     * @todo get without reinit
      */
     public function getStopSync()
     {
-        return Mage::getStoreConfigFlag(self::XML_PATH_CUSTOMERS_STOP_SYNC);
+        /** @var $stopSyncConfigCollection Mage_Core_Model_Resource_Config_Data_Collection */
+        $stopSyncConfigCollection = Mage::getModel('core/config_data')->getCollection()
+            ->addFieldToFilter('path', self::XML_PATH_CUSTOMERS_STOP_SYNC);
+
+        if ($stopSyncConfigCollection->getSize()) {
+            /** @var $stopSyncConfig Mage_Core_Model_Config_Data */
+            $stopSyncConfig = $stopSyncConfigCollection->getFirstItem();
+            $result = ($stopSyncConfig->getValue() == '1');
+        }
+        else {
+            $result = false;
+        }
+
+        return $result;
     }
 
     /**
