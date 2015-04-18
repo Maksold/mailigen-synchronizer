@@ -123,6 +123,7 @@ class Mailigen_Synchronizer_Model_Observer
         $config = new Mage_Core_Model_Config();
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
+        $removeCache = false;
 
         /**
          * Create new newsletter list
@@ -132,6 +133,7 @@ class Mailigen_Synchronizer_Model_Observer
             $newListValue = $list->createNewList($newsletterNewListName);
             if ($newListValue) {
                 $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, 'default', 0);
+                $removeCache = true;
             }
             $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, '', 'default', 0);
         }
@@ -144,6 +146,7 @@ class Mailigen_Synchronizer_Model_Observer
             $newListValue = $list->createNewList($customersNewListName);
             if ($newListValue) {
                 $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, 'default', 0);
+                $removeCache = true;
 
                 /**
                  * Set customers not synced on contact list change
@@ -161,6 +164,11 @@ class Mailigen_Synchronizer_Model_Observer
         if ($helper->getNewsletterContactList() == $helper->getCustomersContactList() && $helper->getNewsletterContactList() != '') {
             Mage::getSingleton('adminhtml/session')->addError("Please select different contact lists for newsletter and customers");
             $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, '', 'default', 0);
+            $removeCache = true;
+        }
+
+        if ($removeCache) {
+            $config->removeCache();
         }
     }
 
