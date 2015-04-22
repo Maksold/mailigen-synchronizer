@@ -106,6 +106,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $config = new Mage_Core_Model_Config();
         $config->saveConfig(self::XML_PATH_CUSTOMERS_MANUAL_SYNC, $start);
+        $config->cleanCache();
     }
 
     /**
