@@ -186,20 +186,9 @@ class Mailigen_Synchronizer_Model_Observer
         $block = $observer->getBlock();
 
         if ($block instanceof Mage_Adminhtml_Block_Customer) {
-            /** @var $runningOrPendingJobs Mage_Cron_Model_Resource_Schedule_Collection */
-            $runningOrPendingJobs = Mage::getModel('cron/schedule')->getCollection()
-                ->addFieldToFilter('job_code', 'mailigen_synchronizer')
-                ->addFieldToFilter('status', array(
-                    'in' => array(
-                        Mage_Cron_Model_Schedule::STATUS_RUNNING,
-                        Mage_Cron_Model_Schedule::STATUS_PENDING
-                    )
-                ));
-            $jobs = $runningOrPendingJobs->getSize();
             $url = Mage::helper('adminhtml')->getUrl('*/mailigen/syncCustomers');
-            $manual = Mage::helper('mailigen_synchronizer')->getManualSync();
             $block->addButton('synchronize', array(
-                'label' => Mage::helper('adminhtml')->__('Bulk synchronize with Mailigen (' . $jobs . ' ' . $manual . ')'),
+                'label' => Mage::helper('adminhtml')->__('Bulk synchronize with Mailigen'),
                 'onclick' => "setLocation('{$url}')",
                 'class' => 'task'
             ));
