@@ -17,7 +17,17 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
             /** @var $helper Mailigen_Synchronizer_Helper_Data */
             $helper = Mage::helper('mailigen_synchronizer');
 
-            if ($helper->getManualSync() != 1) {
+            /** @var $runningOrPendingJobs Mage_Cron_Model_Resource_Schedule_Collection */
+            $runningOrPendingJobs = Mage::getModel('cron/schedule')->getCollection()
+                ->addFieldToFilter('job_code', 'mailigen_synchronizer')
+                ->addFieldToFilter('status', array(
+                    'in' => array(
+                        Mage_Cron_Model_Schedule::STATUS_RUNNING,
+                        Mage_Cron_Model_Schedule::STATUS_PENDING
+                    )
+                ));
+
+            if ($runningOrPendingJobs->getSize() == 0) {
                 /** @var $cronScheduler Mage_Cron_Model_Schedule */
                 $cronScheduler = Mage::getModel('cron/schedule');
                 $cronScheduler->setJobCode('mailigen_synchronizer')

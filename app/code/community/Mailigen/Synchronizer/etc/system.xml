@@ -84,7 +84,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>If set to yes, this will perform batch syncronization of your list at 1:00 AM every night. You must have CRON setup on your store for this feature to work.</comment>
+                            <comment>If set to yes, this will perform batch synchronization of your list. You must have CRON setup on your store for this feature to work.</comment>
                         </autosync>
                         <handle_default_emails translate="label">
                             <label>Enable Mailigen Emails</label>
@@ -137,7 +137,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>If set to yes, this will perform batch syncronization of your list at 1:00 AM every night. You must have CRON setup on your store for this feature to work.</comment>
+                            <comment>If set to yes, this will perform batch synchronization of your list. You must have CRON setup on your store for this feature to work.</comment>
                         </autosync>
                         <sycn_information>
                             <frontend_model>mailigen_synchronizer/adminhtml_sync_information</frontend_model>
