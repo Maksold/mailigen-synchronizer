@@ -16,26 +16,11 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
         try {
             /** @var $helper Mailigen_Synchronizer_Helper_Data */
             $helper = Mage::helper('mailigen_synchronizer');
+            /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+            $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
 
-            /** @var $runningOrPendingJobs Mage_Cron_Model_Resource_Schedule_Collection */
-            $runningOrPendingJobs = Mage::getModel('cron/schedule')->getCollection()
-                ->addFieldToFilter('job_code', 'mailigen_synchronizer')
-                ->addFieldToFilter('status', array(
-                    'in' => array(
-                        Mage_Cron_Model_Schedule::STATUS_RUNNING,
-                        Mage_Cron_Model_Schedule::STATUS_PENDING
-                    )
-                ));
-
-            if ($runningOrPendingJobs->getSize() == 0) {
-                /** @var $cronScheduler Mage_Cron_Model_Schedule */
-                $cronScheduler = Mage::getModel('cron/schedule');
-                $cronScheduler->setJobCode('mailigen_synchronizer')
-                    ->setStatus(Mage_Cron_Model_Schedule::STATUS_PENDING)
-                    ->setCreatedAt(strftime('%Y-%m-%d %H:%M:%S', time()))
-                    ->setScheduledAt(strftime('%Y-%m-%d %H:%M:00', time()))
-                    ->save();
-
+            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+                $mailigenSchedule->createJob();
                 $helper->setManualSync(1);
             }
 

@@ -160,27 +160,16 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
      */
     protected function _getSyncStatusText()
     {
-        /** @var $runningJobs Mage_Cron_Model_Resource_Schedule_Collection */
-        $runningJobs = Mage::getModel('cron/schedule')->getCollection()
-            ->addFieldToFilter('job_code', 'mailigen_synchronizer')
-            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_RUNNING)
-            ->setOrder('executed_at')
-            ->setPageSize(1)->setCurPage(1);
+        /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+        $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
+        $runningJob = $mailigenSchedule->getLastRunningJob();
+        $pendingJob = $mailigenSchedule->getLastPendingJob();
 
-        /** @var $cronRunningJobs Mage_Cron_Model_Resource_Schedule_Collection */
-        $pendingJobs = Mage::getModel('cron/schedule')->getCollection()
-            ->addFieldToFilter('job_code', 'mailigen_synchronizer')
-            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_PENDING)
-            ->setOrder('scheduled_at')
-            ->setPageSize(1)->setCurPage(1);
-
-
-        if ($runningJobs->getSize()) {
+        if ($runningJob) {
             $html = "Running";
-            $job = $runningJobs->getFirstItem();
-            if (strlen($job->getExecutedAt())) {
+            if (strlen($runningJob->getExecutedAt())) {
                 $html .= ' (Started at: ';
-                $html .= Mage::helper('core')->formatDate($job->getExecutedAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($runningJob->getExecutedAt(), 'medium', true);
                 $html .= ') ';
 
                 /**
@@ -189,15 +178,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                 $html .= $this->_getStopCustomersSyncButton();
             }
         }
-        elseif ($pendingJobs->getSize()) {
+        elseif ($pendingJob) {
             $html = "Pending";
-            $job = $pendingJobs->getFirstItem();
-            if (strlen($job->getScheduledAt())) {
+            if (strlen($pendingJob->getScheduledAt())) {
                 $html .= ' (Scheduled at: ';
-                $html .= Mage::helper('core')->formatDate($job->getScheduledAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($pendingJob->getScheduledAt(), 'medium', true);
                 $html .= ')';
             }
-            $job->getScheduledAt();
         }
         else {
             $html = "Not scheduled";
