@@ -21,13 +21,23 @@ class Mailigen_Synchronizer_Model_System_Config_Backend_Customer_List extends Ma
         $oldValue = $helper->getCustomersContactList();
         $newValue = $this->getValue();
 
-        /**
-         * Set customers not synced on contact list change
-         */
-        if (!empty($newValue) && $oldValue != $newValue) {
-            /** @var $customer Mailigen_Synchronizer_Model_Customer */
-            $customer = Mage::getModel('mailigen_synchronizer/customer');
-            $customer->setCustomersNotSynced();
+        if ($oldValue != $newValue) {
+            /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+            $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
+            if ($mailigenSchedule->countPendingOrRunningJobs() > 0) {
+                /**
+                 * Deny config modification, until synchronization will not be finished
+                 */
+                $this->_dataSaveAllowed = false;
+                Mage::getSingleton('adminhtml/session')->addNotice($helper->__("You can't change customer list until synchronization will not be finished."));
+            } else {
+                /**
+                 * Set customers not synced on contact list change
+                 */
+                /** @var $customer Mailigen_Synchronizer_Model_Customer */
+                $customer = Mage::getModel('mailigen_synchronizer/customer');
+                $customer->setCustomersNotSynced();
+            }
         }
     }
 }
