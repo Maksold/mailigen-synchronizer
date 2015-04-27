@@ -19,6 +19,8 @@ class Mailigen_Synchronizer_Model_Observer
         $subscriber = $observer->getDataObject();
         $data = $subscriber->getData();
         $statusChange = $subscriber->getIsStatusChanged();
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
 
         if ($enabled && $statusChange == true) {
 
@@ -30,7 +32,8 @@ class Mailigen_Synchronizer_Model_Observer
             $email_type = 'html';
             $double_optin = false;
             $update_existing = true;
-
+            $delete_member = false;
+            $send_notify = true;
 
             //If mailigen transational emails are set from admin.
             $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
@@ -53,20 +56,17 @@ class Mailigen_Synchronizer_Model_Observer
 
             }
 
-            Mage::log("Subscribe: " . $send_flag);
-
             if ($data['subscriber_status'] === 1) {
-                $retval = $api->listSubscribe($listid, $email_address, $merge_vars, $email_type, $double_optin,
-                    $update_existing, $send_welcome);
+                $logger->log('Subscribe newsletter');
+                $retval = $api->listSubscribe($listid, $email_address, $merge_vars, $email_type, $double_optin, $update_existing, $send_welcome);
             } else {
+                $logger->log('Unsubscribe newsletter');
                 $retval = $api->listUnsubscribe($listid, $email_address, $delete_member, $send_goodbye, $send_notify);
             }
 
 
             if ($api->errorCode) {
-                Mage::log("Mailigen API Error: " . "Code=" . $api->errorCode . " Msg=" . $api->errorMessage);
-            } else {
-                Mage::log("Returned: " . $retval);
+                $logger->log("Unable to (un)subscribe newsletter. $api->errorCode: $api->errorMessage");
             }
         }
 

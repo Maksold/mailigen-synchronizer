@@ -147,7 +147,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 $updateCustomers,
                 array($this, '_prepareCustomerDataForUpdate'),
                 array($this, '_updateCustomersInMailigen'),
-                200
+                100
             );
             $logger->log("Finished updating customers in Mailigen");
         }
@@ -178,7 +178,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 $removeCustomers,
                 array($this, '_prepareCustomerDataForRemove'),
                 array($this, '_removeCustomersFromMailigen'),
-                200
+                100
             );
             $logger->log("Finished removing customers from Mailigen");
         }
@@ -245,13 +245,18 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         );
     }
 
-    public function _updateCustomersInMailigen()
+    /**
+     * @param $collectionInfo
+     */
+    public function _updateCustomersInMailigen($collectionInfo)
     {
         /**
          * Send API request to Mailigen
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchSubscribe($this->_customersListId, $this->_batchedCustomersData, false, true);
 
@@ -263,6 +268,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /**
          * Log results
          */
+        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
+            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
+            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
+            $logger->log("Updated $curr/$total customers in Mailigen");
+        }
+
         if ($api->errorCode) {
             Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
         } else {
@@ -289,13 +300,18 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $this->_batchedCustomersData[$customer->getId()] = $customer->getEmail();
     }
 
-    public function _removeCustomersFromMailigen()
+    /**
+     * @param $collectionInfo
+     */
+    public function _removeCustomersFromMailigen($collectionInfo)
     {
         /**
          * Send API request to Mailigen
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchUnsubscribe($this->_customersListId, $this->_batchedCustomersData, true, false, false);
 
@@ -307,6 +323,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /**
          * Log results
          */
+        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
+            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
+            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
+            $logger->log("Removed $curr/$total customers from Mailigen");
+        }
+
         if ($api->errorCode) {
             Mage::throwException("Unable to batch unsubscribe. $api->errorCode: $api->errorMessage");
         } else {

@@ -37,7 +37,8 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
             }
 
             if (!empty($callbackAfterBatch)) {
-                call_user_func($callbackAfterBatch);
+                $collectionInfo = array('currentPage' => $currentPage, 'pages' => $pages, 'pageSize' => $batchSize);
+                call_user_func($callbackAfterBatch, $collectionInfo);
             }
 
             $currentPage++;

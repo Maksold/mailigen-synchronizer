@@ -72,6 +72,9 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         //Only if a list with a similar name is not doesn't exists we move further.
         if ($continue) {
 
+            /** @var $logger Mailigen_Synchronizer_Helper_Log */
+            $logger = Mage::helper('mailigen_synchronizer/log');
+
             $options = array(
                 'permission_reminder' => ' ',
                 'notify_to' => Mage::getStoreConfig('trans_email/ident_general/email'),
@@ -84,9 +87,7 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
             $retval = $api->listCreate($newListName, $options);
 
             if ($api->errorCode) {
-                Mage::log("Mailigen API Error: " . "Code=" . $api->errorCode . " Msg=" . $api->errorMessage);
-            } else {
-                Mage::log("Returned: " . $retval);
+                $logger->log("Unable to create list. $api->errorCode: $api->errorMessage");
             }
 
             //We grab the list one more time
