@@ -16,8 +16,10 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
      * @param array $callbackForIndividual
      * @param array $callbackAfterBatch
      * @param null  $batchSize
+     * @param null  $batchLimit
+     * @return int
      */
-    public function walk($collection, array $callbackForIndividual, array $callbackAfterBatch, $batchSize = null)
+    public function walk($collection, array $callbackForIndividual, array $callbackAfterBatch, $batchSize = null, $batchLimit = null)
     {
         if (!$batchSize) {
             $batchSize = self::DEFAULT_BATCH_SIZE;
@@ -29,6 +31,10 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
         $pages = $collection->getLastPageNumber();
 
         do {
+            if (is_int($batchLimit) && $currentPage * $batchSize >= $batchLimit) {
+                return 0;
+            }
+
             $collection->setCurPage($currentPage);
             $collection->load();
 
@@ -41,8 +47,11 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
                 call_user_func($callbackAfterBatch, $collectionInfo);
             }
 
+
             $currentPage++;
             $collection->clear();
         } while ($currentPage <= $pages);
+
+        return 1;
     }
 }

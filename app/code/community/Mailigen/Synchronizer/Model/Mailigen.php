@@ -143,12 +143,21 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
         if (count($updateCustomerIds) > 0 && $updateCustomers) {
             $logger->log("Started updating customers in Mailigen");
-            Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $updateCustomers,
                 array($this, '_prepareCustomerDataForUpdate'),
                 array($this, '_updateCustomersInMailigen'),
-                100
+                100,
+                10000
             );
+            /**
+             * Reschedule task, to run after 5 min
+             */
+            if ($iterator == 0) {
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
+                $logger->log("Reschedule task, to update customers in Mailigen after 5 min");
+                return;
+            }
             $logger->log("Finished updating customers in Mailigen");
         }
         $this->_customersLog['update_count'] = count($updateCustomerIds);
@@ -174,12 +183,21 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             ->addFieldToSelect(array('id', 'email'));
         if ($removeCustomers && count($removeCustomers) > 0) {
             $logger->log("Started removing customers from Mailigen");
-            Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $removeCustomers,
                 array($this, '_prepareCustomerDataForRemove'),
                 array($this, '_removeCustomersFromMailigen'),
-                100
+                100,
+                10000
             );
+            /**
+             * Reschedule task, to run after 5 min
+             */
+            if ($iterator == 0) {
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
+                $logger->log("Reschedule task to remove customers in Mailigen after 5 min");
+                return;
+            }
             $logger->log("Finished removing customers from Mailigen");
         }
         $this->_customersLog['remove_count'] = count($removeCustomers);
