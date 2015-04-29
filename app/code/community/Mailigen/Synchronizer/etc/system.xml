@@ -63,7 +63,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel.</comment>
+                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel. Attention! Please do not confuse Newsletter and Customer lists!</comment>
                         </contact_list>
                         <new_list_title translate="label">
                             <label>New Contact List Title</label>
@@ -116,7 +116,7 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel.</comment>
+                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel. Attention! Please do not confuse Newsletter and Customer lists!</comment>
                         </contact_list>
                         <new_list_title translate="label">
                             <label>New Contact List Title</label>

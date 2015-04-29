@@ -279,11 +279,6 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $apiResponse = $api->listBatchSubscribe($this->_customersListId, $this->_batchedCustomersData, false, true);
 
         /**
-         * Update Customer flat table
-         */
-        Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
-
-        /**
          * Log results
          */
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
@@ -293,8 +288,17 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         }
 
         if ($api->errorCode) {
+            /**
+             * Reschedule job to run after 5 min
+             */
+            Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
         } else {
+            /**
+             * Update Customer flat table
+             */
+            Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
+
             $this->_customersLog['update_success_count'] += $apiResponse['success_count'];
             $this->_customersLog['update_error_count'] += $apiResponse['error_count'];
             if (count($apiResponse['errors']) > 0) {
@@ -334,11 +338,6 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $apiResponse = $api->listBatchUnsubscribe($this->_customersListId, $this->_batchedCustomersData, true, false, false);
 
         /**
-         * Update Customer flat table
-         */
-        Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
-
-        /**
          * Log results
          */
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
@@ -348,8 +347,17 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         }
 
         if ($api->errorCode) {
+            /**
+             * Reschedule job to run after 5 min
+             */
+            Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             Mage::throwException("Unable to batch unsubscribe. $api->errorCode: $api->errorMessage");
         } else {
+            /**
+             * Update Customer flat table
+             */
+            Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedCustomersData));
+
             $this->_customersLog['remove_success_count'] += $apiResponse['success_count'];
             $this->_customersLog['remove_error_count'] += $apiResponse['error_count'];
             if (count($apiResponse['errors']) > 0) {
