@@ -70,16 +70,18 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
     }
 
     /**
+     * @param int $delay Schedule job, to run after delay (in minutes)
      * @return Mage_Cron_Model_Schedule
      */
-    public function createJob()
+    public function createJob($delay = 0)
     {
         /** @var $cronScheduler Mage_Cron_Model_Schedule */
         $cronScheduler = Mage::getModel('cron/schedule');
+        $time = time() + 60 * $delay;
         $cronScheduler->setJobCode($this->_jobCode)
             ->setStatus(Mage_Cron_Model_Schedule::STATUS_PENDING)
-            ->setCreatedAt(strftime('%Y-%m-%d %H:%M:%S', time()))
-            ->setScheduledAt(strftime('%Y-%m-%d %H:%M:00', time()));
+            ->setCreatedAt(strftime('%Y-%m-%d %H:%M:%S', $time))
+            ->setScheduledAt(strftime('%Y-%m-%d %H:%M:00', $time));
 
         return $cronScheduler->save();
     }
