@@ -151,11 +151,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 10000
             );
             /**
-             * Reschedule task, to run after 5 min
+             * Reschedule task, to run after 2 min
              */
             if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-                $logger->log("Reschedule task, to update customers in Mailigen after 5 min");
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $logger->log("Reschedule task, to update customers in Mailigen after 2 min");
                 return;
             }
             $logger->log("Finished updating customers in Mailigen");
@@ -191,11 +191,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 10000
             );
             /**
-             * Reschedule task, to run after 5 min
+             * Reschedule task, to run after 2 min
              */
             if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-                $logger->log("Reschedule task to remove customers in Mailigen after 5 min");
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $logger->log("Reschedule task to remove customers in Mailigen after 2 min");
                 return;
             }
             $logger->log("Finished removing customers from Mailigen");

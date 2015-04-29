@@ -31,10 +31,6 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
         $pages = $collection->getLastPageNumber();
 
         do {
-            if (is_int($batchLimit) && $currentPage * $batchSize >= $batchLimit) {
-                return 0;
-            }
-
             $collection->setCurPage($currentPage);
             $collection->load();
 
@@ -47,6 +43,9 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
                 call_user_func($callbackAfterBatch, $collectionInfo);
             }
 
+            if (is_int($batchLimit) && $currentPage * $batchSize >= $batchLimit) {
+                return 0;
+            }
 
             $currentPage++;
             $collection->clear();
