@@ -179,13 +179,15 @@ class Mailigen_Synchronizer_Model_Observer
     }
 
     /**
+     * Add "Bulk synchronize with Mailigen" button "Manage Customers" page in BE
+     *
      * @param Varien_Event_Observer $observer
      */
     public function adminhtmlWidgetContainerHtmlBefore(Varien_Event_Observer $observer)
     {
         $block = $observer->getBlock();
 
-        if ($block instanceof Mage_Adminhtml_Block_Customer) {
+        if ($block instanceof Mage_Adminhtml_Block_Customer && Mage::helper('mailigen_synchronizer')->isEnabled()) {
             $url = Mage::helper('adminhtml')->getUrl('*/mailigen/syncCustomers');
             $block->addButton('synchronize', array(
                 'label' => Mage::helper('adminhtml')->__('Bulk synchronize with Mailigen'),
