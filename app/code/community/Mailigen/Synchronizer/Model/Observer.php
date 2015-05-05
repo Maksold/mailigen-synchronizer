@@ -80,6 +80,9 @@ class Mailigen_Synchronizer_Model_Observer
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
+        if (!$helper->isEnabled()) {
+            return "Module is disabled";
+        }
 
         /**
          * Synchronize Newsletter
