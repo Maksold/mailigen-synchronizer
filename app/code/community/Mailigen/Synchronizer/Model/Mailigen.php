@@ -155,22 +155,18 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
              */
             if ($iterator == 0) {
                 Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $this->_writeResultLogs();
                 $logger->log("Reschedule task, to update customers in Mailigen after 2 min");
                 return;
             }
             $logger->log("Finished updating customers in Mailigen");
         }
-        $this->_customersLog['update_count'] = count($updateCustomerIds);
         unset($updateCustomerIds, $updateCustomers);
 
         /**
          * Log update info
          */
-        $logger->log("Successfully updated {$this->_customersLog['update_success_count']}/{$this->_customersLog['update_count']} customers");
-        $logger->log("Updated with error {$this->_customersLog['update_error_count']}/{$this->_customersLog['update_count']} customers");
-        if (!empty($this->_customersLog['update_errors'])) {
-            $logger->log("Update errors: " . var_export($this->_customersLog['update_errors'], true));
-        }
+        $this->_writeResultLogs();
 
 
         /**
@@ -195,12 +191,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
              */
             if ($iterator == 0) {
                 Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $this->_writeResultLogs();
                 $logger->log("Reschedule task to remove customers in Mailigen after 2 min");
                 return;
             }
             $logger->log("Finished removing customers from Mailigen");
         }
-        $this->_customersLog['remove_count'] = count($removeCustomers);
         unset($removeCustomers);
 
         /**
@@ -211,11 +207,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         /**
          * Log remove info
          */
-        $logger->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");
-        $logger->log("Removed with error {$this->_customersLog['remove_error_count']}/{$this->_customersLog['remove_count']} customers");
-        if (!empty($this->_customersLog['remove_errors'])) {
-            $logger->log("Remove errors: " . var_export($this->_customersLog['remove_errors'], true));
-        }
+        $this->_writeResultLogs();
 
         $logger->log('Customers synchronization finished');
     }
@@ -286,13 +278,20 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
             $logger->log("Updated $curr/$total customers in Mailigen");
         }
+        $this->_customersLog['update_count'] += count($this->_batchedCustomersData);
 
         if ($api->errorCode) {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-            Mage::throwException("Unable to batch subscribe. $api->errorCode: $api->errorMessage");
+            $this->_writeResultLogs();
+            $errorInfo = array(
+                'errorCode' => $api->errorCode,
+                'errorMessage' => $api->errorMessage,
+                'apiResponse' => $apiResponse
+            );
+            Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
             /**
              * Update Customer flat table
@@ -345,13 +344,20 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
             $logger->log("Removed $curr/$total customers from Mailigen");
         }
+        $this->_customersLog['remove_count'] = count($this->_batchedCustomersData);
 
         if ($api->errorCode) {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-            Mage::throwException("Unable to batch unsubscribe. $api->errorCode: $api->errorMessage");
+            $this->_writeResultLogs();
+            $errorInfo = array(
+                'errorCode' => $api->errorCode,
+                'errorMessage' => $api->errorMessage,
+                'apiResponse' => $apiResponse
+            );
+            Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
             /**
              * Update Customer flat table
@@ -387,6 +393,30 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $logger = Mage::helper('mailigen_synchronizer/log');
             $logger->log('Sync has been stopped manually');
             die('Sync has been stopped manually');
+        }
+    }
+
+    /**
+     * Write update, remove result logs
+     */
+    protected function _writeResultLogs()
+    {
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
+
+        if ($this->_customersLog['update_count'] > 0) {
+            $logger->log("Successfully updated {$this->_customersLog['update_success_count']}/{$this->_customersLog['update_count']} customers");
+            if (!empty($this->_customersLog['update_errors'])) {
+                $logger->log("Update errors: " . var_export($this->_customersLog['update_errors'], true));
+            }
+        }
+
+        if ($this->_customersLog['remove_count'] > 0) {
+            $logger->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");
+            $logger->log("Removed with error {$this->_customersLog['remove_error_count']}/{$this->_customersLog['remove_count']} customers");
+            if (!empty($this->_customersLog['remove_errors'])) {
+                $logger->log("Remove errors: " . var_export($this->_customersLog['remove_errors'], true));
+            }
         }
     }
 }
