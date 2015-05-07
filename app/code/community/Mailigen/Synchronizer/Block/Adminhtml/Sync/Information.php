@@ -188,6 +188,10 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         }
         else {
             $html = "Not scheduled";
+            /**
+             * Show reset sync customers button
+             */
+            $html .= ' '.$this->_getResetCustomersSyncButton();
         }
 
         return $html;
@@ -221,6 +225,42 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                 'id' => 'stop_mailigen_synchronizer_button',
                 'label' => $this->helper('adminhtml')->__('Stop sync'),
                 'onclick' => 'javascript:stopMailigenSynchronizer(); return false;'
+            ));
+
+        return $buttonJs . $button->toHtml();
+    }
+
+    /**
+     * Get Reset customers sync button html
+     *
+     * @return string
+     */
+    protected function _getResetCustomersSyncButton()
+    {
+        $resetSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/resetSyncCustomers');
+        $buttonJs = '<script type="text/javascript">
+            //<![CDATA[
+            function resetMailigenSynchronizer() {
+                new Ajax.Request("' . $resetSyncUrl . '", {
+                    method: "get",
+                    onSuccess: function(transport){
+                        if (transport.responseText == "1"){
+                            window.location.reload();
+                        }
+                        else {
+                            alert(transport.responseText);
+                        }
+                    }
+                });
+            }
+            //]]>
+            </script>';
+
+        $button = $this->getLayout()->createBlock('adminhtml/widget_button')
+            ->setData(array(
+                'id' => 'reset_mailigen_synchronizer_button',
+                'label' => $this->helper('adminhtml')->__('Reset sync'),
+                'onclick' => 'javascript:resetMailigenSynchronizer(); return false;'
             ));
 
         return $buttonJs . $button->toHtml();

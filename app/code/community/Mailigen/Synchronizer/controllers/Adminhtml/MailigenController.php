@@ -44,4 +44,16 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
         $this->getResponse()->setBody($this->__('Customer sync will be stopped within a minute'));
     }
+
+    /**
+     * Force set customers not synced, to allow sync again
+     */
+    public function resetSyncCustomersAction()
+    {
+        /** @var $customer Mailigen_Synchronizer_Model_Customer */
+        $customer = Mage::getModel('mailigen_synchronizer/customer');
+        $customer->setCustomersNotSynced();
+
+        $this->getResponse()->setBody('1');
+    }
 }
