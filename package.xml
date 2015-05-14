@@ -1,28 +1,29 @@
 <?xml version="1.0"?>
 <package>
     <name>Mailigen_Synchronizer</name>
-    <version>1.0.1</version>
+    <version>1.1.1</version>
     <stability>stable</stability>
     <license>GNU General Public License (GPL)</license>
     <channel>community</channel>
     <extends/>
-    <summary>Two-way sync between Magento email newsletter subscriber list and Mailigen email list</summary>
-    <description>This extension enables a two-way synchronization between your Magento email newsletter subscriber list and your Mailigen email list. It is easy and quick to install and configure, no complex actions or knowledge of programming needed.&#xD;
+    <summary>Two-way sync for Magneto newsletter subscribers and one-way sync for Magnento customers</summary>
+    <description>This extension enables a two-way synchronization between your Magento email newsletter subscriber list and your Mailigen email list, and one-way synchronization between your Magento customer list and your Mailigen email list. It is easy and quick to install and configure, no complex actions or knowledge of programming needed.&#xD;
 &#xD;
 Feature-rich synchronization&#xD;
 &#xD;
 - Automatic synchronization between your Magento email subscriber list and one of your Mailigen email lists. When users subscribe to the newsletter in Magento, they will be added to the selected Mailigen contact list.&#xD;
 - Two-way synchronization when it comes to subscriber status change. When users unsubscribe from your Magento list, they will be removed also from your Mailigen list. And vice versa, users will be removed from your Magento list when unsubscribed from your Mailigen list.&#xD;
+- Automatic synchronization between your Magento customer list and one of your Mailigen email lists. When customer registers in Magento, they will be added to the selected Mailigen contact list.&#xD;
+- One-way Magento customers synchronization. All customer information (customer address, last login date, items in cart, orders information) from Magento store will be synced with selected Mailigen contact list.&#xD;
 &#xD;
 For more detailed information, instructions and usage of this extension, please visit Mailigen Integrations page or contact our support team.&#xD;
 &#xD;
 Mailigen provides email and integrated marketing services covering full email automation. See a full integration list in Mailigen Integrations page.</description>
-    <notes>- Automatic synchronization between your Magento email subscriber list and one of your Mailigen email lists. When users subscribe to the newsletter in Magento, they will be added to the selected Mailigen contact list.&#xD;
-- Two-way synchronization when it comes to subscriber status change. When users unsubscribe from your Magento list, they will be removed also from your Mailigen list. And vice versa, users will be removed from your Magento list when unsubscribed from your Mailigen list.</notes>
+    <notes>- Fixed package.</notes>
     <authors><author><name>Thomas Nelson</name><user>mailigen</user><email>info@mailigen.com</email></author></authors>
-    <date>2014-11-27</date>
-    <time>19:21:24</time>
-    <contents><target name="magecommunity"><dir name="Mailigen"><dir name="Synchronizer"><dir name="Block"><dir name="Newsletter"><dir name="Subscriber"><file name="Grid.php" hash="0806d62b81980578a09e5c6210530337"/></dir></dir></dir><dir name="Helper"><file name="Data.php" hash="45ff744e45e50f035bfcc81534f96dad"/></dir><dir name="Model"><file name="List.php" hash="1f17c0f455adc4024140f22ebe5d6554"/><file name="Mailigen.php" hash="56b6c239c2863384756fc41e3617f804"/><dir name="Newsletter"><file name="Subscriber.php" hash="31cd322f6d00250b672b3e4929559e75"/></dir><file name="Observer.php" hash="fdeaaf4e3a6af3b632de65968e077a41"/></dir><dir name="api"><file name="MGAPI.class.php" hash="904de870b0896a4ffd5c5c144b76d6bb"/></dir><dir name="controllers"><dir name="Adminhtml"><file name="MailigenController.php" hash="2ecc61ae8c037d48a810cc9802b5a507"/></dir></dir><dir name="etc"><file name="config.xml" hash="a90af7455f1c48dc07e53f7be2e5ceee"/><file name="system.xml" hash="ba6c34ba2c4256e9cad3f34fe483beff"/></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Mailigen_Synchronizer.xml" hash="6a07537f8d139cba241548e9e11c3e8b"/></dir></target></contents>
+    <date>2015-05-14</date>
+    <time>03:44:52</time>
+    <contents><target name="magecommunity"><dir name="Mailigen"><dir name="Synchronizer"><dir name="Block"><dir name="Adminhtml"><dir name="Sync"><file name="Information.php" hash="0ab1c0f348bebc09b8d4463aa915b0ba"/></dir></dir><dir name="Newsletter"><dir name="Subscriber"><file name="Grid.php" hash="31ab69f735a6e1d4382ffa88c223bbf3"/></dir></dir></dir><dir name="Helper"><file name="Customer.php" hash="91b9c056767eb2de5e7d86d98038e984"/><file name="Data.php" hash="3907873d61c689b8899a8fbe03f39008"/><file name="Log.php" hash="e4ae795b78f4aed8b24f2a73a6e5a9ff"/></dir><dir name="Model"><dir name="Customer"><dir name="Merge"><file name="Field.php" hash="61c16630b368bff6a38096e29160b9b2"/></dir></dir><file name="Customer.php" hash="947ac735ca21d6edc4b47e93a80c7a9c"/><file name="List.php" hash="824b44c8d118cd0eb2aa7a62233b024f"/><file name="Mailigen.php" hash="16db407dc7953abb448de5c523833575"/><dir name="Newsletter"><file name="Subscriber.php" hash="31d0caec2f0eff537c39c6b584afc198"/></dir><file name="Observer.php" hash="e6046431c97e6672f2157c799e7fa429"/><dir name="Resource"><dir name="Customer"><file name="Collection.php" hash="8d8bf178493201cf2de8b734f0a4d931"/></dir><file name="Customer.php" hash="4fa61ed2e22202c87e0d6b06c8ed8e9d"/><dir name="Iterator"><file name="Batched.php" hash="d2b0ec0268773422de00cb6766083753"/></dir></dir><file name="Schedule.php" hash="e1c494dce9652566ae679a2032c86769"/><dir name="System"><dir name="Config"><dir name="Backend"><dir name="Customer"><file name="List.php" hash="5370ca37cb8d4f0a268e3ef2e9f4c673"/></dir><dir name="Newsletter"><file name="List.php" hash="05f2ce9cb0954a35cc87f7899164beaa"/></dir></dir></dir></dir></dir><dir name="controllers"><dir name="Adminhtml"><file name="MailigenController.php" hash="772672a78be5385faa660bded0157ddc"/></dir></dir><dir name="data"><dir name="mailigen_synchronizer_setup"><file name="data-install-1.1.0.php" hash="30f1fdb649862fcbbd943aeb7ce65c7f"/></dir></dir><dir name="etc"><file name="config.xml" hash="003723c7c2cc94866d58790ce7d6df7d"/><file name="system.xml" hash="52ba369f2ae3d11a0b5c71e101ec743a"/></dir><dir name="sql"><dir name="mailigen_synchronizer_setup"><file name="install-1.1.0.php" hash="57d4d1b139ec03084f758906803dd28f"/></dir></dir></dir></dir></target><target name="mageetc"><dir name="modules"><file name="Mailigen_Synchronizer.xml" hash="6a07537f8d139cba241548e9e11c3e8b"/></dir></target><target name="magelib"><dir name="mailigen"><file name="MGAPI.class.php" hash="16b7712206e95bf61c2cf6f92ef71583"/></dir></target></contents>
     <compatible/>
     <dependencies><required><php><min>5.4.0</min><max>6.0.0</max></php></required></dependencies>
 </package>
