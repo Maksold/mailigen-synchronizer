@@ -11,34 +11,25 @@ $installer = $this;
 $installer->startSetup();
 
 /**
- * Drop table 'mailigen_synchronizer/customer' if it exists
+ * Drop and Create table 'mailigen_synchronizer/customer'
  */
-$installer->getConnection()->dropTable($installer->getTable('mailigen_synchronizer/customer'));
-
-/**
- * Create table 'mailigen_synchronizer/customer'
- */
-$table = $installer->getConnection()
-    ->newTable($installer->getTable('mailigen_synchronizer/customer'))
-    // Customer info fields
-    ->addColumn('id', Varien_Db_Ddl_Table::TYPE_INTEGER, null,
-        array('unsigned' => true, 'nullable' => false, 'primary' => true,), 'Customer Id'
-    )
-    ->addColumn('email', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    // Customer order fields
-    ->addColumn('lastorderdate', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('valueoflastorder', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('totalvalueoforders', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('totalnumberoforders', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('numberofitemsincart', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('valueofcurrentcart', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    ->addColumn('lastitemincartaddingdate', Varien_Db_Ddl_Table::TYPE_TEXT, 255)
-    // Special fields
-    ->addColumn('is_removed', Varien_Db_Ddl_Table::TYPE_TINYINT, 1, array('default' => '0'))
-    ->addColumn('is_synced', Varien_Db_Ddl_Table::TYPE_TINYINT, 1, array('default' => '0'))
-    ->addColumn('synced_at', Varien_Db_Ddl_Table::TYPE_TIMESTAMP)
-    ->setComment('Mailigen Synchronizer Customers');
-
-$installer->getConnection()->createTable($table);
+$installer->run("
+DROP TABLE IF EXISTS `{$installer->getTable('mailigen_synchronizer/customer')}`;
+CREATE TABLE `{$installer->getTable('mailigen_synchronizer/customer')}` (
+  `id` int(10) unsigned NOT NULL COMMENT 'Customer Id',
+  `email` varchar(255) DEFAULT NULL COMMENT 'Email',
+  `lastorderdate` varchar(255) DEFAULT NULL COMMENT 'Last order date',
+  `valueoflastorder` varchar(255) DEFAULT NULL COMMENT 'Value of last order',
+  `totalvalueoforders` varchar(255) DEFAULT NULL COMMENT 'Total value of orders',
+  `totalnumberoforders` varchar(255) DEFAULT NULL COMMENT 'Total number of orders',
+  `numberofitemsincart` varchar(255) DEFAULT NULL COMMENT 'Number of items in cart',
+  `valueofcurrentcart` varchar(255) DEFAULT NULL COMMENT 'Value of current cart',
+  `lastitemincartaddingdate` varchar(255) DEFAULT NULL COMMENT 'Last item in cart adding date',
+  `is_removed` tinyint(1) DEFAULT '0' COMMENT 'Is removed',
+  `is_synced` tinyint(1) DEFAULT '0' COMMENT 'Is synced',
+  `synced_at` timestamp NULL DEFAULT NULL COMMENT 'Synced at',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Mailigen Synchronizer Customers';
+");
 
 $installer->endSetup();

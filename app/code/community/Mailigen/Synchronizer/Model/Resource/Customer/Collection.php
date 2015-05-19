@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core_Model_Resource_Db_Collection_Abstract
+class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core_Model_Mysql4_Collection_Abstract
 {
     protected function _construct()
     {
