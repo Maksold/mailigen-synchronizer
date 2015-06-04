@@ -112,6 +112,12 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'req' => true,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerStatus)
             ),
+            'ISSUBSCRIBED' => array(
+                'title' => 'Is subscribed',
+                'field_type' => 'dropdown',
+                'req' => true,
+                'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerIsSubscribed)
+            ),
             /**
              * Customer orders info
              */

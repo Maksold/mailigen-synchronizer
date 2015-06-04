@@ -48,12 +48,14 @@ class Mailigen_Synchronizer_Model_Observer
 
             //if is a customer we also grab firstname and lastname
             if ($observer['subscriber']->getCustomerId()) {
-                $customer = Mage::getModel("customer/customer");
-                $customer->load($observer['subscriber']->getCustomerId());
+                $customerId = $observer['subscriber']->getCustomerId();
+                $customer = Mage::getModel('customer/customer');
+                $customer->load($customerId);
 
                 $merge_vars['FNAME'] = $customer->getFirstname();
                 $merge_vars['LNAME'] = $customer->getLastname();
 
+                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customerId);
             }
 
             if ($data['subscriber_status'] === 1) {

@@ -242,6 +242,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
             'CLIENTID' => $customer->getId(),
             'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
+            'ISSUBSCRIBED' => $helper->getFormattedIsSubscribed($customer->getData('is_subscribed')),
             /**
              * Customer orders info
              */

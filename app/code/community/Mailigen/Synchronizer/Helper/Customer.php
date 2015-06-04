@@ -24,7 +24,6 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     protected $_website = null;
 
-
     /**
      * @var null
      */
@@ -39,6 +38,11 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      * @var array
      */
     public $customerStatus = array(0 => 'Inactive', 1 => 'Active');
+
+    /**
+     * @var array
+     */
+    public $customerIsSubscribed = array(0 => 'No', 1 => 'Yes');
 
     /**
      * @param $date
@@ -162,5 +166,14 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     {
         $countries = $this->getCountries();
         return isset($countries[$country]) ? $countries[$country] : '';
+    }
+
+    /**
+     * @param $isSubscribed
+     * @return string
+     */
+    public function getFormattedIsSubscribed($isSubscribed)
+    {
+        return $this->customerIsSubscribed[$isSubscribed == '1' ? 1 : 0];
     }
 }

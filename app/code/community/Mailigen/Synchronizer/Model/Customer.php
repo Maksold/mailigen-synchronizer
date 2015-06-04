@@ -142,15 +142,22 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         /**
          * Join Customer order info
          */
-        $customers->joinTable('mailigen_synchronizer/customer', "id = entity_id", array(
-            'lastorderdate',
-            'valueoflastorder',
-            'totalvalueoforders',
-            'totalnumberoforders',
-            'numberofitemsincart',
-            'valueofcurrentcart',
-            'lastitemincartaddingdate'
+        $customers->joinTable('mailigen_synchronizer/customer', 'id = entity_id', array(
+            'lastorderdate' => 'lastorderdate',
+            'valueoflastorder' => 'valueoflastorder',
+            'totalvalueoforders' => 'totalvalueoforders',
+            'totalnumberoforders' => 'totalnumberoforders',
+            'numberofitemsincart' => 'numberofitemsincart',
+            'valueofcurrentcart' => 'valueofcurrentcart',
+            'lastitemincartaddingdate' => 'lastitemincartaddingdate'
         ));
+
+        /**
+         * Join Subscriber status
+         */
+        $customers->joinTable('newsletter/subscriber', 'customer_id = entity_id', array(
+            'is_subscribed' => 'subscriber_status'
+        ), null, 'left');
 
         return $customers;
     }
