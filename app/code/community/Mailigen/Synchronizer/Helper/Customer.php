@@ -42,7 +42,13 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     /**
      * @var array
      */
-    public $customerIsSubscribed = array(0 => 'No', 1 => 'Yes');
+    public $customerIsSubscribed = array(
+        0 => 'Unsubscribed',
+        1 => 'Subscribed',
+        2 => 'Not Activated',
+        3 => 'Unsubscribed',
+        4 => 'Unconfirmed'
+    );
 
     /**
      * @param $date
@@ -174,6 +180,12 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     public function getFormattedIsSubscribed($isSubscribed)
     {
-        return $this->customerIsSubscribed[$isSubscribed == '1' ? 1 : 0];
+        if (is_null($isSubscribed)) {
+            return $this->customerIsSubscribed[0];
+        } elseif (isset($this->customerIsSubscribed[$isSubscribed])) {
+            return $this->customerIsSubscribed[$isSubscribed];
+        } else {
+            return $this->customerIsSubscribed[0];
+        }
     }
 }
