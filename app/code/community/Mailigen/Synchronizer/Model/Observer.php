@@ -23,7 +23,8 @@ class Mailigen_Synchronizer_Model_Observer
         $logger = Mage::helper('mailigen_synchronizer/log');
 
         if ($enabled && $statusChange == true) {
-
+            /** @var $helper Mailigen_Synchronizer_Helper_Customer */
+            $helper = Mage::helper('mailigen_synchronizer/customer');
             $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
             $listid = Mage::helper('mailigen_synchronizer')->getNewsletterContactList();
 
@@ -49,11 +50,12 @@ class Mailigen_Synchronizer_Model_Observer
             //if is a customer we also grab firstname and lastname
             if ($observer['subscriber']->getCustomerId()) {
                 $customerId = $observer['subscriber']->getCustomerId();
-                $customer = Mage::getModel('customer/customer');
-                $customer->load($customerId);
+                $customer = Mage::getModel('customer/customer')->load($customerId);
 
                 $merge_vars['FNAME'] = $customer->getFirstname();
                 $merge_vars['LNAME'] = $customer->getLastname();
+                $merge_vars['STOREID'] = $customer->getStoreId();
+                $merge_vars['STORELANGUAGE'] = $helper->getStoreLanguage($customer->getStoreId());
 
                 Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customerId);
             }

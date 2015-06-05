@@ -35,6 +35,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     public function syncNewsletter()
     {
+        /** @var $helper Mailigen_Synchronizer_Helper_Customer */
+        $helper = Mage::helper('mailigen_synchronizer/customer');
         $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
         $listid = Mage::helper('mailigen_synchronizer')->getNewsletterContactList();
         if (!$listid) {
@@ -43,6 +45,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
         /** @var $logger Mailigen_Synchronizer_Helper_Log */
         $logger = Mage::helper('mailigen_synchronizer/log');
+
+        /**
+         * Create or update Merge fields
+         */
+        Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
+        $logger->log('Newsletter merge fields created and updated');
 
         //First we pull all unsubscribers from Mailigen
         $unsubscribers = $api->listMembers($listid, "unsubscribed", 0, 500);
@@ -91,7 +99,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $batch[] = array(
                 'EMAIL' => $subscriber->getSubscriberEmail(),
                 'FNAME' => $subscriber->getCustomerFirstname(),
-                'LNAME' => $subscriber->getCustomerLastname()
+                'LNAME' => $subscriber->getCustomerLastname(),
+                'STOREID' => $subscriber->getStoreId(),
+                'STORELANGUAGE' => $helper->getStoreLanguage($subscriber->getStoreId()),
             );
         }
 
@@ -125,7 +135,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          * Create or update Merge fields
          */
         Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
-        $logger->log('Merge fields created and updated');
+        $logger->log('Customer merge fields created and updated');
 
 
         /**
