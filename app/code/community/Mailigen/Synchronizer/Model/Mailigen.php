@@ -127,7 +127,6 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     /**
      * @param $subscriber Mage_Newsletter_Model_Subscriber
-     * @todo Add Group Id, Website Id?
      */
     public function _prepareSubscriberData($subscriber)
     {
@@ -141,6 +140,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             'EMAIL' => $subscriber->getSubscriberEmail(),
             'FNAME' => $subscriber->getCustomerFirstname(),
             'LNAME' => $subscriber->getCustomerLastname(),
+            'WEBSITEID' => $subscriber->getWebsiteId(),
+            'TYPE' => $customerHelper->getSubscriberType($subscriber->getType()),
             'STOREID' => $subscriber->getStoreId(),
             'STORELANGUAGE' => $customerHelper->getStoreLanguage($subscriber->getStoreId()),
         );

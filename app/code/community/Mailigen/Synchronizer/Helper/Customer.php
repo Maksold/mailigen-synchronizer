@@ -188,4 +188,19 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
             return $this->customerIsSubscribed[0];
         }
     }
+
+    /**
+     * @param $type
+     * @return mixed
+     */
+    public function getSubscriberType($type)
+    {
+        if ($type == 1) {
+            return Mage::helper('newsletter')->__('Guest');
+        } elseif ($type == 2) {
+            return Mage::helper('newsletter')->__('Customer');
+        } else {
+            return Mage::helper('newsletter')->__('Unknown');
+        }
+    }
 }

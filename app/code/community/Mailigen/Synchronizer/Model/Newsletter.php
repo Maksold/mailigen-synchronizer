@@ -29,4 +29,22 @@ class Mailigen_Synchronizer_Model_Newsletter extends Mage_Newsletter_Model_Subsc
 
         return $updated;
     }
+
+    /**
+     * @param      $subscriberId
+     * @param bool $synced
+     * @return int
+     */
+    public function updateIsSynced($subscriberId, $synced = true)
+    {
+        $tableName = $this->getResource()->getTable('subscriber');
+        $write = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+        $updated = $write->update($tableName,
+            array('mailigen_synced' => $synced ? 1 : 0),
+            array('subscriber_id = ?' => $subscriberId)
+        );
+
+        return $updated;
+    }
 }

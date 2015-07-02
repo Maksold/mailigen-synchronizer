@@ -71,6 +71,15 @@
                     </newsletter_subscriber_newsletter_subscriber_create_after>
                 </observers>
             </newsletter_subscriber_save_commit_after>
+            <newsletter_subscriber_delete_after>
+                <observers>
+                    <mailigen_synchronizer_newsletter_subscriber_delete_after>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Observer</class>
+                        <method>newsletterSubscriberDeleteAfter</method>
+                    </mailigen_synchronizer_newsletter_subscriber_delete_after>
+                </observers>
+            </newsletter_subscriber_delete_after>
             <admin_system_config_changed_section_mailigen_synchronizer>
                 <observers>
                     <newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
