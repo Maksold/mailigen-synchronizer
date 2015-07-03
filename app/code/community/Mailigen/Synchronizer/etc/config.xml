@@ -199,5 +199,16 @@
             </mailigen_synchronizer>
         </jobs>
     </crontab>
+    <frontend>
+        <routers>
+            <mailigen>
+                <use>standard</use>
+                <args>
+                    <frontName>mailigen</frontName>
+                    <module>Mailigen_Synchronizer</module>
+                </args>
+            </mailigen>
+        </routers>
+    </frontend>
 </config>
 

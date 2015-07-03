@@ -15,6 +15,13 @@ class Mailigen_Synchronizer_Model_Observer
      */
     public function newsletterSubscriberSaveCommitAfter(Varien_Event_Observer $observer)
     {
+        /**
+         * Check if it was webhook save
+         */
+        if (Mage::registry('mailigen_webhook')) {
+            return;
+        }
+
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         /** @var $logger Mailigen_Synchronizer_Helper_Log */

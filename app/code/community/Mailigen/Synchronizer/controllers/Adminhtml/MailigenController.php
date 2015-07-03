@@ -1,7 +1,17 @@
 <?php
 
+/**
+ * Mailigen_Synchronizer
+ *
+ * @category    Mailigen
+ * @package     Mailigen_Synchronizer
+ * @author      Maksim Soldatjonok <maksold@gmail.com>
+ */
 class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_Controller_Action
 {
+    /**
+     * @todo Schedule cron job
+     */
     public function syncNewsletterAction()
     {
         /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
