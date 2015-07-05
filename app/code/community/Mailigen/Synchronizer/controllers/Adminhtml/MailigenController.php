@@ -9,14 +9,24 @@
  */
 class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_Controller_Action
 {
-    /**
-     * @todo Schedule cron job
-     */
     public function syncNewsletterAction()
     {
-        /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-        $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-        $mailigen->syncNewsletter();
+        try {
+            /** @var $helper Mailigen_Synchronizer_Helper_Data */
+            $helper = Mage::helper('mailigen_synchronizer');
+            /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+            $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
+
+            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+                $mailigenSchedule->createJob();
+                $helper->setManualSync(1);
+            }
+
+            $this->_getSession()->addSuccess($this->__('Mailigen newsletter synchronization task will start shortly.'));
+        } catch (Exception $e) {
+            $this->_getSession()->addError($e->getMessage());
+            Mage::helper('mailigen_synchronizer/log')->logException($e);
+        }
 
         $this->_redirect('*/newsletter_subscriber/index');
     }
