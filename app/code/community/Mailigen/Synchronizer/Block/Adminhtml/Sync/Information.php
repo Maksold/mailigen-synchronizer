@@ -21,11 +21,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         $helper = Mage::helper('mailigen_synchronizer');
 
         $lastSyncedText = $this->_getLastSyncedText();
+        $syncedNewsletterProgress = $this->_getSyncedNewsletterProgress();
         $syncedCustomersProgress = $this->_getSyncedCustomersProgress();
         $syncStatusText = $this->_getSyncStatusText();
 
         $html = '<style type="text/css">
             .progress {
+              position: relative;
               padding: 2px;
               background: rgba(0, 0, 0, 0.25);
               border-radius: 6px;
@@ -33,9 +35,6 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
               box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px rgba(255, 255, 255, 0.08);
             }
             .progress-bar {
-              font-size: 12px;
-              color: #111;
-              text-align: left;
               text-indent: 6px;
               position: relative;
               height: 16px;
@@ -79,6 +78,14 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
               background-image: -o-linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
               background-image: linear-gradient(top, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.05));
             }
+            .progress-text {
+              position: absolute;
+              top: 1px;
+              left: 10px;
+              font-size: 12px;
+              color: #111;
+              text-align: left;
+            }
             </style>
             <table cellspacing="0" class="form-list">
                 <tr>
@@ -88,21 +95,31 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                     <td></td>
                 </tr>
                 <tr>
-                    <td class="label">' . $helper->__('Synced Customers') . '</td>
-                    <td class="value">
-                        <div class="progress">
-                            <div class="progress-bar" style="width:' . $syncedCustomersProgress['percent'] . '%;">
-                            ' .  $syncedCustomersProgress['text'] . '
-                            </div>
-                        </div>
-                    </td>
+                    <td class="label">' . $helper->__('Sync Status') . '</td>
+                    <td class="value">' . $syncStatusText . '</td>
                     <td class="scope-label"></td>
                     <td></td>
                 </tr>
                 <tr>
-                    <td class="label">' . $helper->__('Sync Status') . '</td>
-                    <td class="value">' . $syncStatusText . '</td>
-                    <td class="scope-label"></td>
+                    <td class="label">' . $helper->__('Synced Newsletter') . '</td>
+                    <td class="value">
+                        <div class="progress">
+                            <div class="progress-bar" style="width:' . $syncedNewsletterProgress['percent'] . '%;"></div>
+                            <span class="progress-text">' .  $syncedNewsletterProgress['text'] . '</span>
+                        </div>
+                    </td>
+                    <td class="scope-label">' . $syncedNewsletterProgress['button'] . '</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td class="label">' . $helper->__('Synced Customers') . '</td>
+                    <td class="value">
+                        <div class="progress">
+                            <div class="progress-bar" style="width:' . $syncedCustomersProgress['percent'] . '%;"></div>
+                            <span class="progress-text">' .  $syncedCustomersProgress['text'] . '</span>
+                        </div>
+                    </td>
+                    <td class="scope-label">' . $syncedCustomersProgress['button'] . '</td>
                     <td></td>
                 </tr>
             </table>';
@@ -137,6 +154,35 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     }
 
     /**
+     * Get synced newsletter progress
+     *
+     * @return array
+     */
+    protected function _getSyncedNewsletterProgress()
+    {
+        $result = array();
+        $totalNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()->getSize();
+        $syncedNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()
+            ->addFieldToFilter('mailigen_synced', 1)
+            ->getSize();
+
+        $result['percent'] = round($syncedNewsletter / $totalNewsletter * 100);
+        $result['text'] = "{$result['percent']}% ($syncedNewsletter/$totalNewsletter)";
+
+        /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+        $mailigenSchedule = Mage::getSingleton('mailigen_synchronizer/schedule');
+        $lastRunningJob = $mailigenSchedule->getLastRunningJob();
+        if (empty($lastRunningJob)) {
+            $result['button'] = $this->_getResetNewsletterSyncButton();
+        } else {
+            $result['button'] = '';
+        }
+
+        return $result;
+    }
+
+
+    /**
      * Get synced customers progress
      *
      * @return array
@@ -147,10 +193,20 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->addFieldToFilter('is_synced', 1)
             ->getSize();
-        $syncedCustomersPercent = round($syncedCustomers / $totalCustomers * 100);
-        $syncedCustomersText = "$syncedCustomersPercent% ($syncedCustomers/$totalCustomers)";
 
-        return array('percent' => $syncedCustomersPercent, 'text' => $syncedCustomersText);
+        $result['percent'] = round($syncedCustomers / $totalCustomers * 100);
+        $result['text'] = "{$result['percent']}% ($syncedCustomers/$totalCustomers)";
+
+        /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
+        $mailigenSchedule = Mage::getSingleton('mailigen_synchronizer/schedule');
+        $lastRunningJob = $mailigenSchedule->getLastRunningJob();
+        if (empty($lastRunningJob)) {
+            $result['button'] = $this->_getResetCustomersSyncButton();
+        } else {
+            $result['button'] = '';
+        }
+
+        return $result;
     }
 
     /**
@@ -161,28 +217,26 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     protected function _getSyncStatusText()
     {
         /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
-        $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
-        $runningJob = $mailigenSchedule->getLastRunningJob();
-        $pendingJob = $mailigenSchedule->getLastPendingJob();
+        $mailigenSchedule = Mage::getSingleton('mailigen_synchronizer/schedule');
 
-        if ($runningJob) {
+        if ($mailigenSchedule->getLastRunningJob()) {
             $html = "Running";
-            if (strlen($runningJob->getExecutedAt())) {
+            if (strlen($mailigenSchedule->getLastRunningJob()->getExecutedAt())) {
                 $html .= ' (Started at: ';
-                $html .= Mage::helper('core')->formatDate($runningJob->getExecutedAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($mailigenSchedule->getLastRunningJob()->getExecutedAt(), 'medium', true);
                 $html .= ') ';
 
                 /**
-                 * Show stop sync customers button
+                 * Show stop sync button
                  */
-                $html .= $this->_getStopCustomersSyncButton();
+                $html .= $this->_getStopSyncButton();
             }
         }
-        elseif ($pendingJob) {
+        elseif ($mailigenSchedule->getLastPendingJob()) {
             $html = "Pending";
-            if (strlen($pendingJob->getScheduledAt())) {
+            if (strlen($mailigenSchedule->getLastPendingJob()->getScheduledAt())) {
                 $html .= ' (Scheduled at: ';
-                $html .= Mage::helper('core')->formatDate($pendingJob->getScheduledAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($mailigenSchedule->getLastPendingJob()->getScheduledAt(), 'medium', true);
                 $html .= ')';
             }
         }
@@ -191,20 +245,19 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
             /**
              * Show reset sync customers button
              */
-            $html .= ' '.$this->_getResetCustomersSyncButton();
         }
 
         return $html;
     }
 
     /**
-     * Get Stop customers sync button html
+     * Get Stop sync button html
      *
      * @return string
      */
-    protected function _getStopCustomersSyncButton()
+    protected function _getStopSyncButton()
     {
-        $stopSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/stopSyncCustomers');
+        $stopSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/stopSync');
         $buttonJs = '<script type="text/javascript">
             //<![CDATA[
             function stopMailigenSynchronizer() {
@@ -240,7 +293,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         $resetSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/resetSyncCustomers');
         $buttonJs = '<script type="text/javascript">
             //<![CDATA[
-            function resetMailigenSynchronizer() {
+            function resetCustomersSync() {
                 new Ajax.Request("' . $resetSyncUrl . '", {
                     method: "get",
                     onSuccess: function(transport){
@@ -258,9 +311,45 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
 
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
             ->setData(array(
-                'id' => 'reset_mailigen_synchronizer_button',
-                'label' => $this->helper('adminhtml')->__('Reset sync'),
-                'onclick' => 'javascript:resetMailigenSynchronizer(); return false;'
+                'id' => 'reset_customers_sync__button',
+                'label' => $this->helper('adminhtml')->__('Reset Customers Sync'),
+                'onclick' => 'javascript:resetCustomersSync(); return false;'
+            ));
+
+        return $buttonJs . $button->toHtml();
+    }
+
+    /**
+     * Get Reset newsletter sync button html
+     *
+     * @return string
+     */
+    protected function _getResetNewsletterSyncButton()
+    {
+        $resetSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/resetSyncNewsletter');
+        $buttonJs = '<script type="text/javascript">
+            //<![CDATA[
+            function resetNewsletterSync() {
+                new Ajax.Request("' . $resetSyncUrl . '", {
+                    method: "get",
+                    onSuccess: function(transport){
+                        if (transport.responseText == "1"){
+                            window.location.reload();
+                        }
+                        else {
+                            alert(transport.responseText);
+                        }
+                    }
+                });
+            }
+            //]]>
+            </script>';
+
+        $button = $this->getLayout()->createBlock('adminhtml/widget_button')
+            ->setData(array(
+                'id' => 'reset_newsletter_sync__button',
+                'label' => $this->helper('adminhtml')->__('Reset Newsletter Sync'),
+                'onclick' => 'javascript:resetNewsletterSync(); return false;'
             ));
 
         return $buttonJs . $button->toHtml();

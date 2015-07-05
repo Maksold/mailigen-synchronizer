@@ -150,13 +150,23 @@
                             <show_in_store>0</show_in_store>
                             <comment>If set to yes, this will perform batch synchronization of your list. You must have CRON setup on your store for this feature to work.</comment>
                         </autosync>
-                        <sycn_information>
+                    </fields>
+                </customers>
+                <sync translate="label" module="mailigen_synchronizer">
+                    <label>Sync Information</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>40</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <information>
                             <frontend_model>mailigen_synchronizer/adminhtml_sync_information</frontend_model>
-                            <sort_order>40</sort_order>
+                            <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
-                        </sycn_information>
+                        </information>
                         <manual_sync>
                             <frontend_type>hidden</frontend_type>
                             <show_in_default>0</show_in_default>
@@ -170,7 +180,7 @@
                             <show_in_store>0</show_in_store>
                         </stop_sync>
                     </fields>
-                </customers>
+                </sync>
             </groups>
         </mailigen_synchronizer>
     </sections>

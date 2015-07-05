@@ -47,4 +47,20 @@ class Mailigen_Synchronizer_Model_Newsletter extends Mage_Newsletter_Model_Subsc
 
         return $updated;
     }
+
+    /**
+     * @return int
+     */
+    public function setNewsletterNotSynced()
+    {
+        $tableName = $this->getResource()->getTable('subscriber');
+        $write = Mage::getSingleton('core/resource')->getConnection('core_write');
+
+        $updated = $write->update($tableName,
+            array('mailigen_synced' => 0),
+            array('subscriber_status = ?' => Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) // @todo Remove if unsubscribers will be synced too
+        );
+
+        return $updated;
+    }
 }

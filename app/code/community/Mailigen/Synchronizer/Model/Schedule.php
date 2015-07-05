@@ -20,6 +20,16 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
     protected $_countPendingOrRunningJobs = null;
 
     /**
+     * @var null
+     */
+    protected $_lastRunningJob = null;
+
+    /**
+     * @var null
+     */
+    protected $_lastPendingJob = null;
+
+    /**
      * @return int|null
      */
     public function countPendingOrRunningJobs()
@@ -44,14 +54,18 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
      */
     public function getLastRunningJob()
     {
-        /** @var $runningJobs Mage_Cron_Model_Resource_Schedule_Collection */
-        $runningJobs = Mage::getModel('cron/schedule')->getCollection()
-            ->addFieldToFilter('job_code', $this->_jobCode)
-            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_RUNNING)
-            ->setOrder('executed_at')
-            ->setPageSize(1)->setCurPage(1);
+        if (is_null($this->_lastRunningJob)) {
+            /** @var $runningJobs Mage_Cron_Model_Resource_Schedule_Collection */
+            $runningJobs = Mage::getModel('cron/schedule')->getCollection()
+                ->addFieldToFilter('job_code', $this->_jobCode)
+                ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_RUNNING)
+                ->setOrder('executed_at')
+                ->setPageSize(1)->setCurPage(1);
 
-        return $runningJobs->getSize() ? $runningJobs->getFirstItem() : null;
+            $this->_lastRunningJob = $runningJobs->getSize() ? $runningJobs->getFirstItem() : false;
+        }
+
+        return $this->_lastRunningJob;
     }
 
     /**
@@ -59,14 +73,18 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
      */
     public function getLastPendingJob()
     {
-        /** @var $runningJobs Mage_Cron_Model_Resource_Schedule_Collection */
-        $pendingJobs = Mage::getModel('cron/schedule')->getCollection()
-            ->addFieldToFilter('job_code', $this->_jobCode)
-            ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_PENDING)
-            ->setOrder('executed_at')
-            ->setPageSize(1)->setCurPage(1);
+        if (is_null($this->_lastPendingJob)) {
+            /** @var $pendingJobs Mage_Cron_Model_Resource_Schedule_Collection */
+            $pendingJobs = Mage::getModel('cron/schedule')->getCollection()
+                ->addFieldToFilter('job_code', $this->_jobCode)
+                ->addFieldToFilter('status', Mage_Cron_Model_Schedule::STATUS_PENDING)
+                ->setOrder('executed_at')
+                ->setPageSize(1)->setCurPage(1);;
 
-        return $pendingJobs->getSize() ? $pendingJobs->getFirstItem() : null;
+            $this->_lastPendingJob = $pendingJobs->getSize() ? $pendingJobs->getFirstItem() : false;
+        }
+
+        return $this->_lastPendingJob;
     }
 
     /**
