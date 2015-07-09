@@ -101,7 +101,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                     <td></td>
                 </tr>
                 <tr>
-                    <td class="label">' . $helper->__('Synced Newsletter') . '</td>
+                    <td class="label">' . $helper->__('Synced Newsletter (subscribed)') . '</td>
                     <td class="value">
                         <div class="progress">
                             <div class="progress-bar" style="width:' . $syncedNewsletterProgress['percent'] . '%;"></div>
@@ -161,8 +161,11 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     protected function _getSyncedNewsletterProgress()
     {
         $result = array();
-        $totalNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()->getSize();
+        $totalNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()
+            ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED)
+            ->getSize();
         $syncedNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()
+            ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED)
             ->addFieldToFilter('mailigen_synced', 1)
             ->getSize();
 
