@@ -285,6 +285,56 @@ class Mailigen_Synchronizer_Model_Observer
         $customer = $observer->getDataObject();
         if ($customer && $customer->getId()) {
             Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+
+            /** @var $helper Mailigen_Synchronizer_Helper_Data */
+            $helper = Mage::helper('mailigen_synchronizer');
+            $newsletterListId = $helper->getNewsletterContactList();
+
+            /**
+             * Check if Customer Firstname, Lastname or Email was changed
+             */
+            if ($customer->getIsSubscribed() && $customer->hasDataChanges() && $helper->isEnabled() && !empty($newsletterListId)) {
+                $origCustomerData = $customer->getOrigData();
+
+                $nameChanged = ((isset($origCustomerData['firstname']) && $origCustomerData['firstname'] != $customer->getFirstname())
+                    || (isset($origCustomerData['lastname']) && $origCustomerData['lastname'] != $customer->getLastname()));
+                $emailChanged = (isset($origCustomerData['email']) && !empty($origCustomerData['email']) && $origCustomerData['email'] != $customer->getEmail());
+
+                /**
+                 * Set subscriber not synced, if customer Firstname, Lastname changed
+                 */
+                if ($nameChanged && !$emailChanged) {
+                    $subscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($customer->getEmail());
+                    if ($subscriber->getId()) {
+                        Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId(), false);
+                    }
+                }
+
+                /**
+                 * Unsubscribe with old email
+                 */
+                if ($emailChanged) {
+                    $oldEmail = $origCustomerData['email'];
+                    $subscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($oldEmail);
+
+                    if ($subscriber->getId()) {
+                        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+                        $logger = Mage::helper('mailigen_synchronizer/log');
+                        $api = $helper->getMailigenApi();
+
+                        /**
+                         * Remove subscriber
+                         */
+                        $send_goodbye = $helper->canNewsletterHandleDefaultEmails();
+                        $retval = $api->listUnsubscribe($newsletterListId, $oldEmail, true, $send_goodbye, true);
+                        $logger->log('Remove subscriber with email: ' . $oldEmail);
+
+                        if (!$retval) {
+                            $logger->log("Unable to remove subscriber with email: $oldEmail. $api->errorCode: $api->errorMessage");
+                        }
+                    }
+                }
+            }
         }
     }
     /**
