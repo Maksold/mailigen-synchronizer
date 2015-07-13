@@ -194,32 +194,37 @@ class Mailigen_Synchronizer_Model_Observer
         $helper = Mage::helper('mailigen_synchronizer');
         /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
         $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
+        /** @var $configData Mage_Adminhtml_Model_Config_Data */
+        $configData = Mage::getSingleton('adminhtml/config_data');
+        $scope = $configData->getScope();
+        $scopeId = $configData->getScopeId();
+        $storeId = Mage::app()->getWebsite($scopeId)->getDefaultGroup()->getDefaultStore()->getId();
         $removeCache = false;
 
         /**
          * Create new newsletter list
          */
-        $newsletterNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE);
-        if ($newsletterNewListName) {
+        $newsletterNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $storeId);
+        if (is_string($newsletterNewListName) && strlen($newsletterNewListName) > 0) {
             if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
                 $newListValue = $list->createNewList($newsletterNewListName);
                 if ($newListValue) {
-                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, 'default', 0);
+                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, $scope, $scopeId);
                     $removeCache = true;
                 }
             }
-            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, '', 'default', 0);
+            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $scope, $scopeId);
         }
 
         /**
          * Create new customers list
          */
-        $customersNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE);
-        if ($customersNewListName) {
+        $customersNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, $storeId);
+        if (is_string($customersNewListName) && strlen($customersNewListName) > 0) {
             if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
                 $newListValue = $list->createNewList($customersNewListName);
                 if ($newListValue) {
-                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, 'default', 0);
+                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, $scope, $scopeId);
                     $removeCache = true;
 
                     /**
@@ -230,15 +235,16 @@ class Mailigen_Synchronizer_Model_Observer
                     $customer->setCustomersNotSynced();
                 }
             }
-            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, '', 'default', 0);
+            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, $scope, $scopeId);
         }
 
         /**
          * Check if user selected the same contact lists for newsletter and customers
+         * @todo Check contact lists per each scope
          */
-        if ($helper->getNewsletterContactList() == $helper->getCustomersContactList() && $helper->getNewsletterContactList() != '') {
+        if ($helper->getNewsletterContactList($storeId) == $helper->getCustomersContactList($storeId) && $helper->getNewsletterContactList($storeId) != '') {
             Mage::getSingleton('adminhtml/session')->addError("Please select different contact lists for newsletter and customers");
-            $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, '', 'default', 0);
+            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $scope, $scopeId);
             $removeCache = true;
         }
 
@@ -311,7 +317,7 @@ class Mailigen_Synchronizer_Model_Observer
                 }
 
                 /**
-                 * Unsubscribe with old email
+                 * Unsubscribe customer with old email
                  */
                 if ($emailChanged) {
                     $oldEmail = $origCustomerData['email'];
