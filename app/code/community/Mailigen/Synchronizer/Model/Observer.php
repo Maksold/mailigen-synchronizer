@@ -28,11 +28,12 @@ class Mailigen_Synchronizer_Model_Observer
         $logger = Mage::helper('mailigen_synchronizer/log');
         $subscriber = $observer->getDataObject();
 
-        if ($helper->isEnabled() && $subscriber
+        if ($subscriber && $helper->isEnabled($subscriber->getStoreId())
             && ($subscriber->getIsStatusChanged() == true || $subscriber->getOrigData('subscriber_status') != $subscriber->getData('subscriber_status'))
         ) {
-            $api = $helper->getMailigenApi();
-            $newsletterListId = $helper->getNewsletterContactList();
+            $storeId = $subscriber->getStoreId();
+            $api = $helper->getMailigenApi($storeId);
+            $newsletterListId = $helper->getNewsletterContactList($storeId);
             if (!$newsletterListId) {
                 $logger->log('Newsletter contact list isn\'t selected');
                 return;
@@ -42,7 +43,7 @@ class Mailigen_Synchronizer_Model_Observer
             /**
              * Create or update Merge fields
              */
-            Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
+            Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields($storeId);
             $logger->log('Newsletter merge fields created and updated');
 
             if ($subscriber->getSubscriberStatus() === Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {
@@ -53,13 +54,13 @@ class Mailigen_Synchronizer_Model_Observer
                 $customerHelper = Mage::helper('mailigen_synchronizer/customer');
 
                 // Prepare Merge vars
-                $website = $customerHelper->getWebsite($subscriber->getStoreId());
+                $website = $customerHelper->getWebsite($storeId);
                 $merge_vars = array(
                     'EMAIL' => $subscriber->getSubscriberEmail(),
                     'WEBSITEID' => $website ? $website->getId() : 0,
                     'TYPE' => $customerHelper->getSubscriberType(1),
-                    'STOREID' => $subscriber->getStoreId(),
-                    'STORELANGUAGE' => $customerHelper->getStoreLanguage($subscriber->getStoreId()),
+                    'STOREID' => $storeId,
+                    'STORELANGUAGE' => $customerHelper->getStoreLanguage($storeId),
                 );
 
                 // If is a customer we also grab firstname and lastname
@@ -70,7 +71,7 @@ class Mailigen_Synchronizer_Model_Observer
                     $merge_vars['TYPE'] = $customerHelper->getSubscriberType(2);
                 }
 
-                $send_welcome = $helper->canNewsletterHandleDefaultEmails();
+                $send_welcome = $helper->canNewsletterHandleDefaultEmails($storeId);
 
                 $retval = $api->listSubscribe($newsletterListId, $email_address, $merge_vars, 'html', false, true, $send_welcome);
                 $logger->log('Subscribed newsletter with email: ' . $email_address);
@@ -79,7 +80,7 @@ class Mailigen_Synchronizer_Model_Observer
                 /**
                  * Unsubscribe newsletter
                  */
-                $send_goodbye = $helper->canNewsletterHandleDefaultEmails();
+                $send_goodbye = $helper->canNewsletterHandleDefaultEmails($storeId);
                 $retval = $api->listUnsubscribe($newsletterListId, $email_address, false, $send_goodbye, true);
                 $logger->log('Unsubscribed newsletter with email: ' . $email_address);
             } else {
@@ -112,9 +113,10 @@ class Mailigen_Synchronizer_Model_Observer
         $logger = Mage::helper('mailigen_synchronizer/log');
         $subscriber = $observer->getDataObject();
 
-        if ($helper->isEnabled() && $subscriber) {
-            $api = $helper->getMailigenApi();
-            $newsletterListId = $helper->getNewsletterContactList();
+        if ($subscriber && $helper->isEnabled($subscriber->getStoreId())) {
+            $storeId = $subscriber->getStoreId();
+            $api = $helper->getMailigenApi($storeId);
+            $newsletterListId = $helper->getNewsletterContactList($storeId);
             if (!$newsletterListId) {
                 $logger->log('Newsletter contact list isn\'t selected');
                 return;
@@ -124,7 +126,7 @@ class Mailigen_Synchronizer_Model_Observer
             /**
              * Remove subscriber
              */
-            $send_goodbye = $helper->canNewsletterHandleDefaultEmails();
+            $send_goodbye = $helper->canNewsletterHandleDefaultEmails($storeId);
             $retval = $api->listUnsubscribe($newsletterListId, $email_address, true, $send_goodbye, true);
             $logger->log('Remove subscriber with email: ' . $email_address);
 

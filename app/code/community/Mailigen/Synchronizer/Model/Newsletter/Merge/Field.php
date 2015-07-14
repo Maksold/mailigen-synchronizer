@@ -39,17 +39,20 @@ class Mailigen_Synchronizer_Model_Newsletter_Merge_Field extends Mage_Core_Model
         );
     }
 
-    public function createMergeFields()
+    /**
+     * @param null $storeId
+     */
+    public function createMergeFields($storeId = null)
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        $api = $helper->getMailigenApi();
-        $listId = $helper->getNewsletterContactList();
+        $api = $helper->getMailigenApi($storeId);
+        $listId = $helper->getNewsletterContactList($storeId);
         if (empty($listId)) {
             Mage::throwException("Newsletter contact list isn't selected");
         }
 
-        $createdFields = $this->_getCreatedMergeFields();
+        $createdFields = $this->_getCreatedMergeFields($storeId);
         $newFields = $this->_getMergeFieldsConfig();
 
         foreach ($newFields as $tag => $options) {
@@ -67,14 +70,15 @@ class Mailigen_Synchronizer_Model_Newsletter_Merge_Field extends Mage_Core_Model
     }
 
     /**
+     * @param null $storeId
      * @return array
      */
-    protected function _getCreatedMergeFields()
+    protected function _getCreatedMergeFields($storeId = null)
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        $api = $helper->getMailigenApi();
-        $listId = $helper->getNewsletterContactList();
+        $api = $helper->getMailigenApi($storeId);
+        $listId = $helper->getNewsletterContactList($storeId);
 
         $createdMergeFields = array();
         $tmpCreatedMergeFields = $api->listMergeVars($listId);
