@@ -21,6 +21,10 @@
       [
         "lib/mailigen",
         "lib/mailigen"
+      ],
+      [
+        "skin/adminhtml/default/default/mailigen_synchronizer",
+        "skin/adminhtml/default/default/mailigen_synchronizer"
       ]
     ]
   }

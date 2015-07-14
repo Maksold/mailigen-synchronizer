@@ -22,12 +22,17 @@ class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Webhooks
         $storeId = $helper->getScopeStoreId();
 
         $webhooksUrl = Mage::app()->getStore($storeId)->getBaseUrl() . 'mailigen/webhook/';
+        $webhooksSetupImg = $this->getSkinUrl('mailigen_synchronizer/Mailigen_webhooks_setup_instruction.jpg');
+        $webhooksSetupText = $helper->__('Mailigen webhooks setup instruction');
 
         $html = '<table cellspacing="0" class="form-list">
                 <tr>
                     <td class="label">' . $helper->__('Mailigen Webhooks URL') . '</td>
-                    <td class="value">
+                    <td class="value with-tooltip">
                         <a href="' . $webhooksUrl . '" target="_blank">' . $webhooksUrl . '</a>
+                        <div class="field-tooltip"><div>
+                            <img src="' . $webhooksSetupImg . '" alt="' . $webhooksSetupText . '" title="' . $webhooksSetupText . '" style="width:800px;"/>
+                        </div></div>
                         <p class="note"><span>' . $helper->__('This URL you should use in Mailigen, to configure webhooks.') . '</span></p>
                     </td>
                     <td class="scope-label"></td>
