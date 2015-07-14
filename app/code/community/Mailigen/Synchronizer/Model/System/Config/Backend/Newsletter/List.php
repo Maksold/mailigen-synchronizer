@@ -23,12 +23,21 @@ class Mailigen_Synchronizer_Model_System_Config_Backend_Newsletter_List extends 
         $oldValue = $helper->getNewsletterContactList();
         $newValue = $this->getValue();
 
-        /**
-         * Deny config modification, until synchronization will not be finished
-         */
-        if ($oldValue != $newValue && $mailigenSchedule->countPendingOrRunningJobs() > 0) {
-            $this->_dataSaveAllowed = false;
-            Mage::getSingleton('adminhtml/session')->addNotice($helper->__("You can't change newsletter list until synchronization will not be finished."));
+        if ($oldValue != $newValue) {
+            /**
+             * Deny config modification, until synchronization will not be finished
+             */
+            if ($mailigenSchedule->countPendingOrRunningJobs() > 0) {
+                $this->_dataSaveAllowed = false;
+                Mage::getSingleton('adminhtml/session')->addNotice($helper->__("You can't change newsletter list until synchronization will not be finished."));
+            } else {
+                /**
+                 * Set newsletter not synced on contact list change
+                 */
+                /** @var $newsletter Mailigen_Synchronizer_Model_Newsletter */
+                $newsletter = Mage::getModel('mailigen_synchronizer/newsletter');
+                $newsletter->setNewsletterNotSynced();
+            }
         }
     }
 }

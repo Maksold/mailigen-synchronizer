@@ -211,6 +211,13 @@ class Mailigen_Synchronizer_Model_Observer
                 if ($newListValue) {
                     $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, $scope, $scopeId);
                     $removeCache = true;
+
+                    /**
+                     * Set newsletter not synced on contact list change
+                     */
+                    /** @var $newsletter Mailigen_Synchronizer_Model_Newsletter */
+                    $newsletter = Mage::getModel('mailigen_synchronizer/newsletter');
+                    $newsletter->setNewsletterNotSynced();
                 }
             }
             $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $scope, $scopeId);

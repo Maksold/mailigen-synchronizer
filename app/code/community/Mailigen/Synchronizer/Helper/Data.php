@@ -135,7 +135,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
         $storeId = is_null($storeId) ? $this->getDefaultStoreId() : $storeId;
         if (!isset($this->_mgapi[$storeId])) {
             require_once Mage::getBaseDir('lib') . '/mailigen/MGAPI.class.php';
-            $this->_mgapi[$storeId] = new MGAPI($this->getApiKey($storeId));
+            $this->_mgapi[$storeId] = new MGAPI($this->getApiKey($storeId), false, true);
         }
 
         return $this->_mgapi[$storeId];
@@ -231,6 +231,24 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     public function getDefaultStoreId()
     {
         return Mage::app()->getWebsite()->getDefaultGroup()->getDefaultStoreId();
+    }
+
+    /**
+     * @return int
+     */
+    public function getScopeStoreId()
+    {
+        if (strlen($code = Mage::getSingleton('adminhtml/config_data')->getStore())) // store level
+        {
+            return Mage::getModel('core/store')->load($code)->getId();
+        } elseif (strlen($code = Mage::getSingleton('adminhtml/config_data')->getWebsite())) // website level
+        {
+            $website_id = Mage::getModel('core/website')->load($code)->getId();
+            return Mage::app()->getWebsite($website_id)->getDefaultStore()->getId();
+        } else // default level
+        {
+            return Mage_Core_Model_App::ADMIN_STORE_ID;
+        }
     }
 
     /**

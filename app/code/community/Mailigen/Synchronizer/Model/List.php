@@ -27,7 +27,10 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     public function getLists($load = false)
     {
         if (is_null($this->_lists) || $load) {
-            $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
+            /** @var $helper Mailigen_Synchronizer_Helper_Data */
+            $helper = Mage::helper('mailigen_synchronizer');
+            $storeId = $helper->getScopeStoreId();
+            $api = $helper->getMailigenApi($storeId);
             $this->_lists = $api->lists();
         }
         return $this->_lists;
@@ -74,6 +77,9 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
 
             /** @var $logger Mailigen_Synchronizer_Helper_Log */
             $logger = Mage::helper('mailigen_synchronizer/log');
+            /** @var $helper Mailigen_Synchronizer_Helper_Data */
+            $helper = Mage::helper('mailigen_synchronizer');
+            $storeId = $helper->getScopeStoreId();
 
             $options = array(
                 'permission_reminder' => ' ',
@@ -83,7 +89,7 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
                 'has_email_type_option' => true
             );
 
-            $api = Mage::helper('mailigen_synchronizer')->getMailigenApi();
+            $api = $helper->getMailigenApi($storeId);
             $retval = $api->listCreate($newListName, $options);
 
             if ($api->errorCode) {
