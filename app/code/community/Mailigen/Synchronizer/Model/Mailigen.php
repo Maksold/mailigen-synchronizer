@@ -46,16 +46,21 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
     /**
      * @var array
      */
-    protected $_newsletterLog = array(
-        'subscriber_success_count' => 0,
-        'subscriber_error_count' => 0,
-        'subscriber_errors' => array(),
-        'subscriber_count' => 0,
-        'unsubscriber_success_count' => 0,
-        'unsubscriber_error_count' => 0,
-        'unsubscriber_errors' => array(),
-        'unsubscriber_count' => 0,
-    );
+    protected $_newsletterLog = array();
+
+    protected function _resetNewsletterLog()
+    {
+        $this->_newsletterLog = array(
+            'subscriber_success_count' => 0,
+            'subscriber_error_count' => 0,
+            'subscriber_errors' => array(),
+            'subscriber_count' => 0,
+            'unsubscriber_success_count' => 0,
+            'unsubscriber_error_count' => 0,
+            'unsubscriber_errors' => array(),
+            'unsubscriber_count' => 0,
+        );
+    }
 
     public function syncNewsletter()
     {
@@ -63,66 +68,84 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         $logger = Mage::helper('mailigen_synchronizer/log');
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        $logger->log('Newsletter synchronization started');
-        $this->_newsletterListId = $helper->getNewsletterContactList();
-        if (!$this->_newsletterListId) {
+        /** @var $emulation Mage_Core_Model_App_Emulation */
+        $emulation = Mage::getModel('core/app_emulation');
+
+        /**
+         * Get Newsletter lists per store
+         */
+        $newsletterLists = $helper->getNewsletterContactLists();
+        if (count($newsletterLists) <= 0) {
             Mage::throwException("Newsletter contact list isn't selected");
         }
 
+        $logger->log('Newsletter synchronization started for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
 
-        /**
-         * Create or update Merge fields
-         */
-        Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
-        $logger->log('Newsletter merge fields created and updated');
+        foreach ($newsletterLists as $_storeId => $newsletterListId) {
+            $logger->log('Newsletter synchronization started for Store Id: ' . $_storeId);
+
+            $environment = $emulation->startEnvironmentEmulation($_storeId);
+            $this->_newsletterListId = $newsletterListId;
+            $this->_resetNewsletterLog();
 
 
-        /**
-         * Update subscribers in Mailigen
-         */
-        /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
-        $subscribers = Mage::getResourceSingleton('mailigen_synchronizer/subscriber_collection')
-            ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
-        if (count($subscribers) > 0) {
-            $logger->log("Started updating subscribers in Mailigen");
-            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                $subscribers,
-                array($this, '_prepareSubscriberData'),
-                array($this, '_updateSubscribersInMailigen'),
-                100,
-                10000
-            );
             /**
-             * Reschedule task, to run after 2 min
+             * Create or update Merge fields
              */
-            if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                $this->_writeResultLogs();
-                $logger->log("Reschedule task, to update subscribers in Mailigen after 2 min");
-                return;
+            Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
+            $logger->log('Newsletter merge fields created and updated');
+
+
+            /**
+             * Update subscribers in Mailigen
+             */
+            /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
+            $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
+                ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $_storeId);
+            if (count($subscribers) > 0) {
+                $logger->log("Started updating subscribers in Mailigen");
+                $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+                    $subscribers,
+                    array($this, '_prepareSubscriberData'),
+                    array($this, '_updateSubscribersInMailigen'),
+                    100,
+                    10000
+                );
+                /**
+                 * Reschedule task, to run after 2 min
+                 */
+                if ($iterator == 0) {
+                    Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                    $this->_writeResultLogs();
+                    $logger->log("Reschedule task, to update subscribers in Mailigen after 2 min");
+                    return;
+                }
+                $logger->log("Finished updating subscribers in Mailigen");
+            } else {
+                $logger->log("No subscribers to sync with Mailigen");
             }
-            $logger->log("Finished updating subscribers in Mailigen");
+            unset($subscribers);
+
+            /**
+             * Log subscribers info
+             */
+            $this->_writeResultLogs();
+
+            /**
+             * @todo Update unsubscribers in Mailigen
+             */
+
+            /**
+             * Log unsubscribers info
+             */
+            // $this->_writeResultLogs();
+
+            $emulation->stopEnvironmentEmulation($environment);
+
+            $logger->log('Newsletter synchronization finished for Store Id: ' . $_storeId);
         }
-        else {
-            $logger->log("No subscribers to sync with Mailigen");
-        }
-        unset($subscribers);
 
-        /**
-         * Log subscribers info
-         */
-        $this->_writeResultLogs();
-
-        /**
-         * @todo Update unsubscribers in Mailigen
-         */
-
-        /**
-         * Log unsubscribers info
-         */
-        $this->_writeResultLogs();
-
-        $logger->log('Newsletter synchronization finished');
+        $logger->log('Newsletter synchronization finished for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
     }
 
     /**
