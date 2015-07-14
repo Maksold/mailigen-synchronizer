@@ -107,6 +107,14 @@
                             <show_in_store>0</show_in_store>
                             <comment><![CDATA[If set to yes, then each time the list on Mailigen changes an update will be sent to Magento store.<br/><b>Warning:</b> You should configure Webhooks in Mailigen account to get it working! Read more details in <a href="http://www.mailigen.com/assets/files/pdf/MailigenSynchronizer-MagentoModul-UserGuide-v1.pdf">documentation</a>.]]></comment>
                         </webhooks>
+                        <webhooks_url translate="label">
+                            <label>Mailigen Webhooks URL</label>
+                            <frontend_model>mailigen_synchronizer/adminhtml_newsletter_webhooks</frontend_model>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </webhooks_url>
                     </fields>
                 </newsletter>
                 <customers translate="label" module="mailigen_synchronizer">
