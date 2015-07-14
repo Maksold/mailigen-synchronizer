@@ -29,17 +29,20 @@ class MGAPI {
      * Izmantot ssl: false - ne, true - ja
      */
     var $secure = false;
-    
+
     /**
      * Pieslegties pie MailiGen API
-     * 
+     *
      * @param string $apikey Jusu MailiGen API atslega
-     * @param string $secure Izmantot vai neizmantot ssl piesleganos
+     * @param bool $secure Izmantot vai neizmantot ssl piesleganos
+     * @param bool $force_apikey_update Izmantot jaunu MailiGen API atslegu
      */
-    function MGAPI($apikey, $secure = false) {
+    function MGAPI($apikey, $secure = false, $force_apikey_update = false) {
         $this->secure = $secure;
         $this->apiUrl = parse_url("http://api.mailigen.com/" . $this->version . "/?output=php");
-        if ( isset($GLOBALS["mg_api_key"]) && $GLOBALS["mg_api_key"]!="" ){
+        if ($force_apikey_update) {
+			$this->api_key = $GLOBALS["mg_api_key"] = $apikey;
+		} elseif ( isset($GLOBALS["mg_api_key"]) && $GLOBALS["mg_api_key"]!="" ){
             $this->api_key = $GLOBALS["mg_api_key"];
         } else {
             $this->api_key = $GLOBALS["mg_api_key"] = $apikey;
