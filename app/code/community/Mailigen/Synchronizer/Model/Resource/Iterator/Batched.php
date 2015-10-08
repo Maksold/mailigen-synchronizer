@@ -12,6 +12,16 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
     const DEFAULT_BATCH_SIZE = 250;
 
     /**
+     * @var null
+     */
+    protected $_collectionCount = null;
+
+    /**
+     * @var int
+     */
+    protected $_batchSize = self::DEFAULT_BATCH_SIZE;
+
+    /**
      * @param       $collection
      * @param array $callbackForIndividual
      * @param array $callbackAfterBatch
@@ -21,16 +31,21 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
      */
     public function walk($collection, array $callbackForIndividual, array $callbackAfterBatch, $batchSize = null, $batchLimit = null)
     {
-        if (!$batchSize) {
-            $batchSize = self::DEFAULT_BATCH_SIZE;
+        if (!is_null($batchSize)) {
+            $this->_batchSize = $batchSize;
         }
 
-        $collection->setPageSize($batchSize);
+        $this->_collectionCount = $collection->getSelectCountSql();
+
+        $collection->setPageSize($this->_batchSize);
 
         $currentPage = 1;
-        $pages = $collection->getLastPageNumber();
+        $origCurrentPage = 1;
+        $pages = $this->_getPagesSize();
+        $origPages = $collection->getLastPageNumber();
 
         do {
+            $collection->clear();
             $collection->setCurPage($currentPage);
             $collection->load();
 
@@ -39,18 +54,51 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
             }
 
             if (!empty($callbackAfterBatch)) {
-                $collectionInfo = array('currentPage' => $currentPage, 'pages' => $pages, 'pageSize' => $batchSize);
+                $collectionInfo = array('currentPage' => $origCurrentPage, 'pages' => $origPages, 'pageSize' => $this->_batchSize);
                 call_user_func($callbackAfterBatch, $collectionInfo);
             }
 
-            if (is_int($batchLimit) && $currentPage * $batchSize >= $batchLimit) {
-                return 0;
+            if (is_int($batchLimit)) {
+                $batchLimit -= $this->_batchSize;
+                if ($batchLimit <= 0) {
+                    return 0;
+                }
             }
 
-            $currentPage++;
-            $collection->clear();
+            $origCurrentPage++;
+            $this->_recalcPages($currentPage, $pages);
         } while ($currentPage <= $pages);
 
         return 1;
+    }
+
+    /**
+     * @return float
+     */
+    protected function _getPagesSize()
+    {
+        $count = $this->_collectionCount->query()->fetchColumn();
+        return ceil($count/$this->_batchSize);
+    }
+
+    /**
+     * @param $currentPage
+     * @param $pages
+     */
+    protected function _recalcPages(&$currentPage, &$pages)
+    {
+        $_pages = $this->_getPagesSize();
+        $pagesDiff = $_pages - $pages;
+        if ($pagesDiff < 0) {
+            $pages = $_pages;
+            $currentPage += $pagesDiff;
+        }
+        elseif ($pagesDiff >= 0) {
+            $currentPage++;
+        }
+
+        if ($currentPage <= 0) {
+            $currentPage = 1;
+        }
     }
 }
