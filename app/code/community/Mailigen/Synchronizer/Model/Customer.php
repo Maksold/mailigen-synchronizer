@@ -27,7 +27,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         $customerIds = Mage::getModel('customer/customer')->getCollection()
             ->addAttributeToFilter('website_id', $websiteId)
             ->getAllIds();
-        $customerFlatIds = $this->getCollection()->getAllIds(0, 0, $websiteId);
+        $customerFlatIds = $this->getCollection()->getAllIds(false, false, $websiteId);
         $newCustomerFlatIds = array_diff($customerIds, $customerFlatIds);
 
         if (count($newCustomerFlatIds) > 0) {
@@ -64,7 +64,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
          * Sum all orders grand total
          */
         $totalGrandTotal = 0;
-        if ($orders->count() > 0) {
+        if ($orders->getSize() > 0) {
             foreach ($orders as $_order) {
                 $totalGrandTotal += $_order->getGrandTotal();
             }
@@ -85,7 +85,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
             'lastorderdate' => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
             'valueoflastorder' => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
             'totalvalueoforders' => (float)$totalGrandTotal,
-            'totalnumberoforders' => (int)$orders->count(),
+            'totalnumberoforders' => (int)$orders->getSize(),
             'numberofitemsincart' => $quote ? (int)$quote->getItemsQty() : '',
             'valueofcurrentcart' => $quote ? (float)$quote->getGrandTotal() : '',
             'lastitemincartaddingdate' => $quote ? $helper->getFormattedDate($quote->getUpdatedAt()) : '',

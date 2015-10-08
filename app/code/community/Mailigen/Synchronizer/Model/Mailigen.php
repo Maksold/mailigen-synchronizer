@@ -108,7 +108,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
             $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
                 ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $_storeId);
-            if (count($subscribers) > 0) {
+            if ($subscribers->getSize() > 0) {
                 $logger->log("Started updating subscribers in Mailigen");
                 $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                     $subscribers,
@@ -331,7 +331,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 ->addFieldToFilter('is_synced', 0)
                 ->addFieldToFilter('website_id', $websiteId)
                 ->addFieldToSelect(array('id', 'email'));
-            if ($removeCustomers && count($removeCustomers) > 0) {
+            if ($removeCustomers && $removeCustomers->getSize() > 0) {
                 $logger->log("Started removing customers from Mailigen");
                 $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                     $removeCustomers,
