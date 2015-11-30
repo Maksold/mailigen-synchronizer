@@ -32,15 +32,22 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
         }
 
         if (!$this->getRequest()->isPost()) {
-            $this->logger->logWebhook("It's not POST request.");
+            $requestMethod = $this->getRequest()->getMethod();
+            $this->logger->logWebhook("Request should be a 'POST' method, instead of '{$requestMethod}'.");
             return '';
         }
 
-        $this->logger->logWebhook("Webhook called with data: " . $this->getRequest()->getRawBody());
+        $data = $this->getRequest()->getRawBody();
+        $signature = $this->getRequest()->getHeader('X-Mailigen-Signature');
+        if (!$helper->verifySignature($data, $signature)) {
+            $this->logger->logWebhook("Data signature is incorrect.");
+            return '';
+        }
+
+        $this->logger->logWebhook("Webhook called with data: " . $data);
 
         try {
-            $json = $this->getRequest()->getRawBody();
-            $json = json_decode($json);
+            $json = json_decode($data);
 
             if (!isset($json->hook) || !isset($json->data)) {
                 $this->logger->logWebhook('No hook or data in JSON.');
@@ -63,7 +70,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                     $this->_unsubscribeContact($json->data);
                     break;
                 default:
-                    $this->logger->logWebhook('Incorrect JSON');
+                    $this->logger->logWebhook("Hook '{$json->hook}' is not supported");
             }
         } catch (Exception $e) {
             $this->_returnError('Exception: ' . $e->getMessage());

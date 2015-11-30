@@ -118,6 +118,17 @@
                                 <webhooks></webhooks>
                             </depends>
                         </webhooks_url>
+                        <webhooks_secret_key translate="label">
+                            <label>Mailigen Webhooks Secret Key</label>
+                            <frontend_model>mailigen_synchronizer/adminhtml_newsletter_secretkey</frontend_model>
+                            <sort_order>70</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <webhooks></webhooks>
+                            </depends>
+                        </webhooks_secret_key>
                     </fields>
                 </newsletter>
                 <customers translate="label" module="mailigen_synchronizer">

@@ -16,6 +16,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_NEWSLETTER_AUTOSYNC = 'mailigen_synchronizer/newsletter/autosync';
     const XML_PATH_NEWSLETTER_HANDLE_DEFAULT_EMAILS = 'mailigen_synchronizer/newsletter/handle_default_emails';
     const XML_PATH_NEWSLETTER_WEBHOOKS = 'mailigen_synchronizer/newsletter/webhooks';
+    const XML_PATH_NEWSLETTER_WEBHOOKS_SECRET_KEY = 'mailigen_synchronizer/newsletter/webhooks_secret_key';
     const XML_PATH_CUSTOMERS_CONTACT_LIST = 'mailigen_synchronizer/customers/contact_list';
     const XML_PATH_CUSTOMERS_NEW_LIST_TITLE = 'mailigen_synchronizer/customers/new_list_title';
     const XML_PATH_CUSTOMERS_AUTOSYNC = 'mailigen_synchronizer/customers/autosync';
@@ -106,6 +107,39 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $storeId = is_null($storeId) ? $this->getDefaultStoreId() : $storeId;
         return Mage::getStoreConfigFlag(self::XML_PATH_NEWSLETTER_WEBHOOKS, $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return mixed
+     */
+    public function getWebhooksSecretKey($storeId = null)
+    {
+        $storeId = is_null($storeId) ? $this->getDefaultStoreId() : $storeId;
+        return Mage::getStoreConfig(self::XML_PATH_NEWSLETTER_WEBHOOKS_SECRET_KEY, $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return string
+     */
+    public function generateWebhooksSecretKey($storeId = null)
+    {
+        $config = new Mage_Core_Model_Config();
+
+        $secretKey = bin2hex(openssl_random_pseudo_bytes(24));
+
+        if (is_null($storeId) || $storeId == Mage_Core_Model_App::ADMIN_STORE_ID) {
+            $config->saveConfig(self::XML_PATH_NEWSLETTER_WEBHOOKS_SECRET_KEY, $secretKey);
+        }
+        else {
+            $store = Mage::getModel('core/store')->load($storeId);
+            $scopeId = $store->getWebsiteId();
+            $config->saveConfig(self::XML_PATH_NEWSLETTER_WEBHOOKS_SECRET_KEY, $secretKey, 'websites', $scopeId);
+        }
+        $config->cleanCache();
+
+        return $secretKey;
     }
 
     /**
@@ -316,5 +350,18 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
         if (!$full) $string = array_slice($string, 0, 1);
         return $string ? implode(', ', $string) . ' ago' : 'just now';
+    }
+
+    /**
+     * @param $data
+     * @param $signature
+     * @param null $storeId
+     * @return bool
+     */
+    public function verifySignature($data, $signature, $storeId = null)
+    {
+        $secretKey = $this->getWebhooksSecretKey($storeId);
+        $hash = hash_hmac('sha1', $data, $secretKey);
+        return $signature === 'sha1=' . $hash;
     }
 }

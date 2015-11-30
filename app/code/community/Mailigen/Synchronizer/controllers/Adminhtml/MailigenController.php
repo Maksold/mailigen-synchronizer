@@ -88,4 +88,18 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
         $this->getResponse()->setBody('1');
     }
+
+    /**
+     * Generate new webhooks secret key
+     */
+    public function generateSecretKeyAction()
+    {
+        $storeId = $this->getRequest()->getParam('storeId');
+
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        $secretKey = $helper->generateWebhooksSecretKey($storeId);
+
+        $this->getResponse()->setBody($secretKey);
+    }
 }
