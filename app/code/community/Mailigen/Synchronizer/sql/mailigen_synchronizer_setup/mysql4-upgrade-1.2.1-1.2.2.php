@@ -13,9 +13,7 @@ $installer->startSetup();
 /**
  * Add 'website_id' column to 'mailigen_synchronizer/customer' table
  */
-$installer->run("
-ALTER TABLE {$installer->getTable('mailigen_synchronizer/customer')}
-    ADD `website_id` SMALLINT(5) UNSIGNED NOT NULL AFTER `email`;
-");
+$tableName = $installer->getTable('mailigen_synchronizer/customer');
+$installer->getConnection()->addColumn($tableName, 'website_id', 'SMALLINT(5) UNSIGNED NOT NULL AFTER `email`');
 
 $installer->endSetup();

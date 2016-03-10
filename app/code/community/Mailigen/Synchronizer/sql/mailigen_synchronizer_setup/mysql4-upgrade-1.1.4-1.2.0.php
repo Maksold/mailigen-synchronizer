@@ -13,9 +13,8 @@ $installer->startSetup();
 /**
  * Add 'mailigen_synced' column to 'newsletter_subscriber' table
  */
-$installer->run("
-ALTER TABLE {$this->getTable('newsletter_subscriber')}
-    ADD `mailigen_synced` tinyint(1) NOT NULL default '0';
-");
+$tableName = $this->getTable('newsletter_subscriber');
+$installer->getConnection()->addColumn($tableName, 'mailigen_synced', 'tinyint(1) NOT NULL DEFAULT 0');
+
 
 $installer->endSetup();
