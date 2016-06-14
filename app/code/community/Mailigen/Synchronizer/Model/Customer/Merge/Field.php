@@ -85,6 +85,11 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'field_type' => 'text',
                 'req' => false
             ),
+            'REGION' => array(
+                'title' => 'State/Province',
+                'field_type' => 'text',
+                'req' => false
+            ),
             'DATEOFBIRTH' => array(
                 'title' => 'Date of birth',
                 'field_type' => 'date',

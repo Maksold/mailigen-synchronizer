@@ -135,6 +135,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
          */
         $customers->joinAttribute('billing_telephone', 'customer_address/telephone', 'default_billing', null, 'left')
             ->joinAttribute('billing_city', 'customer_address/city', 'default_billing', null, 'left')
+            ->joinAttribute('billing_region_id', 'customer_address/region_id', 'default_billing', null, 'left')
             ->joinAttribute('billing_country_id', 'customer_address/country_id', 'default_billing', null, 'left');
 
         /**

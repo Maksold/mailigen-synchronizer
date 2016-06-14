@@ -35,6 +35,11 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     protected $_countries = null;
 
     /**
+     * @var null
+     */
+    protected $_regions = null;
+
+    /**
      * @var array
      */
     public $customerStatus = array(0 => 'Inactive', 1 => 'Active');
@@ -155,13 +160,26 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     public function getCountries()
     {
-        if (is_null($this->_countries)) {
+        if ($this->_countries === null) {
             $countries = Mage::getResourceModel('directory/country_collection')->loadData()->toOptionArray(false);
             foreach ($countries as $country) {
                 $this->_countries[$country['value']] = $country['label'];
             }
         }
         return $this->_countries;
+    }
+    /**
+     * @return array
+     */
+    public function getRegions()
+    {
+        if ($this->_regions === null) {
+            $regionCollection = Mage::getModel('directory/region')->getCollection()->getData();
+            foreach ($regionCollection as $region) {
+                $this->_regions[$region['region_id']] = $region['name'];
+            }
+        }
+        return $this->_regions;
     }
 
     /**
@@ -175,12 +193,22 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @param $regionId
+     * @return string
+     */
+    public function getFormattedRegion($regionId)
+    {
+        $regions = $this->getRegions();
+        return isset($regions[$regionId]) ? $regions[$regionId] : '';
+    }
+
+    /**
      * @param $isSubscribed
      * @return string
      */
     public function getFormattedIsSubscribed($isSubscribed)
     {
-        if (is_null($isSubscribed)) {
+        if ($isSubscribed === null) {
             return $this->customerIsSubscribed[0];
         } elseif (isset($this->customerIsSubscribed[$isSubscribed])) {
             return $this->customerIsSubscribed[$isSubscribed];

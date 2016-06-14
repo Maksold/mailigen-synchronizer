@@ -396,6 +396,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
             'COUNTRY' => $helper->getFormattedCountry($customer->getBillingCountryId()),
             'CITY' => $customer->getBillingCity(),
+            'REGION' => $helper->getFormattedRegion($customer->getBillingRegionId()),
             'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
             'GENDER' => $helper->getFormattedGender($customer->getGender()),
             'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
