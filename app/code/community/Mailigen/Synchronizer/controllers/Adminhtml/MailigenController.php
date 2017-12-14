@@ -102,4 +102,12 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
         $this->getResponse()->setBody($secretKey);
     }
+
+    /**
+     * @return mixed
+     */
+    protected function _isAllowed()
+    {
+        return Mage::getSingleton('admin/session')->isAllowed('system/config/mailigen_synchronizer');
+    }
 }

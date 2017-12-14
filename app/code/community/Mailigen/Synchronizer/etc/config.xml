@@ -141,8 +141,7 @@
             <adminhtml>
                 <args>
                     <modules>
-                        <newsletter_subscriber before="Mage_Adminhtml">Mailigen_Synchronizer_Adminhtml
-                        </newsletter_subscriber>
+                        <newsletter_subscriber before="Mage_Adminhtml">Mailigen_Synchronizer_Adminhtml</newsletter_subscriber>
                     </modules>
                 </args>
             </adminhtml>
