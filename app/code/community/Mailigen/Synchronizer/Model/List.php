@@ -12,7 +12,7 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     /**
      * @var null
      */
-    protected $_lists = null;
+    protected $_lists;
 
     public function _construct()
     {
@@ -26,13 +26,14 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
      */
     public function getLists($load = false)
     {
-        if (is_null($this->_lists) || $load) {
+        if (null === $this->_lists || $load) {
             /** @var $helper Mailigen_Synchronizer_Helper_Data */
             $helper = Mage::helper('mailigen_synchronizer');
             $storeId = $helper->getScopeStoreId();
             $api = $helper->getMailigenApi($storeId);
             $this->_lists = $api->lists();
         }
+
         return $this->_lists;
     }
 
@@ -49,6 +50,7 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
             foreach ($lists as $list) {
                 $array[] = array('label' => $list['name'], 'value' => $list['id']);
             }
+
             return $array;
         }
     }
@@ -82,9 +84,9 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
             $storeId = $helper->getScopeStoreId();
 
             $options = array(
-                'permission_reminder' => ' ',
-                'notify_to' => Mage::getStoreConfig('trans_email/ident_general/email'),
-                'subscription_notify' => true,
+                'permission_reminder'   => ' ',
+                'notify_to'             => Mage::getStoreConfig('trans_email/ident_general/email'),
+                'subscription_notify'   => true,
                 'unsubscription_notify' => true,
                 'has_email_type_option' => true
             );
@@ -107,5 +109,15 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         }
 
         return false;
+    }
+
+    /**
+     * @param null $lists
+     * @return Mailigen_Synchronizer_Model_List
+     */
+    public function setLists($lists)
+    {
+        $this->_lists = $lists;
+        return $this;
     }
 }

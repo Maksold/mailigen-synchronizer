@@ -17,27 +17,27 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     /**
      * @var null|array
      */
-    protected $_customerGroup = null;
+    protected $_customerGroup;
 
     /**
      * @var null
      */
-    protected $_website = null;
+    protected $_website;
 
     /**
      * @var null
      */
-    protected $_customerGender = null;
+    protected $_customerGender;
 
     /**
      * @var null
      */
-    protected $_countries = null;
+    protected $_countries;
 
     /**
      * @var null
      */
-    protected $_regions = null;
+    protected $_regions;
 
     /**
      * @var array
@@ -68,6 +68,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
         } else {
             $date = '';
         }
+
         return $date;
     }
 
@@ -76,14 +77,16 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     public function getGenders()
     {
-        if (is_null($this->_customerGender)) {
+        if (null === $this->_customerGender) {
             $genders = Mage::getResourceSingleton('customer/customer')->getAttribute('gender')->getSource()->getAllOptions(false);
             foreach ($genders as $gender) {
                 $this->_customerGender[$gender['value']] = $gender['label'];
             }
         }
+
         return $this->_customerGender;
     }
+
     /**
      * @param $gender
      * @return string
@@ -91,7 +94,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     public function getFormattedGender($gender)
     {
         $genders = $this->getGenders();
-        return (!is_null($gender) && isset($genders[$gender])) ? $genders[$gender] : '';
+        return (null !== $gender && isset($genders[$gender])) ? $genders[$gender] : '';
     }
 
     /**
@@ -99,7 +102,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     public function getCustomerGroups()
     {
-        if (is_null($this->_customerGroup)) {
+        if (null === $this->_customerGroup) {
             $this->_customerGroup = array();
             /** @var $groups Mage_Customer_Model_Resource_Group_Collection */
             $groups = Mage::getModel('customer/group')->getCollection();
@@ -107,6 +110,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
                 $this->_customerGroup[$group->getCustomerGroupId()] = $group->getCustomerGroupCode();
             }
         }
+
         return $this->_customerGroup;
     }
 
@@ -138,6 +142,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
         if (!isset($this->_storeLang[$storeId])) {
             $this->_storeLang[$storeId] = substr(Mage::getStoreConfig('general/locale/code', $storeId), 0, 2);
         }
+
         return $this->_storeLang[$storeId];
     }
 
@@ -152,6 +157,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
             $store = Mage::getModel('core/store')->load($storeId);
             $this->_website[$storeId] = $store->getWebsite();
         }
+
         return $this->_website[$storeId];
     }
 
@@ -166,8 +172,10 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
                 $this->_countries[$country['value']] = $country['label'];
             }
         }
+
         return $this->_countries;
     }
+
     /**
      * @return array
      */
@@ -179,6 +187,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
                 $this->_regions[$region['region_id']] = $region['name'];
             }
         }
+
         return $this->_regions;
     }
 

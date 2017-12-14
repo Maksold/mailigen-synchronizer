@@ -12,7 +12,7 @@ class Mailigen_Synchronizer_Model_Resource_Subscriber_Collection extends Mage_Ne
 
     /**
      * @param null $status
-     * @param int  $synced
+     * @param int $synced
      * @param null $storeId
      * @return Mage_Eav_Model_Entity_Collection_Abstract
      */
@@ -23,11 +23,11 @@ class Mailigen_Synchronizer_Model_Resource_Subscriber_Collection extends Mage_Ne
             ->showStoreInfo()
             ->addFieldToFilter('mailigen_synced', $synced);
 
-        if (!is_null($status)) {
+        if (null !== $status) {
             $collection->addFieldToFilter('subscriber_status', $status);
         }
 
-        if (!is_null($storeId)) {
+        if (null !== $storeId) {
             $collection->addFieldToFilter('store_id', $storeId);
         }
 

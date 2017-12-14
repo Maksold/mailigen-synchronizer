@@ -18,6 +18,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
         if (is_array($values)) {
             return implode("||", $values);
         }
+
         return '';
     }
 
@@ -33,133 +34,133 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
             /**
              * Customer fields
              */
-            'PREFIX' => array(
-                'title' => 'Prefix',
+            'PREFIX'                   => array(
+                'title'      => 'Prefix',
                 'field_type' => 'text',
-                'req' => false
+                'req'        => false
             ),
-            'MIDDLENAME' => array(
-                'title' => 'Middle name',
+            'MIDDLENAME'               => array(
+                'title'      => 'Middle name',
                 'field_type' => 'text',
-                'req' => false
+                'req'        => false
             ),
-            'SUFFIX' => array(
-                'title' => 'Suffix',
+            'SUFFIX'                   => array(
+                'title'      => 'Suffix',
                 'field_type' => 'text',
-                'req' => false
+                'req'        => false
             ),
-            'STOREID' => array(
-                'title' => 'Store id',
+            'STOREID'                  => array(
+                'title'      => 'Store id',
                 'field_type' => 'text',
-                'req' => true
+                'req'        => true
             ),
-            'STORELANGUAGE' => array(
-                'title' => 'Store language',
+            'STORELANGUAGE'            => array(
+                'title'      => 'Store language',
                 'field_type' => 'text',
-                'req' => true
+                'req'        => true
             ),
-            'CUSTOMERGROUP' => array(
-                'title' => 'Customer group',
-                'field_type' => 'dropdown',
-                'req' => true,
+            'CUSTOMERGROUP'            => array(
+                'title'             => 'Customer group',
+                'field_type'        => 'dropdown',
+                'req'               => true,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCustomerGroups())
             ),
-            'PHONE' => array(
-                'title' => 'Phone',
+            'PHONE'                    => array(
+                'title'      => 'Phone',
                 'field_type' => 'sms',
-                'req' => false
+                'req'        => false
             ),
-            'REGISTRATIONDATE' => array(
-                'title' => 'Registration date',
+            'REGISTRATIONDATE'         => array(
+                'title'      => 'Registration date',
                 'field_type' => 'date',
-                'req' => true
+                'req'        => true
             ),
-            'COUNTRY' => array(
-                'title' => 'Country',
-                'field_type' => 'dropdown',
-                'req' => false,
+            'COUNTRY'                  => array(
+                'title'             => 'Country',
+                'field_type'        => 'dropdown',
+                'req'               => false,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCountries()),
             ),
-            'CITY' => array(
-                'title' => 'City',
+            'CITY'                     => array(
+                'title'      => 'City',
                 'field_type' => 'text',
-                'req' => false
+                'req'        => false
             ),
-            'REGION' => array(
-                'title' => 'State/Province',
+            'REGION'                   => array(
+                'title'      => 'State/Province',
                 'field_type' => 'text',
-                'req' => false
+                'req'        => false
             ),
-            'DATEOFBIRTH' => array(
-                'title' => 'Date of birth',
+            'DATEOFBIRTH'              => array(
+                'title'      => 'Date of birth',
                 'field_type' => 'date',
-                'req' => false
+                'req'        => false
             ),
-            'GENDER' => array(
-                'title' => 'Gender',
-                'field_type' => 'dropdown',
-                'req' => false,
+            'GENDER'                   => array(
+                'title'             => 'Gender',
+                'field_type'        => 'dropdown',
+                'req'               => false,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->getGenders())
             ),
-            'LASTLOGIN' => array(
-                'title' => 'Last login',
+            'LASTLOGIN'                => array(
+                'title'      => 'Last login',
                 'field_type' => 'date',
-                'req' => false
+                'req'        => false
             ),
-            'CLIENTID' => array(
-                'title' => 'Client id',
+            'CLIENTID'                 => array(
+                'title'      => 'Client id',
                 'field_type' => 'number',
-                'req' => true
+                'req'        => true
             ),
-            'STATUSOFUSER' => array(
-                'title' => 'Status of user',
-                'field_type' => 'dropdown',
-                'req' => true,
+            'STATUSOFUSER'             => array(
+                'title'             => 'Status of user',
+                'field_type'        => 'dropdown',
+                'req'               => true,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerStatus)
             ),
-            'ISSUBSCRIBED' => array(
-                'title' => 'Is subscribed',
-                'field_type' => 'dropdown',
-                'req' => true,
+            'ISSUBSCRIBED'             => array(
+                'title'             => 'Is subscribed',
+                'field_type'        => 'dropdown',
+                'req'               => true,
                 'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerIsSubscribed)
             ),
             /**
              * Customer orders info
              */
-            'LASTORDERDATE' => array(
-                'title' => 'Last order date',
+            'LASTORDERDATE'            => array(
+                'title'      => 'Last order date',
                 'field_type' => 'date',
-                'req' => false
+                'req'        => false
             ),
-            'VALUEOFLASTORDER' => array(
-                'title' => 'Value of last order',
+            'VALUEOFLASTORDER'         => array(
+                'title'      => 'Value of last order',
                 'field_type' => 'number',
-                'req' => false
+                'req'        => false
             ),
-            'TOTALVALUEOFORDERS' => array(
-                'title' => 'Total value of orders',
+            'TOTALVALUEOFORDERS'       => array(
+                'title'      => 'Total value of orders',
                 'field_type' => 'number',
-                'req' => false
+                'req'        => false
             ),
-            'TOTALNUMBEROFORDERS' => array(
-                'title' => 'Total number of orders',
+            'TOTALNUMBEROFORDERS'      => array(
+                'title'      => 'Total number of orders',
                 'field_type' => 'number',
-                'req' => false
+                'req'        => false
             ),
-            'NUMBEROFITEMSINCART' => array(
-                'title' => 'Number of items in cart',
+            'NUMBEROFITEMSINCART'      => array(
+                'title'      => 'Number of items in cart',
                 'field_type' => 'number',
-                'req' => false
+                'req'        => false
             ),
-            'VALUEOFCURRENTCART' => array(
-                'title' => 'Value of current cart',
+            'VALUEOFCURRENTCART'       => array(
+                'title'      => 'Value of current cart',
                 'field_type' => 'number',
-                'req' => false
+                'req'        => false
             ),
             'LASTITEMINCARTADDINGDATE' => array(
-                'title' => 'Last item in cart adding date',
+                'title'      => 'Last item in cart adding date',
                 'field_type' => 'date',
-                'req' => false
+                'req'        => false
             ),
             /**
              * @todo Add Discount coupon fields
@@ -192,8 +193,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                         Mage::throwException("Unable to update merge var. $api->errorCode: $api->errorMessage");
                     }
                 }
-            }
-            else {
+            } else {
                 /**
                  * Create new merge field
                  */

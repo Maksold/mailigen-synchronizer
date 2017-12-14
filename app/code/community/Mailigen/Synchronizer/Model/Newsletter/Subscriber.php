@@ -38,6 +38,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
             } else {
                 $this->setStatus(self::STATUS_SUBSCRIBED);
             }
+
             $this->setSubscriberEmail($email);
         }
 
@@ -63,7 +64,6 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
                 } else {
                     $this->sendConfirmationSuccessEmail();
                 }
-
             }
 
             return $this->getStatus();
@@ -129,7 +129,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
         $sendInformationEmail = false;
         if ($customer->hasIsSubscribed()) {
             $status = $customer->getIsSubscribed()
-                ? (!is_null($confirmation) ? self::STATUS_UNCONFIRMED : self::STATUS_SUBSCRIBED)
+                ? (null !== $confirmation ? self::STATUS_UNCONFIRMED : self::STATUS_SUBSCRIBED)
                 : self::STATUS_UNSUBSCRIBED;
             /**
              * If subscription status has been changed then send email to the customer
@@ -137,7 +137,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
             if ($status != self::STATUS_UNCONFIRMED && $status != $this->getStatus()) {
                 $sendInformationEmail = true;
             }
-        } elseif (($this->getStatus() == self::STATUS_UNCONFIRMED) && (is_null($confirmation))) {
+        } elseif (($this->getStatus() == self::STATUS_UNCONFIRMED) && is_null($confirmation)) {
             $status = self::STATUS_SUBSCRIBED;
             $sendInformationEmail = true;
         } else {
@@ -155,6 +155,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
             if ($customer->getStoreId() == 0) {
                 $storeId = Mage::app()->getWebsite($customer->getWebsiteId())->getDefaultStore()->getId();
             }
+
             $this->setStoreId($storeId)
                 ->setCustomerId($customer->getId())
                 ->setEmail($customer->getEmail());
@@ -165,8 +166,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
 
         $this->save();
         $sendSubscription = $customer->getData('sendSubscription') || $sendInformationEmail;
-        if (is_null($sendSubscription) xor $sendSubscription) {
-
+        if (null === $sendSubscription xor $sendSubscription) {
             $send_flag = Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails();
             if (!$send_flag) {
                 if ($this->getIsStatusChanged() && $status == self::STATUS_UNSUBSCRIBED) {
@@ -176,6 +176,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_
                 }
             }
         }
+
         return $this;
     }
 }

@@ -12,7 +12,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
     /**
      * @var null|Mailigen_Synchronizer_Helper_Log
      */
-    public $logger = null;
+    public $logger;
 
     /**
      * Mailigen Webhooks handler action
@@ -75,6 +75,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
         } catch (Exception $e) {
             $this->_returnError('Exception: ' . $e->getMessage());
         }
+
         return '';
     }
 
@@ -140,6 +141,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                 } else {
                     $this->_returnError("Can't subscribe contact with email: $email");
                 }
+
                 Mage::unregister('mailigen_webhook');
             }
         }
@@ -176,10 +178,12 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                     if ($subscriber->getId()) {
                         Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId());
                     }
+
                     $this->logger->logWebhook("Unsubscribed contact with email: $email");
                 } else {
                     $this->_returnError("Can't unsubscribe contact with email: $email");
                 }
+
                 Mage::unregister('mailigen_webhook');
             } else {
                 $this->logger->logWebhook("Subscriber doesn't exist with email: $email");

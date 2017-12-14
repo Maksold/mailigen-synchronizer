@@ -50,9 +50,11 @@ class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Secretkey
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
 
-        $generateWebhooksSecretKeyUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/generateSecretKey', array(
-            'storeId' => $helper->getScopeStoreId()
-        ));
+        $generateWebhooksSecretKeyUrl = Mage::helper('adminhtml')->getUrl(
+            '*/mailigen/generateSecretKey', array(
+                'storeId' => $helper->getScopeStoreId()
+            )
+        );
         $buttonJs = '<script type="text/javascript">
             //<![CDATA[
             function generateWebhooksSecretKey() {
@@ -69,11 +71,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Secretkey
             </script>';
 
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
-                'id' => 'generate_webhooks_secret_key_button',
-                'label' => $this->helper('adminhtml')->__('Generate New Secret Key'),
-                'onclick' => 'javascript:generateWebhooksSecretKey(); return false;'
-            ));
+            ->setData(
+                array(
+                    'id'      => 'generate_webhooks_secret_key_button',
+                    'label'   => $this->helper('adminhtml')->__('Generate New Secret Key'),
+                    'onclick' => 'javascript:generateWebhooksSecretKey(); return false;'
+                )
+            );
 
         return $buttonJs . $button->toHtml();
     }

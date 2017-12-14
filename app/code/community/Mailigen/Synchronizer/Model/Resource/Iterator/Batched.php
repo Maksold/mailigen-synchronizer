@@ -14,7 +14,7 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
     /**
      * @var null
      */
-    protected $_collectionCount = null;
+    protected $_collectionCount;
 
     /**
      * @var int
@@ -25,13 +25,13 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
      * @param       $collection
      * @param array $callbackForIndividual
      * @param array $callbackAfterBatch
-     * @param null  $batchSize
-     * @param null  $batchLimit
+     * @param null $batchSize
+     * @param null $batchLimit
      * @return int
      */
     public function walk($collection, array $callbackForIndividual, array $callbackAfterBatch, $batchSize = null, $batchLimit = null)
     {
-        if (!is_null($batchSize)) {
+        if (null !== $batchSize) {
             $this->_batchSize = $batchSize;
         }
 
@@ -54,7 +54,11 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
             }
 
             if (!empty($callbackAfterBatch)) {
-                $collectionInfo = array('currentPage' => $origCurrentPage, 'pages' => $origPages, 'pageSize' => $this->_batchSize);
+                $collectionInfo = array(
+                    'currentPage' => $origCurrentPage,
+                    'pages'       => $origPages,
+                    'pageSize'    => $this->_batchSize
+                );
                 call_user_func($callbackAfterBatch, $collectionInfo);
             }
 
@@ -78,7 +82,7 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
     protected function _getPagesSize()
     {
         $count = $this->_collectionCount->query()->fetchColumn();
-        return ceil($count/$this->_batchSize);
+        return ceil($count / $this->_batchSize);
     }
 
     /**
@@ -92,8 +96,7 @@ class Mailigen_Synchronizer_Model_Resource_Iterator_Batched extends Varien_Objec
         if ($pagesDiff < 0) {
             $pages = $_pages;
             $currentPage += $pagesDiff;
-        }
-        elseif ($pagesDiff >= 0) {
+        } elseif ($pagesDiff >= 0) {
             $currentPage++;
         }
 

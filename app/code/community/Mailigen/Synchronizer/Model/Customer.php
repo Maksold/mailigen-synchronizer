@@ -23,7 +23,8 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
      * @param int|null $websiteId
      * @return int
      */
-    public function updateCustomersOrderInfo($websiteId = null){
+    public function updateCustomersOrderInfo($websiteId = null)
+    {
         $customerIds = Mage::getModel('customer/customer')->getCollection()
             ->addAttributeToFilter('website_id', $websiteId)
             ->getAllIds();
@@ -79,19 +80,19 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         $quote->loadByCustomer($customer);
 
         $this->_newCustomersOrderInfoData[] = array(
-            'id' => $customer->getId(),
-            'email' => $customer->getEmail(),
-            'website_id' => $customer->getWebsiteId(),
-            'lastorderdate' => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
-            'valueoflastorder' => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
-            'totalvalueoforders' => (float)$totalGrandTotal,
-            'totalnumberoforders' => (int)$orders->getSize(),
-            'numberofitemsincart' => $quote ? (int)$quote->getItemsQty() : '',
-            'valueofcurrentcart' => $quote ? (float)$quote->getGrandTotal() : '',
+            'id'                       => $customer->getId(),
+            'email'                    => $customer->getEmail(),
+            'website_id'               => $customer->getWebsiteId(),
+            'lastorderdate'            => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
+            'valueoflastorder'         => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
+            'totalvalueoforders'       => (float)$totalGrandTotal,
+            'totalnumberoforders'      => (int)$orders->getSize(),
+            'numberofitemsincart'      => $quote ? (int)$quote->getItemsQty() : '',
+            'valueofcurrentcart'       => $quote ? (float)$quote->getGrandTotal() : '',
             'lastitemincartaddingdate' => $quote ? $helper->getFormattedDate($quote->getUpdatedAt()) : '',
-            'is_removed' => 0,
-            'is_synced' => 0,
-            'synced_at' => null
+            'is_removed'               => 0,
+            'is_synced'                => 0,
+            'synced_at'                => null
         );
     }
 
@@ -103,6 +104,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         if ($inserted < count($this->_newCustomersOrderInfoData)) {
             Mage::throwException("Saved $inserted customers of " . count($this->_newCustomersOrderInfoData));
         }
+
         $this->_newCustomersOrderInfoData = array();
     }
 
@@ -114,20 +116,22 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     {
         /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
         $customers = Mage::getModel('customer/customer')->getCollection()
-            ->addAttributeToSelect(array(
-                'email',
-                'firstname',
-                'lastname',
-                'prefix',
-                'middlename',
-                'suffix',
-                'store_id',
-                'group_id',
-                'created_at',
-                'dob',
-                'gender',
-                'is_active'
-            ))
+            ->addAttributeToSelect(
+                array(
+                    'email',
+                    'firstname',
+                    'lastname',
+                    'prefix',
+                    'middlename',
+                    'suffix',
+                    'store_id',
+                    'group_id',
+                    'created_at',
+                    'dob',
+                    'gender',
+                    'is_active'
+                )
+            )
             ->addAttributeToFilter('entity_id', array('in' => $customerIds));
 
         /**
@@ -147,22 +151,26 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         /**
          * Join Customer order info
          */
-        $customers->joinTable('mailigen_synchronizer/customer', 'id = entity_id', array(
-            'lastorderdate' => 'lastorderdate',
-            'valueoflastorder' => 'valueoflastorder',
-            'totalvalueoforders' => 'totalvalueoforders',
-            'totalnumberoforders' => 'totalnumberoforders',
-            'numberofitemsincart' => 'numberofitemsincart',
-            'valueofcurrentcart' => 'valueofcurrentcart',
-            'lastitemincartaddingdate' => 'lastitemincartaddingdate'
-        ));
+        $customers->joinTable(
+            'mailigen_synchronizer/customer', 'id = entity_id', array(
+                'lastorderdate'            => 'lastorderdate',
+                'valueoflastorder'         => 'valueoflastorder',
+                'totalvalueoforders'       => 'totalvalueoforders',
+                'totalnumberoforders'      => 'totalnumberoforders',
+                'numberofitemsincart'      => 'numberofitemsincart',
+                'valueofcurrentcart'       => 'valueofcurrentcart',
+                'lastitemincartaddingdate' => 'lastitemincartaddingdate'
+            )
+        );
 
         /**
          * Join Subscriber status
          */
-        $customers->joinTable('newsletter/subscriber', 'customer_id = entity_id', array(
+        $customers->joinTable(
+            'newsletter/subscriber', 'customer_id = entity_id', array(
             'is_subscribed' => 'subscriber_status'
-        ), null, 'left');
+        ), null, 'left'
+        );
 
         return $customers;
     }
@@ -215,6 +223,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         if (is_int($is_removed)) {
             $bind['is_removed'] = $is_removed;
         }
+
         $updated = $write->update($tableName, $bind, array('id = ?' => $customerId));
 
         return $updated;
@@ -234,6 +243,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
         if (is_int($is_removed)) {
             $bind['is_removed'] = $is_removed;
         }
+
         $updated = $write->update($tableName, $bind);
 
         return $updated;

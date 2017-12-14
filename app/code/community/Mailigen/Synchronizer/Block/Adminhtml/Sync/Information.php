@@ -105,7 +105,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                     <td class="value">
                         <div class="progress">
                             <div class="progress-bar" style="width:' . $syncedNewsletterProgress['percent'] . '%;"></div>
-                            <span class="progress-text">' .  $syncedNewsletterProgress['text'] . '</span>
+                            <span class="progress-text">' . $syncedNewsletterProgress['text'] . '</span>
                         </div>
                     </td>
                     <td class="scope-label">' . $syncedNewsletterProgress['button'] . '</td>
@@ -116,7 +116,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                     <td class="value">
                         <div class="progress">
                             <div class="progress-bar" style="width:' . $syncedCustomersProgress['percent'] . '%;"></div>
-                            <span class="progress-text">' .  $syncedCustomersProgress['text'] . '</span>
+                            <span class="progress-text">' . $syncedCustomersProgress['text'] . '</span>
                         </div>
                     </td>
                     <td class="scope-label">' . $syncedCustomersProgress['button'] . '</td>
@@ -234,16 +234,14 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
                  */
                 $html .= $this->_getStopSyncButton();
             }
-        }
-        elseif ($mailigenSchedule->getLastPendingJob()) {
+        } elseif ($mailigenSchedule->getLastPendingJob()) {
             $html = "Pending";
             if (strlen($mailigenSchedule->getLastPendingJob()->getScheduledAt())) {
                 $html .= ' (Scheduled at: ';
                 $html .= Mage::helper('core')->formatDate($mailigenSchedule->getLastPendingJob()->getScheduledAt(), 'medium', true);
                 $html .= ')';
             }
-        }
-        else {
+        } else {
             $html = "Not scheduled";
             /**
              * Show reset sync customers button
@@ -277,11 +275,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
             </script>';
 
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
-                'id' => 'stop_mailigen_synchronizer_button',
-                'label' => $this->helper('adminhtml')->__('Stop sync'),
-                'onclick' => 'javascript:stopMailigenSynchronizer(); return false;'
-            ));
+            ->setData(
+                array(
+                    'id'      => 'stop_mailigen_synchronizer_button',
+                    'label'   => $this->helper('adminhtml')->__('Stop sync'),
+                    'onclick' => 'javascript:stopMailigenSynchronizer(); return false;'
+                )
+            );
 
         return $buttonJs . $button->toHtml();
     }
@@ -313,11 +313,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
             </script>';
 
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
-                'id' => 'reset_customers_sync__button',
-                'label' => $this->helper('adminhtml')->__('Reset Customers Sync'),
-                'onclick' => 'javascript:resetCustomersSync(); return false;'
-            ));
+            ->setData(
+                array(
+                    'id'      => 'reset_customers_sync__button',
+                    'label'   => $this->helper('adminhtml')->__('Reset Customers Sync'),
+                    'onclick' => 'javascript:resetCustomersSync(); return false;'
+                )
+            );
 
         return $buttonJs . $button->toHtml();
     }
@@ -349,11 +351,13 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
             </script>';
 
         $button = $this->getLayout()->createBlock('adminhtml/widget_button')
-            ->setData(array(
-                'id' => 'reset_newsletter_sync__button',
-                'label' => $this->helper('adminhtml')->__('Reset Newsletter Sync'),
-                'onclick' => 'javascript:resetNewsletterSync(); return false;'
-            ));
+            ->setData(
+                array(
+                    'id'      => 'reset_newsletter_sync__button',
+                    'label'   => $this->helper('adminhtml')->__('Reset Newsletter Sync'),
+                    'onclick' => 'javascript:resetNewsletterSync(); return false;'
+                )
+            );
 
         return $buttonJs . $button->toHtml();
     }

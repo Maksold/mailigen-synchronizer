@@ -33,10 +33,12 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
         if (is_int($is_synced)) {
             $idsSelect->where('is_synced = ?', $is_synced);
         }
+
         if (is_int($is_removed)) {
             $idsSelect->where('is_removed = ?', $is_removed);
         }
-        if (!is_null($website_id)) {
+
+        if (null !== $website_id) {
             $idsSelect->where('website_id = ?', $website_id);
         }
 

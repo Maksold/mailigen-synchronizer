@@ -12,12 +12,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
     /**
      * @var null
      */
-    protected $_customersListId = null;
+    protected $_customersListId;
 
     /**
      * @var null
      */
-    protected $_newsletterListId = null;
+    protected $_newsletterListId;
 
     /**
      * @var array
@@ -42,14 +42,14 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
     protected function _resetNewsletterLog()
     {
         $this->_newsletterLog = array(
-            'subscriber_success_count' => 0,
-            'subscriber_error_count' => 0,
-            'subscriber_errors' => array(),
-            'subscriber_count' => 0,
+            'subscriber_success_count'   => 0,
+            'subscriber_error_count'     => 0,
+            'subscriber_errors'          => array(),
+            'subscriber_count'           => 0,
             'unsubscriber_success_count' => 0,
-            'unsubscriber_error_count' => 0,
-            'unsubscriber_errors' => array(),
-            'unsubscriber_count' => 0,
+            'unsubscriber_error_count'   => 0,
+            'unsubscriber_errors'        => array(),
+            'unsubscriber_count'         => 0,
         );
     }
 
@@ -57,13 +57,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
     {
         $this->_customersLog = array(
             'update_success_count' => 0,
-            'update_error_count' => 0,
-            'update_errors' => array(),
-            'update_count' => 0,
+            'update_error_count'   => 0,
+            'update_errors'        => array(),
+            'update_count'         => 0,
             'remove_success_count' => 0,
-            'remove_error_count' => 0,
-            'remove_errors' => array(),
-            'remove_count' => 0,
+            'remove_error_count'   => 0,
+            'remove_errors'        => array(),
+            'remove_count'         => 0,
         );
     }
 
@@ -126,10 +126,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     $logger->log("Reschedule task, to update subscribers in Mailigen after 2 min");
                     return;
                 }
+
                 $logger->log("Finished updating subscribers in Mailigen");
             } else {
                 $logger->log("No subscribers to sync with Mailigen");
             }
+
             unset($subscribers);
 
             /**
@@ -166,12 +168,12 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             /**
              * Subscriber info
              */
-            'EMAIL' => $subscriber->getSubscriberEmail(),
-            'FNAME' => $subscriber->getCustomerFirstname(),
-            'LNAME' => $subscriber->getCustomerLastname(),
-            'WEBSITEID' => $subscriber->getWebsiteId(),
-            'TYPE' => $customerHelper->getSubscriberType($subscriber->getType()),
-            'STOREID' => $subscriber->getStoreId(),
+            'EMAIL'         => $subscriber->getSubscriberEmail(),
+            'FNAME'         => $subscriber->getCustomerFirstname(),
+            'LNAME'         => $subscriber->getCustomerLastname(),
+            'WEBSITEID'     => $subscriber->getWebsiteId(),
+            'TYPE'          => $customerHelper->getSubscriberType($subscriber->getType()),
+            'STOREID'       => $subscriber->getStoreId(),
             'STORELANGUAGE' => $customerHelper->getStoreLanguage($subscriber->getStoreId()),
         );
     }
@@ -199,6 +201,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
             $logger->log("Updated $curr/$total subscribers in Mailigen");
         }
+
         $this->_newsletterLog['subscriber_count'] += count($this->_batchedNewsletterData);
 
         if ($api->errorCode) {
@@ -208,9 +211,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             $this->_writeResultLogs();
             $errorInfo = array(
-                'errorCode' => $api->errorCode,
+                'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse' => $apiResponse
+                'apiResponse'  => $apiResponse
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -312,8 +315,10 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     $logger->log("Reschedule task, to update customers in Mailigen after 2 min");
                     return;
                 }
+
                 $logger->log("Finished updating customers in Mailigen");
             }
+
             unset($updateCustomerIds, $updateCustomers);
 
             /**
@@ -349,8 +354,10 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     $logger->log("Reschedule task to remove customers in Mailigen after 2 min");
                     return;
                 }
+
                 $logger->log("Finished removing customers from Mailigen");
             }
+
             unset($removeCustomers);
 
             /**
@@ -383,35 +390,35 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             /**
              * Customer info
              */
-            'EMAIL' => $customer->getEmail(),
-            'FNAME' => $customer->getFirstname(),
-            'LNAME' => $customer->getLastname(),
-            'PREFIX' => $customer->getPrefix(),
-            'MIDDLENAME' => $customer->getMiddlename(),
-            'SUFFIX' => $customer->getSuffix(),
-            'STOREID' => $customer->getStoreId(),
-            'STORELANGUAGE' => $helper->getStoreLanguage($customer->getStoreId()),
-            'CUSTOMERGROUP' => $helper->getCustomerGroup($customer->getGroupId()),
-            'PHONE' => $customer->getBillingTelephone(),
-            'REGISTRATIONDATE' => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
-            'COUNTRY' => $helper->getFormattedCountry($customer->getBillingCountryId()),
-            'CITY' => $customer->getBillingCity(),
-            'REGION' => $helper->getFormattedRegion($customer->getBillingRegionId()),
-            'DATEOFBIRTH' => $helper->getFormattedDate($customer->getDob()),
-            'GENDER' => $helper->getFormattedGender($customer->getGender()),
-            'LASTLOGIN' => $helper->getFormattedDate($customer->getLastLoginAt()),
-            'CLIENTID' => $customer->getId(),
-            'STATUSOFUSER' => $helper->getFormattedCustomerStatus($customer->getIsActive()),
-            'ISSUBSCRIBED' => $helper->getFormattedIsSubscribed($customer->getData('is_subscribed')),
+            'EMAIL'                    => $customer->getEmail(),
+            'FNAME'                    => $customer->getFirstname(),
+            'LNAME'                    => $customer->getLastname(),
+            'PREFIX'                   => $customer->getPrefix(),
+            'MIDDLENAME'               => $customer->getMiddlename(),
+            'SUFFIX'                   => $customer->getSuffix(),
+            'STOREID'                  => $customer->getStoreId(),
+            'STORELANGUAGE'            => $helper->getStoreLanguage($customer->getStoreId()),
+            'CUSTOMERGROUP'            => $helper->getCustomerGroup($customer->getGroupId()),
+            'PHONE'                    => $customer->getBillingTelephone(),
+            'REGISTRATIONDATE'         => $helper->getFormattedDate($customer->getCreatedAtTimestamp()),
+            'COUNTRY'                  => $helper->getFormattedCountry($customer->getBillingCountryId()),
+            'CITY'                     => $customer->getBillingCity(),
+            'REGION'                   => $helper->getFormattedRegion($customer->getBillingRegionId()),
+            'DATEOFBIRTH'              => $helper->getFormattedDate($customer->getDob()),
+            'GENDER'                   => $helper->getFormattedGender($customer->getGender()),
+            'LASTLOGIN'                => $helper->getFormattedDate($customer->getLastLoginAt()),
+            'CLIENTID'                 => $customer->getId(),
+            'STATUSOFUSER'             => $helper->getFormattedCustomerStatus($customer->getIsActive()),
+            'ISSUBSCRIBED'             => $helper->getFormattedIsSubscribed($customer->getData('is_subscribed')),
             /**
              * Customer orders info
              */
-            'LASTORDERDATE' => $customer->getData('lastorderdate'),
-            'VALUEOFLASTORDER' => $customer->getData('valueoflastorder'),
-            'TOTALVALUEOFORDERS' => $customer->getData('totalvalueoforders'),
-            'TOTALNUMBEROFORDERS' => $customer->getData('totalnumberoforders'),
-            'NUMBEROFITEMSINCART' => $customer->getData('numberofitemsincart'),
-            'VALUEOFCURRENTCART' => $customer->getData('valueofcurrentcart'),
+            'LASTORDERDATE'            => $customer->getData('lastorderdate'),
+            'VALUEOFLASTORDER'         => $customer->getData('valueoflastorder'),
+            'TOTALVALUEOFORDERS'       => $customer->getData('totalvalueoforders'),
+            'TOTALNUMBEROFORDERS'      => $customer->getData('totalnumberoforders'),
+            'NUMBEROFITEMSINCART'      => $customer->getData('numberofitemsincart'),
+            'VALUEOFCURRENTCART'       => $customer->getData('valueofcurrentcart'),
             'LASTITEMINCARTADDINGDATE' => $customer->getData('lastitemincartaddingdate')
         );
     }
@@ -439,6 +446,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
             $logger->log("Updated $curr/$total customers in Mailigen");
         }
+
         $this->_customersLog['update_count'] += count($this->_batchedCustomersData);
 
         if ($api->errorCode) {
@@ -448,9 +456,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             $this->_writeResultLogs();
             $errorInfo = array(
-                'errorCode' => $api->errorCode,
+                'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse' => $apiResponse
+                'apiResponse'  => $apiResponse
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -505,6 +513,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
             $logger->log("Removed $curr/$total customers from Mailigen");
         }
+
         $this->_customersLog['remove_count'] = count($this->_batchedCustomersData);
 
         if ($api->errorCode) {
@@ -514,9 +523,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             $this->_writeResultLogs();
             $errorInfo = array(
-                'errorCode' => $api->errorCode,
+                'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse' => $apiResponse
+                'apiResponse'  => $apiResponse
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {

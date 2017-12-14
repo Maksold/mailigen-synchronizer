@@ -141,7 +141,8 @@
             <adminhtml>
                 <args>
                     <modules>
-                        <newsletter_subscriber before="Mage_Adminhtml">Mailigen_Synchronizer_Adminhtml</newsletter_subscriber>
+                        <newsletter_subscriber before="Mage_Adminhtml">Mailigen_Synchronizer_Adminhtml
+                        </newsletter_subscriber>
                     </modules>
                 </args>
             </adminhtml>
@@ -195,7 +196,9 @@
                 <schedule>
                     <config_path>mailigen_synchronizer/general/cron_string</config_path>
                 </schedule>
-                <run><model>mailigen_synchronizer/observer::daily_sync</model></run>
+                <run>
+                    <model>mailigen_synchronizer/observer::daily_sync</model>
+                </run>
             </mailigen_synchronizer>
         </jobs>
     </crontab>
