@@ -193,6 +193,9 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     protected function _getSyncedCustomersProgress()
     {
         $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getSize();
+        if ($totalCustomers === 0) {
+            $totalCustomers = Mage::getModel('customer/customer')->getCollection()->getSize();
+        }
         $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->addFieldToFilter('is_synced', 1)
             ->getSize();
