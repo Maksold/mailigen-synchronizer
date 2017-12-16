@@ -1,25 +1,25 @@
 <?php
 
 class MGAPI {
-    var $version = "1.5";
+    var $version = "1.6";
     var $errorMessage;
     var $errorCode;
-    
+
     /**
      * API server adrese
      */
     var $apiUrl;
-    
+
     /**
      * Default to a 300 second timeout on server calls
      */
-    var $timeout = 300; 
-    
+    var $timeout = 300;
+
     /**
      * Default to a 8K chunk size
      */
     var $chunkSize = 8192;
-    
+
     /**
      * Lietotaja API atslega
      */
@@ -37,18 +37,17 @@ class MGAPI {
      * @param bool $secure Izmantot vai neizmantot ssl piesleganos
      * @param bool $force_apikey_update Izmantot jaunu MailiGen API atslegu
      */
-	function MGAPI($apikey, $secure = false, $force_apikey_update = false)
-	{
-		$this->secure = $secure;
-		$this->apiUrl = parse_url("http://api.mailigen.com/" . $this->version . "/?output=php");
-		if ($force_apikey_update) {
-			$this->api_key = $GLOBALS["mg_api_key"] = $apikey;
-		} elseif (isset($GLOBALS["mg_api_key"]) && $GLOBALS["mg_api_key"] != "") {
-			$this->api_key = $GLOBALS["mg_api_key"];
-		} else {
-			$this->api_key = $GLOBALS["mg_api_key"] = $apikey;
-		}
-	}
+    function __construct($apikey, $secure = false, $force_apikey_update = false) {
+        $this->secure = $secure;
+        $this->apiUrl = parse_url("http://api.mailigen.com/" . $this->version . "/?output=php");
+        if ($force_apikey_update) {
+            $this->api_key = $GLOBALS["mg_api_key"] = $apikey;
+        } elseif ( isset($GLOBALS["mg_api_key"]) && $GLOBALS["mg_api_key"]!="" ){
+            $this->api_key = $GLOBALS["mg_api_key"];
+        } else {
+            $this->api_key = $GLOBALS["mg_api_key"] = $apikey;
+        }
+    }
     function setTimeout($seconds){
         if (is_int($seconds)){
             $this->timeout = $seconds;
@@ -65,7 +64,7 @@ class MGAPI {
             $this->secure = false;
         }
     }
-	
+
 	/**
 	* Noņemam nost statusu, kas lika kampaņu izsūtīt kaut kad nākotnē
 	*
@@ -80,7 +79,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignUnschedule", $params);
 	}
-	
+
 	/**
 	* Iestādam laiku, kad izsūtīt kampaņu
 	*
@@ -97,7 +96,7 @@ class MGAPI {
 		$params["schedule_time"] = $schedule_time;
 		return $this->callServer("campaignSchedule", $params);
 	}
-	
+
 	/**
 	* Atjaunojam auto atbildētāja izsūtīšanu
 	*
@@ -112,7 +111,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignResume", $params);
 	}
-	
+
 	/**
 	* Apstādinam uz laiku autoatbildētāju
 	*
@@ -127,7 +126,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignPause", $params);
 	}
-	
+
 	/**
 	* Nosūtīt kampaņu nekavējoties
 	*
@@ -142,7 +141,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignSendNow", $params);
 	}
-	
+
 	/**
 	* Nosūtam testa vēstuli uz norādītajiem epastiem
 	*
@@ -161,7 +160,7 @@ class MGAPI {
 		$params["send_type"] = $send_type;
 		return $this->callServer("campaignSendTest", $params);
 	}
-	
+
 	/**
 	* Atrodam visus lietotāja šablonus
 	*
@@ -179,7 +178,7 @@ class MGAPI {
 		$params = array();
 		return $this->callServer("campaignTemplates", $params);
 	}
-	
+
 	/**
 	* Izveidojam jaunu kampaņu
 	*
@@ -198,12 +197,14 @@ class MGAPI {
 			array analytics Nav obligāts. Masīvs ar skaitītāju informāciju. Google gadījumā ir šāds pielietojums "google"=>"jūsu_google_analytics_atslēga". "jūsu_google_analytics_atslēga" tiks pievienota visiem linkiem, statistiku varēs apskatīties klienta Google Analytics kontā
 			boolean generate_text Nav obligāts. Ja nav norādīts plain teksts, tiks ģenerēts tekst no HTML. Pēc noklusējuma ir false
 			boolean auto_footer Nav obligāts. Iekļaut vai neiekļaut automātisko kājeni vēstules saturā. Šis ir pieejams lietotājie ar Pro paku. Pēc noklusējuma ir false
+            boolean inline_img Nav obligāts.
+            boolean time_match Nav obligāts.
 			boolean authenticate Nav obligāts. Ieslēgt epastu autentifikāciju. Šis strādās, ja ir pievienoti un aktivizēti autentificēti domēni sistēmā. Pēc noklusējuma ir false
 			string sender Nav obligāts. Epasta adrese. Tiek izmantots, lai norādītu citu sūtītāja informāciju. Ir pieejams lietotājiem ar Pro paku.
 			integer/array segment_id Nav obligāts. Satur segmenta ID, kuriem izsūtīt kampaņu
 			boolean inline_img Nav obligāts. Izmantot vai nē inline bildes. Šis ir pieejams ar atbilstošu addonu. Pēc noklusējuma ir false
 			string ln Nav obligāts. Nosaka, kādā valodā būs kājene un galvene. Iespējamās vērtības: cn, dk, en, ee, fi, fr, de, it, jp, lv, lt, no, pl, pt, ru, es, se
-	
+
 	* @param array $content Masīvs, kas satur vēstules saturu. Struktūra:
 			"html" HTML saturs
 			"plain" saturs plain vēstulei
@@ -211,16 +212,16 @@ class MGAPI {
 			"archive" Ar Base64 kodēts arhīva fails. Ja tiek norādīta šī vērtība, tad tiek pārrakstītas augstāk minētās vērtības
 			"archive_type" Nav obligāts. Pieļaujamie arhīva formāti: zip, tar.gz, tar.bz2, tar, tgz, tbz . Ja nav norādīts, tad pēc noklusējuma tiks izmantots zip
 			integer template_id Nav obligāts. Lietotāja šablona id, nu kura tiks ģenerēts HTML saturs
-	
-	* @param array $type_opts Nav obligāts - 
-	
+
+	* @param array $type_opts Nav obligāts -
+
 			Autoatbildētāja kampaņa, šis masīvs satur šādu informāciju:
 			string offset-units Kāda vērtība no "day", "week", "month", "year". Obligāti jānorāda
 			string offset-time Vērtība, kas ir lielāka par 0. Obligāti jānorāda
 			string offset-dir Viena vērtība no "before" vai "after". Pēc noklusējuma "after"
 			string event Nav obligāts. Izsūtīt pēc "signup" (parakstīšanās, pēc noklusējuma), "date" (datuma) vai "annual" (ikgadējs)
 			string event-datemerge Nav obligāts. Merge lauks, kurš tiek ņemts vērā, kad izsūtīt. Šis ir nepieciešams, ja event ir norādīt "date" vai "annual"
-	
+
 	*
 	* @return string Atgriež jaunās kampaņas ID
 	*/
@@ -232,11 +233,11 @@ class MGAPI {
 		$params["type_opts"] = $type_opts;
 		return $this->callServer("campaignCreate", $params);
 	}
-	
+
 	/**
 	* Atjaunojam kampaņas, kura vēl nav nosūtīta, parametrus
-	*   
-	*  
+	*
+	*
 	*  Uzmanību:<br/><ul>
 	*        <li>Ja Jūs izmantojat list_id, visi iepriekšējie saraksti tiks izdzēsti.</li>
 	*        <li>Ja Jūs izmantojat template_id, tiks pārrakstīts HTML saturs ar šablona saturu</li>
@@ -256,7 +257,7 @@ class MGAPI {
 		$params["value"] = $value;
 		return $this->callServer("campaignUpdate", $params);
 	}
-	
+
 	/**
 	* Kopējam kampaņu
 	*
@@ -271,7 +272,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignReplicate", $params);
 	}
-	
+
 	/**
 	* Tiek dzēsta neatgriezensiki kampaņa. Esiet uzmanīgi!
 	*
@@ -286,7 +287,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignDelete", $params);
 	}
-	
+
 	/**
 	* Atgriežam kampaņu sarakstu. Var pielietot filtru, lai detalizēt atlasītu
 	*
@@ -333,7 +334,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaigns", $params);
 	}
-	
+
 	/**
 	* Given a list and a campaign, get all the relevant campaign statistics (opens, bounces, clicks, etc.)
 	*
@@ -343,7 +344,7 @@ class MGAPI {
 	* @param string $cid Kampaņas id. To var atrast ar campaigns()
 	* @return array Masīvs, kas satur kampaņas statistiku
 	* @returnf integer hard_bounces Nepiegādāto/nepareizo epastu skaits
-	* @returnf integer soft_bounces Pagaidu nepiegādāto 
+	* @returnf integer soft_bounces Pagaidu nepiegādāto
 	* @returnf integer blocked_bounces Bloķēto skaits
 	* @returnf integer temporary_bounces Īslaicīgi atgriezto skaits
 	* @returnf integer generic_bounces Nepareizo epastu skaits
@@ -363,7 +364,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignStats", $params);
 	}
-	
+
 	/**
 	* Atrodam kampaņas visus linkus
 	*
@@ -380,7 +381,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("campaignClickStats", $params);
 	}
-	
+
 	/**
 	* Atrodam šīs kampaņas epastu domēnu statistiku
 	*
@@ -522,7 +523,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaignUnsubscribes", $params);
     }
-	
+
 	/**
 	* Atgriež valstu sarakstu, no kurām ir atvērtas vēstules un cik daudz
 	*
@@ -539,6 +540,26 @@ class MGAPI {
 		$params = array();
 		$params["cid"] = $cid;
 		return $this->callServer("campaignGeoOpens", $params);
+	}
+
+    /**
+	* Atgriež detaļas par atvērto vēstuļu skaitu no konkrētas valsts
+	*
+	* @example mgapi_campaignGeoOpensByCountry.php
+	* @example xml-rpc_campaignGeoOpensByCountry.php
+	*
+	* @param string $cid Kampaņas id. To var atrast ar campaigns()
+	* @param string $code Valsts kods ISO3166 formātā, satur 2 simbolus
+	* @return array country Masīvs ar detaļām par vienu valsti
+	* @returnf string code Valsts kods ISO3166 formātā, satur 2 simbolus
+	* @returnf string name Valsts nosaukums
+	* @returnf int opens Skaits, cik daudz atvērts
+	*/
+	function campaignGeoOpensByCountry($cid, $code) {
+		$params = array();
+		$params["cid"] = $cid;
+        $params["code"] = $code;
+		return $this->callServer("campaignGeoOpensByCountry", $params);
 	}
 
     /**
@@ -559,7 +580,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaignForwardStats", $params);
     }
-	
+
 	/**
 	* Atgriež kampaņas atmesto vēstuļu tekstus, kuras nav vecākas par 30 dienām
 	*
@@ -581,7 +602,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaignBounceMessages", $params);
 	}
-	
+
 	/**
 	* Atgriež epastu sarakstu, kas atvēruši kampaņu
 	*
@@ -604,7 +625,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaignOpened", $params);
 	}
-	
+
 	/**
 	* Atgriež epastu sarakstu, kas nav atvēruši kampaņu
 	*
@@ -625,7 +646,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("campaignNotOpened", $params);
 	}
-	
+
 	/**
 	* Izveidojam jaunu sarakstu
 	*
@@ -639,7 +660,7 @@ class MGAPI {
 			bool subscription_notify Sūtīt paziņojumus par to, ka ir jauns lietotājs pierakstījies
 			bool unsubscription_notify Sūtīt paziņojumus par to, ka ir jauns lietotājs atrakstījies
 			bool has_email_type_option Ļaut izvēlēties epasta formātu
-	
+
 	*
 	* @return string Atgriež jaunā saraksta ID
 	*/
@@ -649,7 +670,7 @@ class MGAPI {
 		$params["options"] = $options;
 		return $this->callServer("listCreate", $params);
 	}
-	
+
 	/**
 	* Atjaunojam saraksta parametrus
 	*
@@ -667,7 +688,7 @@ class MGAPI {
 		$params["value"] = $value;
 		return $this->callServer("listUpdate", $params);
 	}
-	
+
 	/**
 	* Tiek dzēsts neatgriezensiki saraksts. Esiet uzmanīgi!
 	*
@@ -707,7 +728,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("lists", $params);
 	}
-	
+
 	/**
 	* Atrodam merge tagus sarakstam
 	*
@@ -729,7 +750,7 @@ class MGAPI {
 		$params["id"] = $id;
 		return $this->callServer("listMergeVars", $params);
 	}
-	
+
 	/**
 	* Pievienojam jaunu merge tagu sarakstam
 	*
@@ -744,7 +765,7 @@ class MGAPI {
 			boolean req Nav obligāts. Norāda, vai lauks ir obligāti aizpildāms. Pēc noklusējuma, false
 			boolean show Nav obligāts. Norāda, vai rādīt šo lauku lietotāju sarakstā. Pēc noklusējuma, true
 			string default_value Nav obligāts. Vērtība pēc noklusējuma
-	
+
 	* @return boolean true ja ir izdevies, false ja nav izdevies
 	*/
 	function listMergeVarAdd($id, $tag, $name, $options = array()) {
@@ -755,7 +776,7 @@ class MGAPI {
 		$params["options"] = $options;
 		return $this->callServer("listMergeVarAdd", $params);
 	}
-	
+
 	/**
 	* Atjaunojam merge taga parametrus sarakstā. Merge taga tipu nevar nomainīt
 	*
@@ -805,7 +826,7 @@ class MGAPI {
 	* @param boolean $double_optin Vai sutit apstiprinajuma vestuli. Pec noklusejuma true
 	* @param boolean $update_existing Vai atjaunot eksistejoos epastus. Pec noklusejuma false (atgriezis kludas pazinojumu)
 	* @param boolean $send_welcome - Nav obligats. Sutit vai nesutit paldies vestuli. Pec noklusejuma false
-	
+
 	* @return boolean true ja ir izdevies, false ja nav izdevies
 	*/
 	function listSubscribe($id, $email_address, $merge_vars, $email_type = 'html', $double_optin = true, $update_existing = false, $send_welcome = false) {
@@ -830,7 +851,7 @@ class MGAPI {
 	* @param string $phone Tālrunis, ko japievieno sarakstam
 	* @param array $merge_vars Masivs, kas satur MERGE lauku vertibas (FNAME, LNAME, etc.) Maksimalais izmers 255
 	* @param boolean $update_existing Vai atjaunot eksistejoos epastus. Pec noklusejuma false (atgriezis kludas pazinojumu)
-	
+
 	* @return boolean true ja ir izdevies, false ja nav izdevies
 	*/
 	function listSubscribeSMS($id, $phone, $merge_vars, $update_existing = false) {
@@ -841,7 +862,7 @@ class MGAPI {
 		$params["update_existing"] = $update_existing;
 		return $this->callServer("listSubscribeSMS", $params);
 	}
-	
+
 	/**
 	* Iznemam no saraksta epasta adresi
 	*
@@ -864,7 +885,7 @@ class MGAPI {
 		$params["send_notify"] = $send_notify;
 		return $this->callServer("listUnsubscribe", $params);
 	}
-	
+
 	/**
 	* Iznemam no saraksta epasta adresi
 	*
@@ -914,7 +935,7 @@ class MGAPI {
 	* @example xml-rpc_listBatchSubscribe.php
 	*
 	* @param string $id Saraksta ID. Saraksta ID var atrast ar lists() metodi
-	* @param array $batch Masivs, kas satur epastu datus. Epasta dati ir masivs ar ada atslegam: "EMAIL" epasta adresei, "EMAIL_TYPE" epasta tips (html vai plain) 
+	* @param array $batch Masivs, kas satur epastu datus. Epasta dati ir masivs ar ada atslegam: "EMAIL" epasta adresei, "EMAIL_TYPE" epasta tips (html vai plain)
 	* @param boolean $double_optin Vai sutit apstiprinajuma vestuli. Pec noklusejuma true
 	* @param boolean $update_existing Vai atjaunot eksistejoos epastus. Pec noklusejuma false (atgriezis kludas pazinojumu)
 	* @return struct Masivs, kas satur skaitu, cik izevies iznemt un kludu pazinojumus
@@ -953,7 +974,7 @@ class MGAPI {
 		$params["update_existing"] = $update_existing;
 		return $this->callServer("listBatchSubscribeSMS", $params);
 	}
-	
+
 	/**
 	* Iznemam no saraksta vairakus epastus
 	*
@@ -979,7 +1000,7 @@ class MGAPI {
 		$params["send_notify"] = $send_notify;
 		return $this->callServer("listBatchUnsubscribe", $params);
 	}
-	
+
 	/**
 	* Iznemam no saraksta vairakus epastus
 	*
@@ -1004,7 +1025,7 @@ class MGAPI {
 		$params["send_notify"] = $send_notify;
 		return $this->callServer("listBatchUnsubscribeSMS", $params);
 	}
-	
+
 	/**
 	* Atrodam epasta info sarkaksta
 	*
@@ -1027,7 +1048,18 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("listMembers", $params);
 	}
-	
+
+    function listMembersByMerge($id, $merge_var, $merge_value = '', $status = 'subscribed', $start = 0, $limit = 100) {
+        $params = array();
+		$params["id"] = $id;
+		$params["merge_var"] = $merge_var;
+		$params["merge_value"] = $merge_value;
+		$params["status"] = $status;
+		$params["start"] = $start;
+		$params["limit"] = $limit;
+		return $this->callServer("listMembersByMerge", $params);
+    }
+
 	/**
 	* Atrodam epasta info sarkaksta
 	*
@@ -1052,22 +1084,34 @@ class MGAPI {
 		$params["email_address"] = $email_address;
 		return $this->callServer("listMemberInfo", $params);
 	}
-	
+
 	/**
-	* Saraksta pieauguma informacija pa meneiem
+	* List growth history by specific time intervals
 	*
 	* @example mgapi_listGrowthHistory.php
 	* @example xml-rpc_listGrowthHistory.php
 	*
-	* @param string $id Saraksta ID. Saraksta ID var atrast ar lists() metodi
-	* @return array Masivs pa meneiem
-	* @returnf string month Gads un menesis YYYY-MM formata
-	* @returnf integer existing Skaits, cik bija lietotaju menea sakuma
-	* @returnf integer imports Skaits, cik daudz tekoaja menesi tika pievienoti lietotaji
+	* @param string $id List ID. List ID can be found using lists() method
+	* @param string $split_by Optional. Statistics divided by periods of time: month, week, day. Default is month
+	* @param string $start_date Optional. Filter statistics from given start date. Date should be in YYYY-MM-DD format. Note: end date should be provided together with start date.
+	* @param string $end_date Optional. Filter statistics till given end date. Date should be in YYYY-MM-DD format. Note: start date should be provided together with end date.
+	* @param integer $start Optional. Page number starting from which selection will be made. Default value is 0.
+	* @param integer $limit Optional. Number of results returned in one page. Default value is 25. Maximum allowable value is 100.
+	* @return array Array of statistical information split by given time intervals.
+	* @returnf string month Year and month returned in YYYY-MM format, if $split_by parameter is set to month
+	* @returnf string week Year, month and week returned in YYYY-MM \WW format, if $split_by parameter is set to week. Week number of year (01..53). Weeks starting from Monday. E.g. 2015-09 W36 - september, the 36th week in the year 2015
+	* @returnf string day Year, month and day returned in YYYY-MM-DD format, if $split_by parameter is set to day
+	* @returnf integer existing Number of emails at the beginning of given period of time
+	* @returnf integer imports Number of how many emails of new recipients have been added during the current period of time
 	*/
-	function listGrowthHistory($id) {
+	function listGrowthHistory($id, $split_by = 'month', $start_date = null, $end_date = null, $start = 0, $limit = 25) {
 		$params = array();
 		$params["id"] = $id;
+		$params["split_by"] = $split_by;
+		$params["start_date"] = $start_date;
+		$params["end_date"] = $end_date;
+		$params["start"] = $start;
+		$params["limit"] = $limit;
 		return $this->callServer("listGrowthHistory", $params);
 	}
 
@@ -1102,7 +1146,7 @@ class MGAPI {
 			string field Merge lauks
 			string condition Nosacījumi: is, not, isany, contains, notcontain, starts, ends, greater, less
 			string value Vērtība, priekš condition
-	
+
 	*
 	* @return string Atgriež jaunā segmenta ID
 	*/
@@ -1114,7 +1158,7 @@ class MGAPI {
 		$params["filter"] = $filter;
 		return $this->callServer("listSegmentCreate", $params);
 	}
-	
+
 	/**
 	* Atjaunojam segmenta parametrus
 	*
@@ -1131,7 +1175,7 @@ class MGAPI {
 		$params["value"] = $value;
 		return $this->callServer("listSegmentUpdate", $params);
 	}
-	
+
 	/**
 	* Tiek dzēsts neatgriezensiki segments. Esiet uzmanīgi!
 	*
@@ -1145,7 +1189,7 @@ class MGAPI {
 		$params["sid"] = $sid;
 		return $this->callServer("listSegmentDelete", $params);
 	}
-	
+
 	/**
 	* Atrodam epastus
 	*
@@ -1184,7 +1228,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignUnschedule", $params);
 	}
-	
+
 	/**
 	* Iestādam laiku, kad izsūtīt SMS kampaņu
 	*
@@ -1200,7 +1244,7 @@ class MGAPI {
 		$params["schedule_time"] = $schedule_time;
 		return $this->callServer("smsCampaignSchedule", $params);
 	}
-	
+
 	/**
 	* Nosūtīt SMS kampaņu nekavējoties
 	*
@@ -1214,7 +1258,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignSendNow", $params);
 	}
-	
+
 	/**
 	* Atrodam visus lietotāja SMS šablonus
 	*
@@ -1228,7 +1272,7 @@ class MGAPI {
 		$params = array();
 		return $this->callServer("smsCampaignTemplates", $params);
 	}
-	
+
 	/**
 	* Izveidojam jaunu SMS kampaņu
 	*
@@ -1245,11 +1289,11 @@ class MGAPI {
 			array analytics Nav obligāts. Masīvs ar skaitītāju informāciju. Google gadījumā ir šāds pielietojums "google"=>"jūsu_google_analytics_atslēga". "jūsu_google_analytics_atslēga" tiks pievienota visiem linkiem, statistiku varēs apskatīties klienta Google Analytics kontā
 			boolean unicode Nav obligāts. Nosaka, vai izsūtīt kampaņu unikodā. Lai speciālie simboli un burit rādītos SMS kampaņa, šim ir jābūt true. Pēc noklusējuma ir false
 			boolean concatenate Nav obligāts. Nosaka, vai izsūtīt vairākas īsziņas, ja teksts ir par garu. Pēc noklusējuma ir false
-	
+
 	* @param array $content Masīvs, kas satur vēstules saturu. Struktūra:
 			text saturs Nav obligāts, ja ir norādīts template_id. SMS kampaņas saturs
 			integer template_id Nav obligāts. Lietotāja SMS šablona id, nu kura tiks paņemts SMS saturs. Var atrast ar smsCampaignTemplates()
-	
+
 	*
 	* @return string Atgriež jaunās SMS kampaņas ID
 	*/
@@ -1259,11 +1303,11 @@ class MGAPI {
 		$params["content"] = $content;
 		return $this->callServer("smsCampaignCreate", $params);
 	}
-	
+
 	/**
 	* Atjaunojam kampaņas, kura vēl nav nosūtīta, parametrus
-	*   
-	*  
+	*
+	*
 	*  Uzmanību:<br/><ul>
 	*        <li>Ja Jūs izmantojat list_id, visi iepriekšējie saraksti tiks izdzēsti.</li>
 	*        <li>Ja Jūs izmantojat template_id, tiks pārrakstīts saturs ar šablona saturu</li>
@@ -1282,7 +1326,7 @@ class MGAPI {
 		$params["value"] = $value;
 		return $this->callServer("smsCampaignUpdate", $params);
 	}
-	
+
 	/**
 	* Kopējam kampaņu
 	*
@@ -1296,7 +1340,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignReplicate", $params);
 	}
-	
+
 	/**
 	* Tiek dzēsta neatgriezensiki SMS kampaņa. Esiet uzmanīgi!
 	*
@@ -1310,7 +1354,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignDelete", $params);
 	}
-	
+
 	/**
 	* Atgriežam SMS kampaņu sarakstu. Var pielietot filtru, lai detalizēt atlasītu
 	*
@@ -1348,7 +1392,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("smsCampaigns", $params);
 	}
-	
+
 	/**
 	* Atgriež SMS kampaņas statistiku
 	*
@@ -1373,7 +1417,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignStats", $params);
 	}
-	
+
 	/**
 	* Atrodam SMS kampaņas visus linkus
 	*
@@ -1389,7 +1433,7 @@ class MGAPI {
 		$params["cid"] = $cid;
 		return $this->callServer("smsCampaignClickStats", $params);
 	}
-	
+
 	/**
 	* Atgriež SMS kampaņas nepiegādāto īsziņu statusus
 	*
@@ -1409,7 +1453,7 @@ class MGAPI {
 		$params["limit"] = $limit;
 		return $this->callServer("smsCampaignBounces", $params);
 	}
-	
+
 	/**
 	* Nosūtam pieprasījumu reģistrēt SMS sūtītāja vārdu
 	*
@@ -1433,7 +1477,7 @@ class MGAPI {
 		$params["comments"] = $comments;
 		return $this->callServer("smsSenderIdRegister", $params);
 	}
-	
+
 	/**
 	* Atgriež dažādu informaciju par lietotaju kontu
 	*
@@ -1456,7 +1500,7 @@ class MGAPI {
 		$params = array();
 		return $this->callServer("getAccountDetails", $params);
 	}
-	
+
 	/**
 	* Atrodam visu sarakstu ID, kuros ir šis epasts
 	*
@@ -1471,7 +1515,7 @@ class MGAPI {
 		$params["email_address"] = $email_address;
 		return $this->callServer("listsForEmail", $params);
 	}
-	
+
 	/**
 	* Atrodam visas API atslegas
 	*
@@ -1493,7 +1537,7 @@ class MGAPI {
 		$params["expired"] = $expired;
 		return $this->callServer("apikeys", $params);
 	}
-	
+
 	/**
 	* Izveidojam jaunu API atslegu
 	*
@@ -1510,7 +1554,7 @@ class MGAPI {
 		$params["password"] = $password;
 		return $this->callServer("apikeyAdd", $params);
 	}
-	
+
 	/**
 	* Atzimejam ka neaktivu API atslegu
 	*
@@ -1527,7 +1571,7 @@ class MGAPI {
 		$params["password"] = $password;
 		return $this->callServer("apikeyExpire", $params);
 	}
-	
+
 	/**
 	* Atrodam API atslegu
 	*
@@ -1544,7 +1588,7 @@ class MGAPI {
 		$params["password"] = $password;
 		return $this->callServer("login", $params);
 	}
-	
+
 	/**
 	* "ping" - vienkar veids, ka parbaudit, vai viss ir kartiba. Ja ir kadas problemas, tiks atgriezts par to pazinojums.
 	*
@@ -1557,7 +1601,7 @@ class MGAPI {
 		$params = array();
 		return $this->callServer("ping", $params);
 	}
-	
+
 	/**
 	* Piesledzas pie servera uz izsauc nepiecieamo metodi un atgrie˛ rezultatu
 	* o funkciju nav nepiecieams izsaukt manuali
@@ -1565,11 +1609,11 @@ class MGAPI {
 	function callServer($method, $params) {
 		$host = $this->apiUrl["host"];
 		$params["apikey"] = $this->api_key;
-		
+
 		$this->errorMessage = "";
 		$this->errorCode = "";
 		$post_vars = $this->httpBuildQuery($params);
-		
+
 		$payload = "POST " . $this->apiUrl["path"] . "?" . $this->apiUrl["query"] . "&method=" . $method . " HTTP/1.0\r\n";
 		$payload .= "Host: " . $host . "\r\n";
 		$payload .= "User-Agent: MGAPI/" . $this->version ."\r\n";
@@ -1577,7 +1621,7 @@ class MGAPI {
 		$payload .= "Content-length: " . strlen($post_vars) . "\r\n";
 		$payload .= "Connection: close \r\n\r\n";
 		$payload .= $post_vars;
-		
+
 		ob_start();
 		if ($this->secure){
 			$sock = fsockopen("ssl://".$host, 443, $errno, $errstr, 30);
@@ -1590,7 +1634,7 @@ class MGAPI {
 			ob_end_clean();
 			return false;
 		}
-		
+
 		$response = "";
 		fwrite($sock, $payload);
 		stream_set_timeout($sock, $this->timeout);
@@ -1606,11 +1650,11 @@ class MGAPI {
 		fclose($sock);
 		ob_end_clean();
 		if ($info["timed_out"]) return false;
-		
+
 		list($throw, $response) = explode("\r\n\r\n", $response, 2);
-		
+
 		if(ini_get("magic_quotes_runtime")) $response = stripslashes($response);
-		
+
 		$serial = unserialize($response);
 		if($response && $serial === false) {
 			$response = array("error" => "Bad Response.  Got This: " . $response, "code" => "-99");
@@ -1622,30 +1666,30 @@ class MGAPI {
 			$this->errorCode = $response["code"];
 			return false;
 		}
-		
+
 		return $response;
 	}
-	
+
 	/**
 	* Definejam funkciju, kas aizstaj http_build_query sistemam, kuras tas nav
 	*/
 	function httpBuildQuery($params, $key = NULL) {
 		if(!function_exists('http_build_query')) {
 			$ret = array();
-			
+
 			foreach((array) $params as $name => $val) {
 				$name = urlencode($name);
 				if($key !== null) {
 					$name = $key . "[" . $name . "]";
 				}
-				
+
 				if(is_array($val) || is_object($val)) {
 						$ret[] = $this->httpBuildQuery($val, $name);
 				} elseif($val !== null) {
 					$ret[] = $name . "=" . urlencode($val);
 				}
 			}
-			
+
 			return implode("&", $ret);
 		} else {
 			return http_build_query((array)$params, $key);
