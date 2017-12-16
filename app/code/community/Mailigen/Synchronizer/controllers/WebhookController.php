@@ -73,7 +73,10 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                     $this->logger->logWebhook("Hook '{$json->hook}' is not supported");
             }
         } catch (Exception $e) {
-            $this->_returnError('Exception: ' . $e->getMessage());
+            $this->logger->logWebhook('Exception: ' . $e->getMessage());
+            $this->getResponse()->setHttpResponseCode(500);
+            $this->getResponse()->sendResponse();
+            return $this;
         }
 
         return '';
@@ -139,7 +142,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
 
                     $this->logger->logWebhook("Subscribed contact with email: $email");
                 } else {
-                    $this->_returnError("Can't subscribe contact with email: $email");
+                    Mage::throwException("Can't subscribe contact with email: $email");
                 }
 
                 Mage::unregister('mailigen_webhook');
@@ -181,7 +184,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
 
                     $this->logger->logWebhook("Unsubscribed contact with email: $email");
                 } else {
-                    $this->_returnError("Can't unsubscribe contact with email: $email");
+                    Mage::throwException("Can't unsubscribe contact with email: $email");
                 }
 
                 Mage::unregister('mailigen_webhook');
@@ -189,16 +192,5 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                 $this->logger->logWebhook("Subscriber doesn't exist with email: $email");
             }
         }
-    }
-
-    /**
-     * @param $message
-     */
-    protected function _returnError($message)
-    {
-        $this->logger->logWebhook($message);
-        $this->getResponse()->setHttpResponseCode(500);
-        $this->getResponse()->sendResponse();
-        exit;
     }
 }
