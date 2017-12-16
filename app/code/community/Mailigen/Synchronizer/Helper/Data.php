@@ -250,9 +250,11 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
             $this->_storeIds = array();
             $websites = Mage::app()->getWebsites();
             foreach ($websites as $_website) {
-                $storeId = $_website->getDefaultGroup()->getDefaultStore()->getId();
-                if ($this->isEnabled($storeId)) {
-                    array_push($this->_storeIds, $storeId);
+                $storeIds = $_website->getStoreIds();
+                foreach ($storeIds as $storeId) {
+                    if ($this->isEnabled($storeId)) {
+                        $this->_storeIds[] = $storeId;
+                    }
                 }
             }
         }
