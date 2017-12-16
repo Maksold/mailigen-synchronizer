@@ -1,6 +1,6 @@
 <?php
 
-class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mage_Newsletter_Model_Subscriber
+class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mailigen_Synchronizer_Model_Newsletter_SubscriberBase
 {
     /**
      * @param $email
