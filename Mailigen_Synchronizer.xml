@@ -1,5 +1,5 @@
 <_>
-   <form_key>Sh8uxoK9HP9zCmzL</form_key>
+   <form_key>8A0vOtCB1UVCJ6KR</form_key>
    <name>Mailigen_Synchronizer</name>
    <channel>community</channel>
    <version_ids>
@@ -20,9 +20,14 @@ For more detailed information, instructions and usage of this extension, please 
 Mailigen provides email and integrated marketing services covering full email automation. See a full integration list in Mailigen Integrations page.</description>
    <license>GNU General Public License (GPL)</license>
    <license_uri/>
-   <version>1.1.1</version>
+   <version>1.2.9</version>
    <stability>stable</stability>
-   <notes>- Fixed package.</notes>
+   <notes>- Updated Mailigen API library to version 1.6.
+- Solved rewrite conflict with Ebizmarts_MailChimp module.
+- Show correct total number of customers in configurations after first module install.
+- Fixed getting all Store Ids for each Website.
+- Fixed static code analysis errors.
+- Refactored and reformatted code.</notes>
    <authors>
       <name>
          <name>Thomas Nelson</name>
@@ -35,7 +40,7 @@ Mailigen provides email and integrated marketing services covering full email au
       </email>
    </authors>
    <depends_php_min>5.4.0</depends_php_min>
-   <depends_php_max>6.0.0</depends_php_max>
+   <depends_php_max>7.2.0</depends_php_max>
    <depends>
       <package>
          <name>
@@ -51,7 +56,7 @@ Mailigen provides email and integrated marketing services covering full email au
             <max/>
          </max>
          <files>
-            <files>                 </files>
+            <files>                       </files>
          </files>
       </package>
       <extension>
