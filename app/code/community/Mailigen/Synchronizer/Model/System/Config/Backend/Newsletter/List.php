@@ -27,7 +27,7 @@ class Mailigen_Synchronizer_Model_System_Config_Backend_Newsletter_List extends 
             /**
              * Deny config modification, until synchronization will not be finished
              */
-            if ($mailigenSchedule->countPendingOrRunningJobs() > 0) {
+            if ($mailigenSchedule->getLastRunningJob()) {
                 $this->_dataSaveAllowed = false;
                 Mage::getSingleton('adminhtml/session')->addNotice($helper->__("You can't change newsletter list until synchronization will not be finished."));
             } else {
