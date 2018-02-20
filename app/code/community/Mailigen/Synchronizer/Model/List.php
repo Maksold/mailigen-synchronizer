@@ -65,50 +65,39 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         $lists = $this->toOptionArray();
 
         //Check if a similar list name doesn't exists already.
-        $continue = true;
         foreach ($lists as $list) {
             if ($list['label'] == $newListName) {
-                $continue = false;
-                Mage::getSingleton('adminhtml/session')->addError("A list with name '$newListName' already exists");
-                break;
+                Mage::getSingleton('adminhtml/session')->addWarning("A list with name '$newListName' already existed");
+                return $list['value'];
             }
         }
 
         //Only if a list with a similar name is not doesn't exists we move further.
-        if ($continue) {
+        /** @var $logger Mailigen_Synchronizer_Helper_Log */
+        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+        $storeId = $helper->getScopeStoreId();
 
-            /** @var $logger Mailigen_Synchronizer_Helper_Log */
-            $logger = Mage::helper('mailigen_synchronizer/log');
-            /** @var $helper Mailigen_Synchronizer_Helper_Data */
-            $helper = Mage::helper('mailigen_synchronizer');
-            $storeId = $helper->getScopeStoreId();
+        $options = array(
+            'permission_reminder'   => ' ',
+            'notify_to'             => Mage::getStoreConfig('trans_email/ident_general/email'),
+            'subscription_notify'   => true,
+            'unsubscription_notify' => true,
+            'has_email_type_option' => true
+        );
 
-            $options = array(
-                'permission_reminder'   => ' ',
-                'notify_to'             => Mage::getStoreConfig('trans_email/ident_general/email'),
-                'subscription_notify'   => true,
-                'unsubscription_notify' => true,
-                'has_email_type_option' => true
-            );
+        $api = $helper->getMailigenApi($storeId);
+        $newListId = $api->listCreate($newListName, $options);
 
-            $api = $helper->getMailigenApi($storeId);
-            $retval = $api->listCreate($newListName, $options);
-
-            if ($api->errorCode) {
-                $logger->log("Unable to create list. $api->errorCode: $api->errorMessage");
-            }
-
-            //We grab the list one more time
-            $lists = $this->toOptionArray(true);
-            foreach ($lists as $list) {
-                if ($list['label'] == $newListName) {
-                    //We make the new submitted list default
-                    return $list['value'];
-                }
-            }
+        if ($api->errorCode) {
+            $logger->log("Unable to create list. $api->errorCode: $api->errorMessage");
+            return false;
         }
 
-        return false;
+        sleep(3); // Wait 3 seconds until Mailigen API updates data
+
+        return $newListId;
     }
 
     /**

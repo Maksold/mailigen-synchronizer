@@ -12,13 +12,17 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_ENABLED = 'mailigen_synchronizer/general/enabled';
     const XML_PATH_API_KEY = 'mailigen_synchronizer/general/api_key';
     const XML_PATH_NEWSLETTER_CONTACT_LIST = 'mailigen_synchronizer/newsletter/contact_list';
+    const XML_FULL_PATH_NEWSLETTER_CONTACT_LIST = 'groups/newsletter/fields/contact_list/value';
     const XML_PATH_NEWSLETTER_NEW_LIST_TITLE = 'mailigen_synchronizer/newsletter/new_list_title';
+    const XML_FULL_PATH_NEWSLETTER_NEW_LIST_TITLE = 'groups/newsletter/fields/new_list_title/value';
     const XML_PATH_NEWSLETTER_AUTOSYNC = 'mailigen_synchronizer/newsletter/autosync';
     const XML_PATH_NEWSLETTER_HANDLE_DEFAULT_EMAILS = 'mailigen_synchronizer/newsletter/handle_default_emails';
     const XML_PATH_NEWSLETTER_WEBHOOKS = 'mailigen_synchronizer/newsletter/webhooks';
     const XML_PATH_NEWSLETTER_WEBHOOKS_SECRET_KEY = 'mailigen_synchronizer/newsletter/webhooks_secret_key';
     const XML_PATH_CUSTOMERS_CONTACT_LIST = 'mailigen_synchronizer/customers/contact_list';
+    const XML_FULL_PATH_CUSTOMERS_CONTACT_LIST = 'groups/customers/fields/contact_list/value';
     const XML_PATH_CUSTOMERS_NEW_LIST_TITLE = 'mailigen_synchronizer/customers/new_list_title';
+    const XML_FULL_PATH_CUSTOMERS_NEW_LIST_TITLE = 'groups/customers/fields/new_list_title/value';
     const XML_PATH_CUSTOMERS_AUTOSYNC = 'mailigen_synchronizer/customers/autosync';
     const XML_PATH_SYNC_MANUAL = 'mailigen_synchronizer/sync/manual';
     const XML_PATH_SYNC_STOP = 'mailigen_synchronizer/sync/stop';

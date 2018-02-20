@@ -209,18 +209,17 @@ class Mailigen_Synchronizer_Model_Observer
         $configData = Mage::getSingleton('adminhtml/config_data');
         $scope = $configData->getScope();
         $scopeId = $configData->getScopeId();
-        $storeId = Mage::app()->getWebsite($scopeId)->getDefaultGroup()->getDefaultStore()->getId();
         $removeCache = false;
 
         /**
          * Create new newsletter list
          */
-        $newsletterNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $storeId);
+        $newsletterNewListName = $configData->getData($helper::XML_FULL_PATH_NEWSLETTER_NEW_LIST_TITLE);
         if (is_string($newsletterNewListName) && strlen($newsletterNewListName) > 0) {
-            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+            if ($mailigenSchedule->getLastRunningJob() === false) {
                 $newListValue = $list->createNewList($newsletterNewListName);
                 if ($newListValue) {
-                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, $scope, $scopeId);
+                    $config->saveConfig($helper::XML_PATH_NEWSLETTER_CONTACT_LIST, $newListValue, $scope, $scopeId);
                     $removeCache = true;
 
                     /**
@@ -232,18 +231,18 @@ class Mailigen_Synchronizer_Model_Observer
                 }
             }
 
-            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $scope, $scopeId);
+            $config->deleteConfig($helper::XML_PATH_NEWSLETTER_NEW_LIST_TITLE, $scope, $scopeId);
         }
 
         /**
          * Create new customers list
          */
-        $customersNewListName = Mage::getStoreConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, $storeId);
+        $customersNewListName = $configData->getData($helper::XML_FULL_PATH_CUSTOMERS_NEW_LIST_TITLE);
         if (is_string($customersNewListName) && strlen($customersNewListName) > 0) {
-            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+            if ($mailigenSchedule->getLastRunningJob() === false) {
                 $newListValue = $list->createNewList($customersNewListName);
                 if ($newListValue) {
-                    $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, $scope, $scopeId);
+                    $config->saveConfig($helper::XML_PATH_CUSTOMERS_CONTACT_LIST, $newListValue, $scope, $scopeId);
                     $removeCache = true;
 
                     /**
@@ -255,16 +254,18 @@ class Mailigen_Synchronizer_Model_Observer
                 }
             }
 
-            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, $scope, $scopeId);
+            $config->deleteConfig($helper::XML_PATH_CUSTOMERS_NEW_LIST_TITLE, $scope, $scopeId);
         }
 
         /**
          * Check if user selected the same contact lists for newsletter and customers
          * @todo Check contact lists per each scope
          */
-        if ($helper->getNewsletterContactList($storeId) == $helper->getCustomersContactList($storeId) && $helper->getNewsletterContactList($storeId) != '') {
-            Mage::getSingleton('adminhtml/session')->addError("Please select different contact lists for newsletter and customers");
-            $config->deleteConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CUSTOMERS_CONTACT_LIST, $scope, $scopeId);
+        $newsletterListId = $configData->getData($helper::XML_FULL_PATH_NEWSLETTER_CONTACT_LIST);
+        $customerListId = $configData->getData($helper::XML_FULL_PATH_CUSTOMERS_CONTACT_LIST);
+        if ($newsletterListId === $customerListId && strlen($newsletterListId) > 0) {
+            Mage::getSingleton('adminhtml/session')->addWarning("Please select different contact lists for newsletter and customers");
+            $config->deleteConfig($helper::XML_PATH_CUSTOMERS_CONTACT_LIST, $scope, $scopeId);
             $removeCache = true;
         }
 
