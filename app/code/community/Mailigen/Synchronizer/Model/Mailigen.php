@@ -365,7 +365,6 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             foreach ($customerLists as $_storeId => $customerListId) {
                 $logger->log('Customer synchronization started for Store Id: ' . $_storeId);
 
-                $websiteId = $customerHelper->getWebsite($_storeId)->getWebsiteId();
                 $environment = $emulation->startEnvironmentEmulation($_storeId);
                 $this->_customersListId = $customerListId;
                 $this->_resetCustomerLog();
@@ -381,7 +380,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 /**
                  * Update customers order info
                  */
-                $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($websiteId);
+                $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($_storeId);
                 $logger->log("Updated $updatedCustomers customers in flat table");
 
 
@@ -389,7 +388,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                  * Update Customers in Mailigen
                  */
                 $updateCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-                    ->getAllIds(0, 0, $websiteId);
+                    ->getAllIds(0, 0, $_storeId);
                 /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
                 $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
                 if (count($updateCustomerIds) > 0 && $updateCustomers) {
@@ -429,7 +428,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 $removeCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
                     ->addFieldToFilter('is_removed', 1)
                     ->addFieldToFilter('is_synced', 0)
-                    ->addFieldToFilter('website_id', $websiteId)
+                    ->addFieldToFilter('store_id', $_storeId)
                     ->addFieldToSelect(array('id', 'email'));
                 if ($removeCustomers && $removeCustomers->getSize() > 0) {
                     $logger->log("Started removing customers from Mailigen");

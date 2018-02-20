@@ -20,15 +20,15 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param int|null $websiteId
+     * @param int|null $storeId
      * @return int
      */
-    public function updateCustomersOrderInfo($websiteId = null)
+    public function updateCustomersOrderInfo($storeId = null)
     {
         $customerIds = Mage::getModel('customer/customer')->getCollection()
-            ->addAttributeToFilter('website_id', $websiteId)
+            ->addAttributeToFilter('store_id', $storeId)
             ->getAllIds();
-        $customerFlatIds = $this->getCollection()->getAllIds(false, false, $websiteId);
+        $customerFlatIds = $this->getCollection()->getAllIds(false, false, $storeId);
         $newCustomerFlatIds = array_diff($customerIds, $customerFlatIds);
 
         if (count($newCustomerFlatIds) > 0) {
@@ -83,6 +83,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
             'id'                       => $customer->getId(),
             'email'                    => $customer->getEmail(),
             'website_id'               => $customer->getWebsiteId(),
+            'store_id'                 => $customer->getStoreId(),
             'lastorderdate'            => $orders && $lastOrder ? $helper->getFormattedDate($lastOrder->getCreatedAt()) : '',
             'valueoflastorder'         => $orders && $lastOrder ? (float)$lastOrder->getGrandTotal() : '',
             'totalvalueoforders'       => (float)$totalGrandTotal,

@@ -19,10 +19,10 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
      *
      * @param bool $is_synced
      * @param bool $is_removed
-     * @param int $website_id
+     * @param int $store_id
      * @return array
      */
-    public function getAllIds($is_synced = false, $is_removed = false, $website_id = null)
+    public function getAllIds($is_synced = false, $is_removed = false, $store_id = null)
     {
         $idsSelect = clone $this->getSelect();
         $idsSelect->reset(Zend_Db_Select::ORDER);
@@ -38,8 +38,8 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
             $idsSelect->where('is_removed = ?', $is_removed);
         }
 
-        if (null !== $website_id) {
-            $idsSelect->where('website_id = ?', $website_id);
+        if (null !== $store_id) {
+            $idsSelect->where('store_id = ?', $store_id);
         }
 
         $idsSelect->columns($this->getResource()->getIdFieldName(), 'main_table');
