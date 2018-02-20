@@ -161,13 +161,21 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     protected function _getSyncedNewsletterProgress()
     {
         $result = array();
+        $scopeStoreIds = $this->_getScopeStoreIds();
         $totalNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()
-            ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED)
-            ->getSize();
+            ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
+        if (count($scopeStoreIds) > 0) {
+            $totalNewsletter->addFieldToFilter('store_id', $scopeStoreIds);
+        }
+        $totalNewsletter = $totalNewsletter->getSize();
+
         $syncedNewsletter = Mage::getModel('newsletter/subscriber')->getCollection()
             ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED)
-            ->addFieldToFilter('mailigen_synced', 1)
-            ->getSize();
+            ->addFieldToFilter('mailigen_synced', 1);
+        if (count($scopeStoreIds) > 0) {
+            $syncedNewsletter->addFieldToFilter('store_id', $scopeStoreIds);
+        }
+        $syncedNewsletter = $syncedNewsletter->getSize();
 
         $result['percent'] = round($syncedNewsletter / $totalNewsletter * 100);
         $result['text'] = "{$result['percent']}% ($syncedNewsletter/$totalNewsletter)";
@@ -192,13 +200,33 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
      */
     protected function _getSyncedCustomersProgress()
     {
-        $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()->getSize();
+        $scopeStoreIds = $this->_getScopeStoreIds();
+        $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
+        /*
+         * @TODO Add filtering by store_id
+         */
+//        if (count($scopeStoreIds) > 0) {
+//            $totalCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+//        }
+        $totalCustomers = $totalCustomers->getSize();
+
         if ($totalCustomers === 0) {
-            $totalCustomers = Mage::getModel('customer/customer')->getCollection()->getSize();
+            $totalCustomers = Mage::getModel('customer/customer')->getCollection();
+            if (count($scopeStoreIds) > 0) {
+                $totalCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+            }
+            $totalCustomers = $totalCustomers->getSize();
         }
+
         $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-            ->addFieldToFilter('is_synced', 1)
-            ->getSize();
+            ->addFieldToFilter('is_synced', 1);
+        /*
+         * @TODO Add filtering by store_id
+         */
+//        if (count($scopeStoreIds) > 0) {
+//            $syncedCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+//        }
+        $syncedCustomers = $syncedCustomers->getSize();
 
         $result['percent'] = round($syncedCustomers / $totalCustomers * 100);
         $result['text'] = "{$result['percent']}% ($syncedCustomers/$totalCustomers)";
@@ -363,5 +391,28 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
             );
 
         return $buttonJs . $button->toHtml();
+    }
+
+    /**
+     * @return array
+     * @throws Mage_Core_Exception
+     */
+    protected function _getScopeStoreIds()
+    {
+        $storeIds = array();
+        $storeCode = Mage::getSingleton('adminhtml/config_data')->getStore();
+        $websiteCode = Mage::getSingleton('adminhtml/config_data')->getWebsite();
+
+        if ($storeCode !== '') {
+            // store level scope
+            $storeIds[] = Mage::getModel('core/store')->load($storeCode)->getId();
+        }
+        elseif ($websiteCode !== '') {
+            // website level scope
+            $websiteId = Mage::getModel('core/website')->load($websiteCode)->getId();
+            $storeIds = Mage::app()->getWebsite($websiteId)->getStoreIds();
+        }
+
+        return $storeIds;
     }
 }
