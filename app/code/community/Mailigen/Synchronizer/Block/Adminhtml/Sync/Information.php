@@ -183,11 +183,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
         $mailigenSchedule = Mage::getSingleton('mailigen_synchronizer/schedule');
         $lastRunningJob = $mailigenSchedule->getLastRunningJob();
-        if (empty($lastRunningJob)) {
-            $result['button'] = $this->_getResetNewsletterSyncButton();
-        } else {
-            $result['button'] = '';
-        }
+        $result['button'] = ($lastRunningJob === false) ? '' : $this->_getResetNewsletterSyncButton();
 
         return $result;
     }
@@ -202,12 +198,9 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
     {
         $scopeStoreIds = $this->_getScopeStoreIds();
         $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
-        /*
-         * @TODO Add filtering by store_id
-         */
-//        if (count($scopeStoreIds) > 0) {
-//            $totalCustomers->addFieldToFilter('store_id', $scopeStoreIds);
-//        }
+        if (count($scopeStoreIds) > 0) {
+            $totalCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+        }
         $totalCustomers = $totalCustomers->getSize();
 
         if ($totalCustomers === 0) {
@@ -220,12 +213,9 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
 
         $syncedCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->addFieldToFilter('is_synced', 1);
-        /*
-         * @TODO Add filtering by store_id
-         */
-//        if (count($scopeStoreIds) > 0) {
-//            $syncedCustomers->addFieldToFilter('store_id', $scopeStoreIds);
-//        }
+        if (count($scopeStoreIds) > 0) {
+            $syncedCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+        }
         $syncedCustomers = $syncedCustomers->getSize();
 
         $result['percent'] = round($syncedCustomers / $totalCustomers * 100);
@@ -234,11 +224,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Sync_Information
         /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
         $mailigenSchedule = Mage::getSingleton('mailigen_synchronizer/schedule');
         $lastRunningJob = $mailigenSchedule->getLastRunningJob();
-        if (empty($lastRunningJob)) {
-            $result['button'] = $this->_getResetCustomersSyncButton();
-        } else {
-            $result['button'] = '';
-        }
+        $result['button'] = ($lastRunningJob === false) ? '' : $this->_getResetCustomersSyncButton();
 
         return $result;
     }
