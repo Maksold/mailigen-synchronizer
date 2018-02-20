@@ -48,7 +48,10 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         if (is_array($lists) && !empty($lists)) {
             $array[] = array('label' => '--Create a new list--', 'value' => '');
             foreach ($lists as $list) {
-                $array[] = array('label' => $list['name'], 'value' => $list['id']);
+                $array[] = array(
+                    'label' => $list['name'] . ' (' . $list['member_count'] . ' members)',
+                    'value' => $list['id']
+                );
             }
 
             return $array;
