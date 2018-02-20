@@ -21,12 +21,12 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param bool $load
+     * @param bool $forceLoad
      * @return array|null
      */
-    public function getLists($load = false)
+    public function getLists($forceLoad = false)
     {
-        if (null === $this->_lists || $load) {
+        if (null === $this->_lists || $forceLoad) {
             /** @var $helper Mailigen_Synchronizer_Helper_Data */
             $helper = Mage::helper('mailigen_synchronizer');
             $storeId = $helper->getScopeStoreId();
@@ -111,5 +111,25 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     {
         $this->_lists = $lists;
         return $this;
+    }
+
+    /**
+     * @param bool $forceListLoad
+     * @return int
+     */
+    public function getTotalMembers($forceListLoad = false)
+    {
+        $totalMembers = 0;
+        $lists = $this->getLists($forceListLoad);
+
+        if (is_array($lists) && count($lists)) {
+            foreach ($lists as $list) {
+                if (isset($list['member_count'])) {
+                    $totalMembers += (int)$list['member_count'];
+                }
+            }
+        }
+
+        return $totalMembers;
     }
 }

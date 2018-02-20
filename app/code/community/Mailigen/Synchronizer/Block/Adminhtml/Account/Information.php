@@ -22,13 +22,29 @@ class Mailigen_Synchronizer_Block_Adminhtml_Account_Information extends Mage_Adm
             return '-';
         }
 
+        /** @var $mailigenLists Mailigen_Synchronizer_Model_List */
+        $mailigenLists = Mage::getSingleton('mailigen_synchronizer/list');
+        $totalSubscribers = $mailigenLists->getTotalMembers();
+        $maxSubscribers = $accountDetails->plan_high ?? 0;
+
+        $subscribersPercentText = '';
+        if ($totalSubscribers > 0 && $maxSubscribers > 0) {
+            $subscribersPercent = round($totalSubscribers / $maxSubscribers * 100);
+            $subscribersPercentText = '(' . $subscribersPercent . '%)';
+
+            if ($subscribersPercent > 90) {
+                $subscribersPercentText = '<b style="color: red;">' . $subscribersPercentText . '<b>';
+            }
+        }
+
+
         $html = '
             <style type="text/css">
                 #mailigen_account_details_list { padding: 5px; color: #444; background-color: #fdfdfd; border: 1px solid #ccc; }
             </style>
             <ul class="checkboxes" id="mailigen_account_details_list">
                 <li>Username: ' . ($accountDetails->username ?? '') . '</li>
-                <li>Max Account Subscribers: ' . ($accountDetails->plan_high ?? '') . '</li>
+                <li>Total Account Subscribers: ' . $totalSubscribers . '/' . $maxSubscribers . ' ' . $subscribersPercentText . '</li>
             </ul>';
 
         return $html;
