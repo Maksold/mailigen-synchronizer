@@ -19,22 +19,26 @@ class Mailigen_Synchronizer_Model_Newsletter_Merge_Field extends Mage_Core_Model
             'WEBSITEID'     => array(
                 'title'      => 'Website id',
                 'field_type' => 'text',
-                'req'        => false
+                'req'        => false,
+                'public'     => false,
             ),
             'TYPE'          => array(
                 'title'      => 'Type',
                 'field_type' => 'text',
-                'req'        => false
+                'req'        => false,
+                'public'     => false,
             ),
             'STOREID'       => array(
                 'title'      => 'Store id',
                 'field_type' => 'text',
-                'req'        => false
+                'req'        => false,
+                'public'     => false,
             ),
             'STORELANGUAGE' => array(
                 'title'      => 'Store language',
                 'field_type' => 'text',
-                'req'        => false
+                'req'        => false,
+                'public'     => false,
             )
         );
     }
