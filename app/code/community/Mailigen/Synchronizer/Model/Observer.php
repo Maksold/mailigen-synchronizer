@@ -11,7 +11,7 @@ class Mailigen_Synchronizer_Model_Observer
 {
     /**
      * @param Varien_Event_Observer $observer
-     * @return Varien_Event_Observer
+     * @return $this
      */
     public function newsletterSubscriberSaveCommitAfter(Varien_Event_Observer $observer)
     {
@@ -19,7 +19,7 @@ class Mailigen_Synchronizer_Model_Observer
          * Check if it was webhook save
          */
         if (Mage::registry('mailigen_webhook')) {
-            return;
+            return $this;
         }
 
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
@@ -37,7 +37,7 @@ class Mailigen_Synchronizer_Model_Observer
                 $newsletterListId = $helper->getNewsletterContactList($storeId);
                 if (!$newsletterListId) {
                     $logger->log('Newsletter contact list isn\'t selected');
-                    return;
+                    return $this;
                 }
 
                 $email_address = $subscriber->getSubscriberEmail();
@@ -104,10 +104,13 @@ class Mailigen_Synchronizer_Model_Observer
         } catch (Exception $e) {
             $logger->logException($e);
         }
+
+        return $this;
     }
 
     /**
      * @param Varien_Event_Observer $observer
+     * @return Mailigen_Synchronizer_Model_Observer
      */
     public function newsletterSubscriberDeleteAfter(Varien_Event_Observer $observer)
     {
@@ -124,7 +127,7 @@ class Mailigen_Synchronizer_Model_Observer
                 $newsletterListId = $helper->getNewsletterContactList($storeId);
                 if (!$newsletterListId) {
                     $logger->log('Newsletter contact list isn\'t selected');
-                    return;
+                    return $this;
                 }
 
                 $email_address = $subscriber->getSubscriberEmail();
@@ -148,17 +151,22 @@ class Mailigen_Synchronizer_Model_Observer
         } catch (Exception $e) {
             $logger->logException($e);
         }
+
+        return $this;
     }
+
 
     /**
      * Sync newsletter and customers by cron job
+     *
+     * @return $this|string
      */
     public function daily_sync()
     {
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         if (!$helper->isEnabled()) {
-            return "Module is disabled";
+            return 'Module is disabled';
         }
 
         /**
@@ -190,6 +198,8 @@ class Mailigen_Synchronizer_Model_Observer
         } catch (Exception $e) {
             Mage::helper('mailigen_synchronizer/log')->logException($e);
         }
+
+        return $this;
     }
 
     /**
@@ -264,7 +274,7 @@ class Mailigen_Synchronizer_Model_Observer
         $newsletterListId = $configData->getData($helper::XML_FULL_PATH_NEWSLETTER_CONTACT_LIST);
         $customerListId = $configData->getData($helper::XML_FULL_PATH_CUSTOMERS_CONTACT_LIST);
         if ($newsletterListId === $customerListId && strlen($newsletterListId) > 0) {
-            Mage::getSingleton('adminhtml/session')->addWarning("Please select different contact lists for newsletter and customers");
+            Mage::getSingleton('adminhtml/session')->addWarning('Please select different contact lists for newsletter and customers');
             $config->deleteConfig($helper::XML_PATH_CUSTOMERS_CONTACT_LIST, $scope, $scopeId);
             $removeCache = true;
         }
