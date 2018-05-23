@@ -101,10 +101,14 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     {
         $tableName = $this->getResource()->getMainTable();
         $write = Mage::getSingleton('core/resource')->getConnection('core_write');
-        $inserted = $write->insertMultiple($tableName, $this->_newCustomersOrderInfoData);
-        if ($inserted < count($this->_newCustomersOrderInfoData)) {
-            Mage::throwException("Saved $inserted customers of " . count($this->_newCustomersOrderInfoData));
+
+        $insertFields = array_keys($this->_newCustomersOrderInfoData[0]);
+        $idFieldKey = array_search('id', $insertFields);
+        if ($idFieldKey) {
+            unset($insertFields[$idFieldKey]); // Remove 'id' field
         }
+
+        $write->insertOnDuplicate($tableName, $this->_newCustomersOrderInfoData, $insertFields);
 
         $this->_newCustomersOrderInfoData = array();
     }
