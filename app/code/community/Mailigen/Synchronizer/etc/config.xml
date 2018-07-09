@@ -80,15 +80,6 @@
                     </mailigen_synchronizer_newsletter_subscriber_delete_after>
                 </observers>
             </newsletter_subscriber_delete_after>
-            <admin_system_config_changed_section_mailigen_synchronizer>
-                <observers>
-                    <newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
-                        <type>singleton</type>
-                        <class>Mailigen_Synchronizer_Model_Observer</class>
-                        <method>adminSystemConfigChangedSectionMailigenSettings</method>
-                    </newsletter_subscriber_admin_system_config_changed_section_mailigen_synchronizer>
-                </observers>
-            </admin_system_config_changed_section_mailigen_synchronizer>
             <customer_delete_after>
                 <observers>
                     <mailigen_synchronizer_customer_delete_after>
@@ -171,13 +162,22 @@
             </resources>
         </acl>
         <events>
+            <admin_system_config_changed_section_mailigen_synchronizer>
+                <observers>
+                    <mailigen_synchronizer_module_config_change>
+                        <type>singleton</type>
+                        <class>Mailigen_Synchronizer_Model_Adminhtml_Observer</class>
+                        <method>configChange</method>
+                    </mailigen_synchronizer_module_config_change>
+                </observers>
+            </admin_system_config_changed_section_mailigen_synchronizer>
             <adminhtml_widget_container_html_before>
                 <observers>
-                    <mailigen_synchronizer_adminhtml_widget_container_html_before>
+                    <mailigen_synchronizer_add_customer_bulk_sync_button>
                         <type>singleton</type>
-                        <class>Mailigen_Synchronizer_Model_Observer</class>
-                        <method>adminhtmlWidgetContainerHtmlBefore</method>
-                    </mailigen_synchronizer_adminhtml_widget_container_html_before>
+                        <class>Mailigen_Synchronizer_Model_Adminhtml_Observer</class>
+                        <method>addCustomerBulkSyncButton</method>
+                    </mailigen_synchronizer_add_customer_bulk_sync_button>
                 </observers>
             </adminhtml_widget_container_html_before>
         </events>
@@ -196,7 +196,7 @@
                     <config_path>mailigen_synchronizer/general/cron_string</config_path>
                 </schedule>
                 <run>
-                    <model>mailigen_synchronizer/observer::daily_sync</model>
+                    <model>mailigen_synchronizer/cron::sync</model>
                 </run>
             </mailigen_synchronizer>
         </jobs>

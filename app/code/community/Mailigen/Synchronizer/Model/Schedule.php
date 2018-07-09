@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
+class Mailigen_Synchronizer_Model_Schedule
 {
     /**
      * @var string
@@ -41,8 +41,8 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
                     'status', array(
                         'in' => array(
                             Mage_Cron_Model_Schedule::STATUS_RUNNING,
-                            Mage_Cron_Model_Schedule::STATUS_PENDING
-                        )
+                            Mage_Cron_Model_Schedule::STATUS_PENDING,
+                        ),
                     )
                 );
             $this->_countPendingOrRunningJobs = $pendingOrRunningJobs->getSize();
@@ -92,6 +92,7 @@ class Mailigen_Synchronizer_Model_Schedule extends Mage_Core_Model_Abstract
     /**
      * @param int $delay Schedule job, to run after delay (in minutes)
      * @return Mage_Cron_Model_Schedule
+     * @throws Exception
      */
     public function createJob($delay = 0)
     {
