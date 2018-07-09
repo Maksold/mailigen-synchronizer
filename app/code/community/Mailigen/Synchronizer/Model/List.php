@@ -76,8 +76,8 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         }
 
         //Only if a list with a similar name is not doesn't exists we move further.
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         $storeId = $helper->getScopeStoreId();
@@ -94,7 +94,7 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
         $newListId = $api->listCreate($newListName, $options);
 
         if ($api->errorCode) {
-            $logger->log("Unable to create list. $api->errorCode: $api->errorMessage");
+            $log->log("Unable to create list. $api->errorCode: $api->errorMessage");
             return false;
         }
 

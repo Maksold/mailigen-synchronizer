@@ -69,8 +69,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     public function syncNewsletter()
     {
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
+        $log->setLogFile(Mailigen_Synchronizer_Helper_Log::SYNC_LOG_FILE);
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         /** @var $emulation Mage_Core_Model_App_Emulation */
@@ -81,16 +82,16 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         $newsletterLists = $helper->getNewsletterContactLists();
         if (count($newsletterLists) <= 0) {
-            $logger->log("Newsletter contact list isn't selected");
+            $log->log("Newsletter contact list isn't selected");
             return;
         }
 
         try {
 
-            $logger->log('Newsletter synchronization started for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
+            $log->log('Newsletter synchronization started for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
 
             foreach ($newsletterLists as $_storeId => $newsletterListId) {
-                $logger->log('Newsletter synchronization started for Store Id: ' . $_storeId);
+                $log->log('Newsletter synchronization started for Store Id: ' . $_storeId);
 
                 $environment = $emulation->startEnvironmentEmulation($_storeId);
                 $this->_newsletterListId = $newsletterListId;
@@ -101,7 +102,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                  * Create or update Merge fields
                  */
                 Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
-                $logger->log('Newsletter merge fields created and updated');
+                $log->log('Newsletter merge fields created and updated');
 
 
                 /**
@@ -111,7 +112,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
                     ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $_storeId);
                 if ($subscribers->getSize() > 0) {
-                    $logger->log("Started updating subscribers in Mailigen");
+                    $log->log("Started updating subscribers in Mailigen");
                     $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                         $subscribers,
                         array($this, '_prepareSubscriberData'),
@@ -125,13 +126,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     if ($iterator == 0) {
                         Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
                         $this->_writeResultLogs();
-                        $logger->log("Reschedule task, to update subscribers in Mailigen after 2 min");
+                        $log->log("Reschedule task, to update subscribers in Mailigen after 2 min");
                         return;
                     }
 
-                    $logger->log("Finished updating subscribers in Mailigen");
+                    $log->log("Finished updating subscribers in Mailigen");
                 } else {
-                    $logger->log("No subscribers to sync with Mailigen");
+                    $log->log("No subscribers to sync with Mailigen");
                 }
 
                 unset($subscribers);
@@ -148,7 +149,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 $unsubscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
                     ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED, 0, $_storeId);
                 if ($unsubscribers->getSize() > 0) {
-                    $logger->log("Started updating unsubscribers in Mailigen");
+                    $log->log("Started updating unsubscribers in Mailigen");
                     $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                         $unsubscribers,
                         array($this, '_prepareUnsubscriberData'),
@@ -162,13 +163,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     if ($iterator == 0) {
                         Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
                         $this->_writeResultLogs();
-                        $logger->log("Reschedule task, to update unsubscribers in Mailigen after 2 min");
+                        $log->log("Reschedule task, to update unsubscribers in Mailigen after 2 min");
                         return;
                     }
 
-                    $logger->log("Finished updating unsubscribers in Mailigen");
+                    $log->log("Finished updating unsubscribers in Mailigen");
                 } else {
-                    $logger->log("No unsubscribers to sync with Mailigen");
+                    $log->log("No unsubscribers to sync with Mailigen");
                 }
 
                 unset($unsubscribers);
@@ -180,13 +181,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
                 $emulation->stopEnvironmentEmulation($environment);
 
-                $logger->log('Newsletter synchronization finished for Store Id: ' . $_storeId);
+                $log->log('Newsletter synchronization finished for Store Id: ' . $_storeId);
             }
 
-            $logger->log('Newsletter synchronization finished for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
+            $log->log('Newsletter synchronization finished for Store Ids: ' . implode(', ', array_keys($newsletterLists)));
 
         } catch (Exception $e) {
-            $logger->log('Exception: ' . $e->getMessage());
+            $log->logException($e);
         }
     }
 
@@ -214,6 +215,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     /**
      * @param $collectionInfo
+     * @throws Mage_Core_Exception
      */
     public function _updateSubscribersInMailigen($collectionInfo)
     {
@@ -222,8 +224,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchSubscribe($this->_newsletterListId, $this->_batchedNewsletterData, false, true);
 
@@ -233,7 +235,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $logger->log("Updated $curr/$total subscribers in Mailigen");
+            $log->log("Updated $curr/$total subscribers in Mailigen");
         }
 
         $this->_newsletterLog['subscriber_count'] += count($this->_batchedNewsletterData);
@@ -247,7 +249,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse
+                'apiResponse'  => $apiResponse,
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -273,6 +275,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     /**
      * @param $collectionInfo
+     * @throws Mage_Core_Exception
      */
     public function _updateUnsubscribersInMailigen($collectionInfo)
     {
@@ -281,8 +284,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchUnsubscribe($this->_newsletterListId, $this->_batchedNewsletterData, false, true);
 
@@ -292,7 +295,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $logger->log("Updated $curr/$total unsubscribers in Mailigen");
+            $log->log("Updated $curr/$total unsubscribers in Mailigen");
         }
 
         $this->_newsletterLog['unsubscriber_count'] += count($this->_batchedNewsletterData);
@@ -306,7 +309,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse
+                'apiResponse'  => $apiResponse,
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -340,8 +343,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     public function syncCustomers()
     {
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
+        $log->setLogFile(Mailigen_Synchronizer_Helper_Log::SYNC_LOG_FILE);
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         /** @var $customerHelper Mailigen_Synchronizer_Helper_Customer */
@@ -354,16 +358,16 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         $customerLists = $helper->getCustomerContactLists();
         if (count($customerLists) <= 0) {
-            $logger->log("Customer contact list isn't selected");
+            $log->log("Customer contact list isn't selected");
             return;
         }
 
         try {
 
-            $logger->log('Customer synchronization started for Store Ids: ' . implode(', ', array_keys($customerLists)));
+            $log->log('Customer synchronization started for Store Ids: ' . implode(', ', array_keys($customerLists)));
 
             foreach ($customerLists as $_storeId => $customerListId) {
-                $logger->log('Customer synchronization started for Store Id: ' . $_storeId);
+                $log->log('Customer synchronization started for Store Id: ' . $_storeId);
 
                 $environment = $emulation->startEnvironmentEmulation($_storeId);
                 $this->_customersListId = $customerListId;
@@ -374,14 +378,14 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                  * Create or update Merge fields
                  */
                 Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
-                $logger->log('Customer merge fields created and updated');
+                $log->log('Customer merge fields created and updated');
 
 
                 /**
                  * Update customers order info
                  */
                 $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($_storeId);
-                $logger->log("Updated $updatedCustomers customers in flat table");
+                $log->log("Updated $updatedCustomers customers in flat table");
 
 
                 /**
@@ -392,7 +396,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
                 $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
                 if (count($updateCustomerIds) > 0 && $updateCustomers) {
-                    $logger->log("Started updating customers in Mailigen");
+                    $log->log("Started updating customers in Mailigen");
                     $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                         $updateCustomers,
                         array($this, '_prepareCustomerDataForUpdate'),
@@ -406,11 +410,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     if ($iterator == 0) {
                         Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
                         $this->_writeResultLogs();
-                        $logger->log("Reschedule task, to update customers in Mailigen after 2 min");
+                        $log->log("Reschedule task, to update customers in Mailigen after 2 min");
                         return;
                     }
 
-                    $logger->log("Finished updating customers in Mailigen");
+                    $log->log("Finished updating customers in Mailigen");
                 }
 
                 unset($updateCustomerIds, $updateCustomers);
@@ -431,7 +435,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     ->addFieldToFilter('store_id', $_storeId)
                     ->addFieldToSelect(array('id', 'email'));
                 if ($removeCustomers && $removeCustomers->getSize() > 0) {
-                    $logger->log("Started removing customers from Mailigen");
+                    $log->log("Started removing customers from Mailigen");
                     $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                         $removeCustomers,
                         array($this, '_prepareCustomerDataForRemove'),
@@ -445,11 +449,11 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                     if ($iterator == 0) {
                         Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
                         $this->_writeResultLogs();
-                        $logger->log("Reschedule task to remove customers in Mailigen after 2 min");
+                        $log->log("Reschedule task to remove customers in Mailigen after 2 min");
                         return;
                     }
 
-                    $logger->log("Finished removing customers from Mailigen");
+                    $log->log("Finished removing customers from Mailigen");
                 }
 
                 unset($removeCustomers);
@@ -466,13 +470,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
                 $emulation->stopEnvironmentEmulation($environment);
 
-                $logger->log('Customer synchronization finished for Store Id: ' . $_storeId);
+                $log->log('Customer synchronization finished for Store Id: ' . $_storeId);
             }
 
-            $logger->log('Customer synchronization finished for Store Ids: ' . implode(', ', array_keys($customerLists)));
+            $log->log('Customer synchronization finished for Store Ids: ' . implode(', ', array_keys($customerLists)));
 
         } catch (Exception $e) {
-            $logger->log('Exception: ' . $e->getMessage());
+            $log->logException($e);
         }
     }
 
@@ -517,12 +521,13 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             'TOTALNUMBEROFORDERS'      => $customer->getData('totalnumberoforders'),
             'NUMBEROFITEMSINCART'      => $customer->getData('numberofitemsincart'),
             'VALUEOFCURRENTCART'       => $customer->getData('valueofcurrentcart'),
-            'LASTITEMINCARTADDINGDATE' => $customer->getData('lastitemincartaddingdate')
+            'LASTITEMINCARTADDINGDATE' => $customer->getData('lastitemincartaddingdate'),
         );
     }
 
     /**
      * @param $collectionInfo
+     * @throws Mage_Core_Exception
      */
     public function _updateCustomersInMailigen($collectionInfo)
     {
@@ -531,8 +536,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchSubscribe($this->_customersListId, $this->_batchedCustomersData, false, true);
 
@@ -542,7 +547,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $logger->log("Updated $curr/$total customers in Mailigen");
+            $log->log("Updated $curr/$total customers in Mailigen");
         }
 
         $this->_customersLog['update_count'] += count($this->_batchedCustomersData);
@@ -556,7 +561,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse
+                'apiResponse'  => $apiResponse,
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -590,6 +595,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
 
     /**
      * @param $collectionInfo
+     * @throws Mage_Core_Exception
      */
     public function _removeCustomersFromMailigen($collectionInfo)
     {
@@ -598,8 +604,8 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          */
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
         $api = $helper->getMailigenApi();
         $apiResponse = $api->listBatchUnsubscribe($this->_customersListId, $this->_batchedCustomersData, true, false, false);
 
@@ -609,7 +615,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $logger->log("Removed $curr/$total customers from Mailigen");
+            $log->log("Removed $curr/$total customers from Mailigen");
         }
 
         $this->_customersLog['remove_count'] = count($this->_batchedCustomersData);
@@ -623,7 +629,7 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse
+                'apiResponse'  => $apiResponse,
             );
             Mage::throwException('Unable to batch unsubscribe. ' . var_export($errorInfo, true));
         } else {
@@ -665,24 +671,24 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
      */
     protected function _writeResultLogs()
     {
-        /** @var $logger Mailigen_Synchronizer_Helper_Log */
-        $logger = Mage::helper('mailigen_synchronizer/log');
+        /** @var $log Mailigen_Synchronizer_Helper_Log */
+        $log = Mage::helper('mailigen_synchronizer/log');
 
         /**
          * Newsletter logs
          */
         if (isset($this->_newsletterLog['subscriber_count']) && $this->_newsletterLog['subscriber_count'] > 0) {
-            $logger->log("Successfully subscribed {$this->_newsletterLog['subscriber_success_count']}/{$this->_newsletterLog['subscriber_count']}");
+            $log->log("Successfully subscribed {$this->_newsletterLog['subscriber_success_count']}/{$this->_newsletterLog['subscriber_count']}");
             if (!empty($this->_newsletterLog['subscriber_errors'])) {
-                $logger->log("Subscribe errors: " . var_export($this->_newsletterLog['subscriber_errors'], true));
+                $log->log("Subscribe errors: " . var_export($this->_newsletterLog['subscriber_errors'], true));
             }
         }
 
         if (isset($this->_newsletterLog['unsubscriber_count']) && $this->_newsletterLog['unsubscriber_count'] > 0) {
-            $logger->log("Successfully unsubscribed {$this->_newsletterLog['unsubscriber_success_count']}/{$this->_newsletterLog['unsubscriber_count']}");
-            $logger->log("Unsubscribed with error {$this->_newsletterLog['unsubscriber_error_count']}/{$this->_newsletterLog['unsubscriber_count']}");
+            $log->log("Successfully unsubscribed {$this->_newsletterLog['unsubscriber_success_count']}/{$this->_newsletterLog['unsubscriber_count']}");
+            $log->log("Unsubscribed with error {$this->_newsletterLog['unsubscriber_error_count']}/{$this->_newsletterLog['unsubscriber_count']}");
             if (!empty($this->_newsletterLog['unsubscriber_errors'])) {
-                $logger->log("Unsubscribe errors: " . var_export($this->_newsletterLog['unsubscriber_errors'], true));
+                $log->log("Unsubscribe errors: " . var_export($this->_newsletterLog['unsubscriber_errors'], true));
             }
         }
 
@@ -690,17 +696,17 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
          * Customer logs
          */
         if (isset($this->_customersLog['update_count']) && $this->_customersLog['update_count'] > 0) {
-            $logger->log("Successfully updated {$this->_customersLog['update_success_count']}/{$this->_customersLog['update_count']} customers");
+            $log->log("Successfully updated {$this->_customersLog['update_success_count']}/{$this->_customersLog['update_count']} customers");
             if (!empty($this->_customersLog['update_errors'])) {
-                $logger->log("Update errors: " . var_export($this->_customersLog['update_errors'], true));
+                $log->log("Update errors: " . var_export($this->_customersLog['update_errors'], true));
             }
         }
 
         if (isset($this->_customersLog['remove_count']) && $this->_customersLog['remove_count'] > 0) {
-            $logger->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");
-            $logger->log("Removed with error {$this->_customersLog['remove_error_count']}/{$this->_customersLog['remove_count']} customers");
+            $log->log("Successfully removed {$this->_customersLog['remove_success_count']}/{$this->_customersLog['remove_count']} customers");
+            $log->log("Removed with error {$this->_customersLog['remove_error_count']}/{$this->_customersLog['remove_count']} customers");
             if (!empty($this->_customersLog['remove_errors'])) {
-                $logger->log("Remove errors: " . var_export($this->_customersLog['remove_errors'], true));
+                $log->log("Remove errors: " . var_export($this->_customersLog['remove_errors'], true));
             }
         }
     }

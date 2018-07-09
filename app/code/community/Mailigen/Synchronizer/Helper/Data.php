@@ -246,6 +246,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
     /**
      * Get Store ids with enable Mailigen Sync
+     *
      * @return array
      */
     public function getStoreIds()
@@ -310,6 +311,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
     /**
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function getScopeStoreId()
     {
@@ -362,8 +364,8 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
-     * @param $data
-     * @param $signature
+     * @param      $data
+     * @param      $signature
      * @param null $storeId
      * @return bool
      */
