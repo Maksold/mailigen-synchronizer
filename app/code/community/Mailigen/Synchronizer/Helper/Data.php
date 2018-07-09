@@ -303,6 +303,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
     /**
      * @return mixed
+     * @throws Mage_Core_Exception
      */
     public function getDefaultStoreId()
     {

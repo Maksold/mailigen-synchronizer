@@ -74,6 +74,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
 
     /**
      * @return array
+     * @throws Mage_Core_Exception
      */
     public function getGenders()
     {

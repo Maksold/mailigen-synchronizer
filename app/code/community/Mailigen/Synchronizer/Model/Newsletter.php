@@ -12,6 +12,7 @@ class Mailigen_Synchronizer_Model_Newsletter extends Mage_Newsletter_Model_Subsc
     /**
      * @param     $subscriberIds
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function updateSyncedNewsletter($subscriberIds)
     {

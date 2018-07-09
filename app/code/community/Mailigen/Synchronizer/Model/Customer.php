@@ -22,6 +22,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     /**
      * @param int|null $storeId
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function updateCustomersOrderInfo($storeId = null)
     {
@@ -48,6 +49,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
     /**
      * @param $customer
+     * @throws Mage_Core_Exception
      */
     public function _prepareCustomerOrderInfoData($customer)
     {
@@ -116,6 +118,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     /**
      * @param $customerIds
      * @return Mage_Customer_Model_Resource_Customer_Collection
+     * @throws Mage_Core_Exception
      */
     public function getCustomerCollection($customerIds)
     {
@@ -183,6 +186,7 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     /**
      * @param     $customerIds
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function updateSyncedCustomers($customerIds)
     {
