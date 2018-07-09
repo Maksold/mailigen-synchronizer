@@ -18,36 +18,34 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
      */
     public function indexAction()
     {
-        $this->_getLog()->setLogFile(Mailigen_Synchronizer_Helper_Log::WEBHOOK_LOG_FILE);
-        $this->_getLog()->log('============================');
+        $this->l()->setLogFile(Mailigen_Synchronizer_Helper_Log::WEBHOOK_LOG_FILE);
+        $this->l()->log('============================');
 
-        /** @var $helper Mailigen_Synchronizer_Helper_Data */
-        $helper = Mage::helper('mailigen_synchronizer');
-        if (!$helper->enabledWebhooks()) {
-            $this->_getLog()->log('Webhooks are disabled.');
+        if (!$this->h()->enabledWebhooks()) {
+            $this->l()->log('Webhooks are disabled.');
             return '';
         }
 
         if (!$this->getRequest()->isPost()) {
             $requestMethod = $this->getRequest()->getMethod();
-            $this->_getLog()->log("Request should be a 'POST' method, instead of '{$requestMethod}'.");
+            $this->l()->log("Request should be a 'POST' method, instead of '{$requestMethod}'.");
             return '';
         }
 
         $data = $this->getRequest()->getRawBody();
         $signature = $this->getRequest()->getHeader('X-Mailigen-Signature');
-        if (!$helper->verifySignature($data, $signature)) {
-            $this->_getLog()->log("Data signature is incorrect.");
+        if (!$this->h()->verifySignature($data, $signature)) {
+            $this->l()->log("Data signature is incorrect.");
             return '';
         }
 
-        $this->_getLog()->log("Webhook called with data: " . $data);
+        $this->l()->log("Webhook called with data: " . $data);
 
         try {
             $json = json_decode($data);
 
             if (!isset($json->hook) || !isset($json->data)) {
-                $this->_getLog()->log('No hook or data in JSON.');
+                $this->l()->log('No hook or data in JSON.');
                 return '';
             }
 
@@ -56,21 +54,21 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                     /**
                      * Subscribe contact
                      */
-                    $this->_getLog()->log('Called: _subscribeContact()');
+                    $this->l()->log('Called: _subscribeContact()');
                     $this->_subscribeContact($json->data);
                     break;
                 case 'contact.unsubscribe':
                     /**
                      * Unsubscribe contact
                      */
-                    $this->_getLog()->log('Called: _unsubscribeContact()');
+                    $this->l()->log('Called: _unsubscribeContact()');
                     $this->_unsubscribeContact($json->data);
                     break;
                 default:
-                    $this->_getLog()->log("Hook '{$json->hook}' is not supported");
+                    $this->l()->log("Hook '{$json->hook}' is not supported");
             }
         } catch (Exception $e) {
-            $this->_getLog()->logException($e);
+            $this->l()->logException($e);
             $this->getResponse()->setHttpResponseCode(500);
             $this->getResponse()->sendResponse();
             return $this;
@@ -86,12 +84,10 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
      */
     protected function _checkListId($listId)
     {
-        /** @var $helper Mailigen_Synchronizer_Helper_Data */
-        $helper = Mage::helper('mailigen_synchronizer');
-        $check = $helper->getNewsletterContactList() == $listId;
+        $check = $this->h()->getNewsletterContactList() == $listId;
 
         if (!$check) {
-            $this->_getLog()->log("Newsletter doesn't exist with List Id: $listId");
+            $this->l()->log("Newsletter doesn't exist with List Id: $listId");
         }
 
         return $check;
@@ -103,6 +99,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
      * @todo Subscribe to necessary Website Id
      * @param $data
      * @throws Mage_Core_Exception
+     * @throws Exception
      */
     protected function _subscribeContact($data)
     {
@@ -125,7 +122,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
 
             $subscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($email);
             if ($subscriber && $subscriber->getStatus() == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {
-                $this->_getLog()->log("Contact is already subscribed with email: $email");
+                $this->l()->log("Contact is already subscribed with email: $email");
             } else {
                 /**
                  * Subscribe contact
@@ -139,7 +136,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                         Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId());
                     }
 
-                    $this->_getLog()->log("Subscribed contact with email: $email");
+                    $this->l()->log("Subscribed contact with email: $email");
                 } else {
                     Mage::throwException("Can't subscribe contact with email: $email");
                 }
@@ -183,22 +180,30 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                         Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId());
                     }
 
-                    $this->_getLog()->log("Unsubscribed contact with email: $email");
+                    $this->l()->log("Unsubscribed contact with email: $email");
                 } else {
                     Mage::throwException("Can't unsubscribe contact with email: $email");
                 }
 
                 Mage::unregister('mailigen_webhook');
             } else {
-                $this->_getLog()->log("Subscriber doesn't exist with email: $email");
+                $this->l()->log("Subscriber doesn't exist with email: $email");
             }
         }
     }
 
     /**
+     * @return Mailigen_Synchronizer_Helper_Data
+     */
+    protected function h()
+    {
+        return Mage::helper('mailigen_synchronizer');
+    }
+
+    /**
      * @return Mailigen_Synchronizer_Helper_Log
      */
-    protected function _getLog()
+    protected function l()
     {
         return Mage::helper('mailigen_synchronizer/log');
     }
