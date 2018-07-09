@@ -45,7 +45,9 @@ class Mailigen_Synchronizer_Model_Observer
                 /**
                  * Create or update Merge fields
                  */
-                Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields($storeId);
+                Mage::getModel('mailigen_synchronizer/merge_field_newsletter')
+                    ->setStoreId($storeId)
+                    ->createMergeFields();
                 $log->log('Newsletter merge fields created and updated');
 
                 if ($subscriber->getSubscriberStatus() === Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {

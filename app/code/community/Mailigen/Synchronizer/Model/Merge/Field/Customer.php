@@ -7,28 +7,29 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_Abstract
+class Mailigen_Synchronizer_Model_Merge_Field_Customer extends Mailigen_Synchronizer_Model_Merge_Field_Abstract
 {
     /**
-     * @param $values
-     * @return string
+     * @return null|string
+     * @throws Mage_Core_Exception
      */
-    protected function _getFormattedPredefinedValues($values)
+    public function getListId()
     {
-        if (is_array($values)) {
-            return implode("||", $values);
+        $listId = $this->h()->getCustomersContactList($this->getStoreId());
+        if (empty($listId)) {
+            Mage::throwException('Customer contact list isn\'t selected');
         }
 
-        return '';
+        return $listId;
     }
 
     /**
      * @return array
      */
-    protected function _getMergeFieldsConfig()
+    protected function _getMergeFields()
     {
-        /** @var $helper Mailigen_Synchronizer_Helper_Customer */
-        $helper = Mage::helper('mailigen_synchronizer/customer');
+        /** @var $customerHelper Mailigen_Synchronizer_Helper_Customer */
+        $customerHelper = Mage::helper('mailigen_synchronizer/customer');
 
         return array(
             /**
@@ -68,7 +69,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'title'             => 'Customer group',
                 'field_type'        => 'dropdown',
                 'req'               => true,
-                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCustomerGroups()),
+                'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->getCustomerGroups()),
                 'public'            => false,
             ),
             'PHONE'                    => array(
@@ -87,7 +88,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'title'             => 'Country',
                 'field_type'        => 'dropdown',
                 'req'               => false,
-                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getCountries()),
+                'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->getCountries()),
                 'public'            => false,
             ),
             'CITY'                     => array(
@@ -112,7 +113,7 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'title'             => 'Gender',
                 'field_type'        => 'dropdown',
                 'req'               => false,
-                'predefined_values' => $this->_getFormattedPredefinedValues($helper->getGenders()),
+                'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->getGenders()),
                 'public'            => false,
             ),
             'LASTLOGIN'                => array(
@@ -131,14 +132,14 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
                 'title'             => 'Status of user',
                 'field_type'        => 'dropdown',
                 'req'               => true,
-                'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerStatus),
+                'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->customerStatus),
                 'public'            => false,
             ),
             'ISSUBSCRIBED'             => array(
                 'title'             => 'Is subscribed',
                 'field_type'        => 'dropdown',
                 'req'               => true,
-                'predefined_values' => $this->_getFormattedPredefinedValues($helper->customerIsSubscribed),
+                'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->customerIsSubscribed),
                 'public'            => false,
             ),
             /**
@@ -190,66 +191,5 @@ class Mailigen_Synchronizer_Model_Customer_Merge_Field extends Mage_Core_Model_A
              * @todo Add Discount coupon fields
              */
         );
-    }
-
-    public function createMergeFields()
-    {
-        /** @var $helper Mailigen_Synchronizer_Helper_Data */
-        $helper = Mage::helper('mailigen_synchronizer');
-        $api = $helper->getMailigenApi();
-        $listId = $helper->getCustomersContactList();
-        if (empty($listId)) {
-            Mage::throwException("Customer contact list isn't selected");
-        }
-
-        $createdFields = $this->_getCreatedMergeFields();
-        $newFields = $this->_getMergeFieldsConfig();
-
-        foreach ($newFields as $tag => $options) {
-            if (isset($createdFields[$tag])) {
-                /**
-                 * Merge Field already created
-                 * Update only 'CUSTOMERGROUP' field
-                 */
-                if ($tag == 'CUSTOMERGROUP') {
-                    $api->listMergeVarUpdate($listId, $tag, $options);
-                    if ($api->errorCode) {
-                        Mage::throwException("Unable to update merge var. $api->errorCode: $api->errorMessage");
-                    }
-                }
-            } else {
-                /**
-                 * Create new merge field
-                 */
-                $name = $options['title'];
-                $api->listMergeVarAdd($listId, $tag, $name, $options);
-                if ($api->errorCode) {
-                    Mage::throwException("Unable to add merge var. $api->errorCode: $api->errorMessage");
-                }
-            }
-        }
-    }
-
-    /**
-     * @return array
-     */
-    protected function _getCreatedMergeFields()
-    {
-        /** @var $helper Mailigen_Synchronizer_Helper_Data */
-        $helper = Mage::helper('mailigen_synchronizer');
-        $api = $helper->getMailigenApi();
-        $listId = $helper->getCustomersContactList();
-
-        $createdMergeFields = array();
-        $tmpCreatedMergeFields = $api->listMergeVars($listId);
-        if ($api->errorCode) {
-            Mage::throwException("Unable to load merge vars. $api->errorCode: $api->errorMessage");
-        }
-
-        foreach ($tmpCreatedMergeFields as $mergeField) {
-            $createdMergeFields[$mergeField['tag']] = $mergeField;
-        }
-
-        return $createdMergeFields;
     }
 }

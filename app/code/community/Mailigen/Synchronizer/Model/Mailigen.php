@@ -101,7 +101,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 /**
                  * Create or update Merge fields
                  */
-                Mage::getModel('mailigen_synchronizer/newsletter_merge_field')->createMergeFields();
+                Mage::getModel('mailigen_synchronizer/merge_field_newsletter')
+                    ->setStoreId($_storeId)
+                    ->createMergeFields();
                 $log->log('Newsletter merge fields created and updated');
 
 
@@ -377,7 +379,9 @@ class Mailigen_Synchronizer_Model_Mailigen extends Mage_Core_Model_Abstract
                 /**
                  * Create or update Merge fields
                  */
-                Mage::getModel('mailigen_synchronizer/customer_merge_field')->createMergeFields();
+                Mage::getModel('mailigen_synchronizer/merge_field_customer')
+                    ->setStoreId($_storeId)
+                    ->createMergeFields();
                 $log->log('Customer merge fields created and updated');
 
 
