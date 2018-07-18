@@ -9,6 +9,9 @@
  */
 class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
 {
+    const SUBSCRIBER_GUEST_TYPE = 1;
+    const SUBSCRIBER_CUSTOMER_TYPE = 2;
+
     /**
      * @var array
      */
@@ -233,9 +236,9 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
      */
     public function getSubscriberType($type)
     {
-        if ($type == 1) {
+        if ($type == self::SUBSCRIBER_GUEST_TYPE) {
             return Mage::helper('newsletter')->__('Guest');
-        } elseif ($type == 2) {
+        } elseif ($type == self::SUBSCRIBER_CUSTOMER_TYPE) {
             return Mage::helper('newsletter')->__('Customer');
         } else {
             return Mage::helper('newsletter')->__('Unknown');

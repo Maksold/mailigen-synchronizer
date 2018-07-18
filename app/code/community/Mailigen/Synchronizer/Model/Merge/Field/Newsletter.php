@@ -29,25 +29,25 @@ class Mailigen_Synchronizer_Model_Merge_Field_Newsletter extends Mailigen_Synchr
     protected function _getMergeFields()
     {
         return array(
-            'WEBSITEID'     => array(
+            'WEBSITEID'      => array(
                 'title'      => 'Website id',
                 'field_type' => 'text',
                 'req'        => false,
                 'public'     => false,
             ),
-            'TYPE'          => array(
+            'NEWSLETTERTYPE' => array(
                 'title'      => 'Type',
                 'field_type' => 'text',
                 'req'        => false,
                 'public'     => false,
             ),
-            'STOREID'       => array(
+            'STOREID'        => array(
                 'title'      => 'Store id',
                 'field_type' => 'text',
                 'req'        => false,
                 'public'     => false,
             ),
-            'STORELANGUAGE' => array(
+            'STORELANGUAGE'  => array(
                 'title'      => 'Store language',
                 'field_type' => 'text',
                 'req'        => false,

@@ -173,7 +173,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
             /*
              * Newsletter fields
              */
-            'NEWSLETTERTYPE'           => $this->customerHelper()->getSubscriberType(2),
+            'NEWSLETTERTYPE'           => $this->customerHelper()->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE),
             /**
              * Customer info
              */

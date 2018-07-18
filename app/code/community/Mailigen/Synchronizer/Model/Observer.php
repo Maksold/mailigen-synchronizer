@@ -56,11 +56,11 @@ class Mailigen_Synchronizer_Model_Observer
                     // Prepare Merge vars
                     $website = $customerHelper->getWebsite($storeId);
                     $merge_vars = array(
-                        'EMAIL'         => $subscriber->getSubscriberEmail(),
-                        'WEBSITEID'     => $website ? $website->getId() : 0,
-                        'TYPE'          => $customerHelper->getSubscriberType(1),
-                        'STOREID'       => $storeId,
-                        'STORELANGUAGE' => $customerHelper->getStoreLanguage($storeId),
+                        'EMAIL'          => $subscriber->getSubscriberEmail(),
+                        'WEBSITEID'      => $website ? $website->getId() : 0,
+                        'NEWSLETTERTYPE' => $customerHelper->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_GUEST_TYPE),
+                        'STOREID'        => $storeId,
+                        'STORELANGUAGE'  => $customerHelper->getStoreLanguage($storeId),
                     );
 
                     // If is a customer we also grab firstname and lastname
@@ -68,7 +68,7 @@ class Mailigen_Synchronizer_Model_Observer
                         $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
                         $merge_vars['FNAME'] = $customer->getFirstname();
                         $merge_vars['LNAME'] = $customer->getLastname();
-                        $merge_vars['TYPE'] = $customerHelper->getSubscriberType(2);
+                        $merge_vars['NEWSLETTERTYPE'] = $customerHelper->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE);
                     }
 
                     $send_welcome = $this->h()->canNewsletterHandleDefaultEmails($storeId);

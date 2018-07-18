@@ -153,13 +153,13 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
             /**
              * Subscriber info
              */
-            'EMAIL'         => $subscriber->getSubscriberEmail(),
-            'FNAME'         => $subscriber->getCustomerFirstname(),
-            'LNAME'         => $subscriber->getCustomerLastname(),
-            'WEBSITEID'     => $subscriber->getWebsiteId(),
-            'TYPE'          => $this->customerHelper()->getSubscriberType($subscriber->getType()),
-            'STOREID'       => $subscriber->getStoreId(),
-            'STORELANGUAGE' => $this->customerHelper()->getStoreLanguage($subscriber->getStoreId()),
+            'EMAIL'          => $subscriber->getSubscriberEmail(),
+            'FNAME'          => $subscriber->getCustomerFirstname(),
+            'LNAME'          => $subscriber->getCustomerLastname(),
+            'WEBSITEID'      => $subscriber->getWebsiteId(),
+            'NEWSLETTERTYPE' => $this->customerHelper()->getSubscriberType($subscriber->getType()),
+            'STOREID'        => $subscriber->getStoreId(),
+            'STORELANGUAGE'  => $this->customerHelper()->getStoreLanguage($subscriber->getStoreId()),
         );
     }
 
