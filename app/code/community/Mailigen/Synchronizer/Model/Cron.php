@@ -31,9 +31,9 @@ class Mailigen_Synchronizer_Model_Cron
          */
         try {
             if ($helper->canAutoSyncNewsletter()) {
-                /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-                $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-                $mailigen->syncNewsletter();
+                /** @var $newsletterSync Mailigen_Synchronizer_Model_Sync_Newsletter */
+                $newsletterSync = Mage::getModel('mailigen_synchronizer/sync_newsletter');
+                $newsletterSync->sync();
             }
         } catch (Exception $e) {
             $log->logException($e);
@@ -48,9 +48,9 @@ class Mailigen_Synchronizer_Model_Cron
                     $helper->setManualSync(0);
                 }
 
-                /** @var $mailigen Mailigen_Synchronizer_Model_Mailigen */
-                $mailigen = Mage::getModel('mailigen_synchronizer/mailigen');
-                $mailigen->syncCustomers();
+                /** @var $customerSync Mailigen_Synchronizer_Model_Sync_Customer */
+                $customerSync = Mage::getModel('mailigen_synchronizer/sync_customer');
+                $customerSync->sync();
             }
         } catch (Exception $e) {
             $log->logException($e);
