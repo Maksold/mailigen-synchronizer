@@ -9,152 +9,91 @@
  */
 class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Model_Sync_Abstract
 {
-    protected function _resetStats()
+    public function doSync()
     {
-        $this->_stats = array(
-            'update_success_count' => 0,
-            'update_error_count'   => 0,
-            'update_errors'        => array(),
-            'update_count'         => 0,
-            'remove_success_count' => 0,
-            'remove_error_count'   => 0,
-            'remove_errors'        => array(),
-            'remove_count'         => 0,
-        );
-    }
+        /**
+         * Update customers order info
+         */
+        $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($this->_storeId);
+        $this->l()->log("Updated $updatedCustomers customers in flat table");
 
-    public function sync()
-    {
-        /** @var $emulation Mage_Core_Model_App_Emulation */
-        $emulation = Mage::getModel('core/app_emulation');
 
         /**
-         * Get Customer lists per store
+         * Update Customers in Mailigen
          */
-        $customerLists = $this->h()->getCustomerContactLists();
-        if (count($customerLists) <= 0) {
-            $this->l()->log("Customer contact list isn't selected");
-            return;
-        }
-
-        try {
-
-            $this->l()->log('Customer synchronization started for Store Ids: ' . implode(', ', array_keys($customerLists)));
-
-            foreach ($customerLists as $_storeId => $customerListId) {
-                $this->l()->log('Customer synchronization started for Store Id: ' . $_storeId);
-
-                $environment = $emulation->startEnvironmentEmulation($_storeId);
-                $this->_listId = $customerListId;
-                $this->_resetStats();
-
-
-                /**
-                 * Create or update Merge fields
-                 */
-                Mage::getModel('mailigen_synchronizer/merge_field_customer')
-                    ->setStoreId($_storeId)
-                    ->createMergeFields();
-                $this->l()->log('Customer merge fields created and updated');
-
-
-                /**
-                 * Update customers order info
-                 */
-                $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($_storeId);
-                $this->l()->log("Updated $updatedCustomers customers in flat table");
-
-
-                /**
-                 * Update Customers in Mailigen
-                 */
-                $updateCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-                    ->getAllIds(0, 0, $_storeId);
-                /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
-                $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
-                if (count($updateCustomerIds) > 0 && $updateCustomers) {
-                    $this->l()->log("Started updating customers in Mailigen");
-                    $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                        $updateCustomers,
-                        array($this, '_prepareCustomerDataForUpdate'),
-                        array($this, '_updateCustomersInMailigen'),
-                        100,
-                        10000
-                    );
-                    /**
-                     * Reschedule task, to run after 2 min
-                     */
-                    if ($iterator == 0) {
-                        Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                        $this->_writeResultLogs();
-                        $this->l()->log("Reschedule task, to update customers in Mailigen after 2 min");
-                        return;
-                    }
-
-                    $this->l()->log("Finished updating customers in Mailigen");
-                }
-
-                unset($updateCustomerIds, $updateCustomers);
-
-                /**
-                 * Log update info
-                 */
-                $this->_writeResultLogs();
-
-
-                /**
-                 * Remove Customers from Mailigen
-                 */
-                /** @var $removeCustomer Mailigen_Synchronizer_Model_Resource_Customer_Collection */
-                $removeCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-                    ->addFieldToFilter('is_removed', 1)
-                    ->addFieldToFilter('is_synced', 0)
-                    ->addFieldToFilter('store_id', $_storeId)
-                    ->addFieldToSelect(array('id', 'email'));
-                if ($removeCustomers && $removeCustomers->getSize() > 0) {
-                    $this->l()->log("Started removing customers from Mailigen");
-                    $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                        $removeCustomers,
-                        array($this, '_prepareCustomerDataForRemove'),
-                        array($this, '_removeCustomersFromMailigen'),
-                        100,
-                        10000
-                    );
-                    /**
-                     * Reschedule task, to run after 2 min
-                     */
-                    if ($iterator == 0) {
-                        Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                        $this->_writeResultLogs();
-                        $this->l()->log("Reschedule task to remove customers in Mailigen after 2 min");
-                        return;
-                    }
-
-                    $this->l()->log("Finished removing customers from Mailigen");
-                }
-
-                unset($removeCustomers);
-
-                /**
-                 * Remove synced and removed customers from Flat table
-                 */
-                Mage::getModel('mailigen_synchronizer/customer')->removeSyncedAndRemovedCustomers();
-
-                /**
-                 * Log remove info
-                 */
-                $this->_writeResultLogs();
-
-                $emulation->stopEnvironmentEmulation($environment);
-
-                $this->l()->log('Customer synchronization finished for Store Id: ' . $_storeId);
+        $updateCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->getAllIds(0, 0, $this->_storeId);
+        /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
+        $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
+        if (count($updateCustomerIds) > 0 && $updateCustomers) {
+            $this->l()->log("Started updating customers in Mailigen");
+            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+                $updateCustomers,
+                array($this, '_prepareCustomerDataForUpdate'),
+                array($this, '_updateCustomersInMailigen'),
+                100,
+                10000
+            );
+            /**
+             * Reschedule task, to run after 2 min
+             */
+            if ($iterator == 0) {
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $this->_logStats();
+                $this->l()->log("Reschedule task, to update customers in Mailigen after 2 min");
+                return;
             }
 
-            $this->l()->log('Customer synchronization finished for Store Ids: ' . implode(', ', array_keys($customerLists)));
-
-        } catch (Exception $e) {
-            $this->l()->logException($e);
+            $this->l()->log("Finished updating subscribers in Mailigen");
+        } else {
+            $this->l()->log("No subscribers to sync with Mailigen");
         }
+
+        unset($updateCustomerIds, $updateCustomers);
+
+        /**
+         * Log update info
+         */
+        $this->_logStats();
+
+
+        /**
+         * Remove Customers from Mailigen
+         */
+        /** @var $removeCustomer Mailigen_Synchronizer_Model_Resource_Customer_Collection */
+        $removeCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+            ->addFieldToFilter('is_removed', 1)
+            ->addFieldToFilter('is_synced', 0)
+            ->addFieldToFilter('store_id', $this->_storeId)
+            ->addFieldToSelect(array('id', 'email'));
+        if ($removeCustomers && $removeCustomers->getSize() > 0) {
+            $this->l()->log("Started removing customers from Mailigen");
+            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
+                $removeCustomers,
+                array($this, '_prepareCustomerDataForRemove'),
+                array($this, '_removeCustomersFromMailigen'),
+                100,
+                10000
+            );
+            /**
+             * Reschedule task, to run after 2 min
+             */
+            if ($iterator == 0) {
+                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
+                $this->_logStats();
+                $this->l()->log("Reschedule task to remove customers in Mailigen after 2 min");
+                return;
+            }
+
+            $this->l()->log("Finished removing customers from Mailigen");
+        }
+
+        unset($removeCustomers);
+
+        /**
+         * Remove synced and removed customers from Flat table
+         */
+        Mage::getModel('mailigen_synchronizer/customer')->removeSyncedAndRemovedCustomers();
     }
 
     /**
@@ -229,14 +168,14 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
             $this->l()->log("Updated $curr/$total customers in Mailigen");
         }
 
-        $this->_stats['update_count'] += count($this->_batchedData);
+        $this->_stats['subscriber_count'] += count($this->_batchedData);
 
         if ($api->errorCode) {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-            $this->_writeResultLogs();
+            $this->_logStats();
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
@@ -249,10 +188,10 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
              */
             Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedData));
 
-            $this->_stats['update_success_count'] += $apiResponse['success_count'];
-            $this->_stats['update_error_count'] += $apiResponse['error_count'];
+            $this->_stats['subscriber_success_count'] += $apiResponse['success_count'];
+            $this->_stats['subscriber_error_count'] += $apiResponse['error_count'];
             if (count($apiResponse['errors']) > 0) {
-                $this->_stats['update_errors'] = array_merge_recursive($this->_stats['update_errors'], $apiResponse['errors']);
+                $this->_stats['subscriber_errors'] = array_merge_recursive($this->_stats['subscriber_errors'], $apiResponse['errors']);
             }
         }
 
@@ -293,14 +232,14 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
             $this->l()->log("Removed $curr/$total customers from Mailigen");
         }
 
-        $this->_stats['remove_count'] = count($this->_batchedData);
+        $this->_stats['unsubscriber_count'] += count($this->_batchedData);
 
         if ($api->errorCode) {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
-            $this->_writeResultLogs();
+            $this->_logStats();
             $errorInfo = array(
                 'errorCode'    => $api->errorCode,
                 'errorMessage' => $api->errorMessage,
@@ -313,10 +252,10 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
              */
             Mage::getModel('mailigen_synchronizer/customer')->updateSyncedCustomers(array_keys($this->_batchedData));
 
-            $this->_stats['remove_success_count'] += $apiResponse['success_count'];
-            $this->_stats['remove_error_count'] += $apiResponse['error_count'];
+            $this->_stats['unsubscriber_success_count'] += $apiResponse['success_count'];
+            $this->_stats['unsubscriber_error_count'] += $apiResponse['error_count'];
             if (count($apiResponse['errors']) > 0) {
-                $this->_stats['remove_errors'] = array_merge_recursive($this->_stats['remove_errors'], $apiResponse['errors']);
+                $this->_stats['unsubscriber_errors'] = array_merge_recursive($this->_stats['unsubscriber_errors'], $apiResponse['errors']);
             }
         }
 
@@ -326,26 +265,5 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
         $this->_checkSyncStop();
 
         $this->_batchedData = array();
-    }
-
-    /**
-     * Write update, remove result logs
-     */
-    protected function _writeResultLogs()
-    {
-        if (isset($this->_stats['update_count']) && $this->_stats['update_count'] > 0) {
-            $this->l()->log("Successfully updated {$this->_stats['update_success_count']}/{$this->_stats['update_count']} customers");
-            if (!empty($this->_stats['update_errors'])) {
-                $this->l()->log("Update errors: " . var_export($this->_stats['update_errors'], true));
-            }
-        }
-
-        if (isset($this->_stats['remove_count']) && $this->_stats['remove_count'] > 0) {
-            $this->l()->log("Successfully removed {$this->_stats['remove_success_count']}/{$this->_stats['remove_count']} customers");
-            $this->l()->log("Removed with error {$this->_stats['remove_error_count']}/{$this->_stats['remove_count']} customers");
-            if (!empty($this->_stats['remove_errors'])) {
-                $this->l()->log("Remove errors: " . var_export($this->_stats['remove_errors'], true));
-            }
-        }
     }
 }
