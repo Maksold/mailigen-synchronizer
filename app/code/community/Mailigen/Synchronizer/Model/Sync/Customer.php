@@ -163,6 +163,17 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
     public function _prepareCustomerDataForUpdate($customer)
     {
         $this->_batchedData[$customer->getId()] = array(
+
+            /*
+             * Basic fields
+             */
+            'WEBSITEID'                => $customer->getWebsiteId(),
+            'STOREID'                  => $customer->getStoreId(),
+            'STORELANGUAGE'            => $this->customerHelper()->getStoreLanguage($customer->getStoreId()),
+            /*
+             * Newsletter fields
+             */
+            'NEWSLETTERTYPE'           => $this->customerHelper()->getSubscriberType(2),
             /**
              * Customer info
              */
@@ -172,8 +183,6 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
             'PREFIX'                   => $customer->getPrefix(),
             'MIDDLENAME'               => $customer->getMiddlename(),
             'SUFFIX'                   => $customer->getSuffix(),
-            'STOREID'                  => $customer->getStoreId(),
-            'STORELANGUAGE'            => $this->customerHelper()->getStoreLanguage($customer->getStoreId()),
             'CUSTOMERGROUP'            => $this->customerHelper()->getCustomerGroup($customer->getGroupId()),
             'PHONE'                    => $customer->getBillingTelephone(),
             'REGISTRATIONDATE'         => $this->customerHelper()->getFormattedDate($customer->getCreatedAtTimestamp()),

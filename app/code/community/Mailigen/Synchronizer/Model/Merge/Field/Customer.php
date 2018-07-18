@@ -32,7 +32,37 @@ class Mailigen_Synchronizer_Model_Merge_Field_Customer extends Mailigen_Synchron
         $customerHelper = Mage::helper('mailigen_synchronizer/customer');
 
         return array(
-            /**
+            /*
+             * Basic fields
+             */
+            'WEBSITEID'                => array(
+                'title'      => 'Website id',
+                'field_type' => 'text',
+                'req'        => false,
+                'public'     => false,
+            ),
+            'STOREID'                  => array(
+                'title'      => 'Store id',
+                'field_type' => 'text',
+                'req'        => false,
+                'public'     => false,
+            ),
+            'STORELANGUAGE'            => array(
+                'title'      => 'Store language',
+                'field_type' => 'text',
+                'req'        => false,
+                'public'     => false,
+            ),
+            /*
+             * Newsletter fields
+             */
+            'NEWSLETTERTYPE'           => array(
+                'title'      => 'Newsletter type',
+                'field_type' => 'text',
+                'req'        => false,
+                'public'     => false,
+            ),
+            /*
              * Customer fields
              */
             'PREFIX'                   => array(
@@ -51,18 +81,6 @@ class Mailigen_Synchronizer_Model_Merge_Field_Customer extends Mailigen_Synchron
                 'title'      => 'Suffix',
                 'field_type' => 'text',
                 'req'        => false,
-                'public'     => false,
-            ),
-            'STOREID'                  => array(
-                'title'      => 'Store id',
-                'field_type' => 'text',
-                'req'        => true,
-                'public'     => false,
-            ),
-            'STORELANGUAGE'            => array(
-                'title'      => 'Store language',
-                'field_type' => 'text',
-                'req'        => true,
                 'public'     => false,
             ),
             'CUSTOMERGROUP'            => array(
@@ -142,8 +160,8 @@ class Mailigen_Synchronizer_Model_Merge_Field_Customer extends Mailigen_Synchron
                 'predefined_values' => $this->_getFormattedPredefinedValues($customerHelper->customerIsSubscribed),
                 'public'            => false,
             ),
-            /**
-             * Customer orders info
+            /*
+             * Customer order info fields
              */
             'LASTORDERDATE'            => array(
                 'title'      => 'Last order date',
@@ -187,9 +205,6 @@ class Mailigen_Synchronizer_Model_Merge_Field_Customer extends Mailigen_Synchron
                 'req'        => false,
                 'public'     => false,
             ),
-            /**
-             * @todo Add Discount coupon fields
-             */
         );
     }
 }
