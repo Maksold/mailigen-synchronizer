@@ -9,102 +9,33 @@
  */
 class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_Model_Sync_Abstract
 {
-    public function doSync()
+    const SUBSCRIBER_TYPE = 'Guest';
+
+    /**
+     * @return Mailigen_Synchronizer_Model_Resource_Subscriber_Collection
+     */
+    protected function _getSubscribersCollection()
     {
-        /**
-         * Update subscribers in Mailigen
-         */
         /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
-        $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
-            ->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $this->_storeId);
-        if ($subscribers->getSize() > 0) {
-            $this->l()->log("Started updating subscribers in Mailigen");
-            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                $subscribers,
-                array($this, '_prepareSubscriberData'),
-                array($this, '_updateSubscribersInMailigen'),
-                100,
-                10000
-            );
-            /**
-             * Reschedule task, to run after 2 min
-             */
-            if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                $this->_logStats();
-                $this->l()->log("Reschedule task, to update subscribers in Mailigen after 2 min");
-                return;
-            }
-
-            $this->l()->log("Finished updating subscribers in Mailigen");
-        } else {
-            $this->l()->log("No subscribers to sync with Mailigen");
-        }
-
-        unset($subscribers);
-
-        /**
-         * Log subscribers info
-         */
-        $this->_logStats();
-
-        /**
-         * Update unsubscribers in Mailigen
-         */
-        /** @var $unsubscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
-        $unsubscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
-            ->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED, 0, $this->_storeId);
-        if ($unsubscribers->getSize() > 0) {
-            $this->l()->log("Started updating unsubscribers in Mailigen");
-            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                $unsubscribers,
-                array($this, '_prepareUnsubscriberData'),
-                array($this, '_updateUnsubscribersInMailigen'),
-                100,
-                10000
-            );
-            /**
-             * Reschedule task, to run after 2 min
-             */
-            if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                $this->_logStats();
-                $this->l()->log("Reschedule task, to update unsubscribers in Mailigen after 2 min");
-                return;
-            }
-
-            $this->l()->log("Finished updating unsubscribers in Mailigen");
-        } else {
-            $this->l()->log("No unsubscribers to sync with Mailigen");
-        }
-
-        unset($unsubscribers);
+        $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection');
+        return $subscribers->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $this->_storeId);
     }
 
     /**
-     * @param $subscriber Mage_Newsletter_Model_Subscriber
+     * @return Mailigen_Synchronizer_Model_Resource_Subscriber_Collection
      */
-    public function _prepareSubscriberData($subscriber)
+    protected function _getUnsubscribersCollection()
     {
-        $this->_batchedData[$subscriber->getId()] = array(
-            /**
-             * Subscriber info
-             */
-            'EMAIL'          => $subscriber->getSubscriberEmail(),
-            'FNAME'          => $subscriber->getCustomerFirstname(),
-            'LNAME'          => $subscriber->getCustomerLastname(),
-            'WEBSITEID'      => $subscriber->getWebsiteId(),
-            'NEWSLETTERTYPE' => $this->customerHelper()->getSubscriberType($subscriber->getType()),
-            'STOREID'        => $subscriber->getStoreId(),
-            'STORELANGUAGE'  => $this->customerHelper()->getStoreLanguage($subscriber->getStoreId()),
-        );
+        /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
+        $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection');
+        return $subscribers->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED, 0, $this->_storeId);
     }
 
     /**
      * @param $collectionInfo
      * @throws Mage_Core_Exception
      */
-    public function _updateSubscribersInMailigen($collectionInfo)
+    public function _batchSubscribe($collectionInfo)
     {
         /**
          * Send API request to Mailigen
@@ -157,18 +88,10 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
     }
 
     /**
-     * @param $unsubscriber Mage_Newsletter_Model_Subscriber
-     */
-    public function _prepareUnsubscriberData($unsubscriber)
-    {
-        $this->_batchedData[$unsubscriber->getId()] = $unsubscriber->getSubscriberEmail();
-    }
-
-    /**
      * @param $collectionInfo
      * @throws Mage_Core_Exception
      */
-    public function _updateUnsubscribersInMailigen($collectionInfo)
+    public function _batchUnsubscribe($collectionInfo)
     {
         /**
          * Send API request to Mailigen
@@ -182,7 +105,7 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $this->l()->log("Updated $curr/$total unsubscribers in Mailigen");
+            $this->l()->log("Unsubscribed $curr/$total guests from Mailigen");
         }
 
         $this->_stats['unsubscriber_count'] += count($this->_batchedData);

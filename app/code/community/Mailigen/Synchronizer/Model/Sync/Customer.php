@@ -9,149 +9,112 @@
  */
 class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Model_Sync_Abstract
 {
-    public function doSync()
+    const SUBSCRIBER_TYPE = 'Customer';
+
+    /**
+     * Update customers order info
+     */
+    protected function _beforeSubscribe()
     {
-        /**
-         * Update customers order info
-         */
+        parent::_beforeSubscribe();
+
         $updatedCustomers = Mage::getModel('mailigen_synchronizer/customer')->updateCustomersOrderInfo($this->_storeId);
-        $this->l()->log("Updated $updatedCustomers customers in flat table");
+        $this->l()->log('Updated ' . $updatedCustomers . ' customers in flat table');
+    }
 
-
-        /**
-         * Update Customers in Mailigen
-         */
-        $updateCustomerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
+    /**
+     * @return Mage_Customer_Model_Resource_Customer_Collection
+     */
+    protected function _getSubscribersCollection()
+    {
+        $customerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->getAllIds(0, 0, $this->_storeId);
-        /** @var $updateCustomers Mage_Customer_Model_Resource_Customer_Collection */
-        $updateCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCustomerCollection($updateCustomerIds);
-        if (count($updateCustomerIds) > 0 && $updateCustomers) {
-            $this->l()->log("Started updating customers in Mailigen");
-            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                $updateCustomers,
-                array($this, '_prepareCustomerDataForUpdate'),
-                array($this, '_updateCustomersInMailigen'),
-                100,
-                10000
-            );
-            /**
-             * Reschedule task, to run after 2 min
-             */
-            if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                $this->_logStats();
-                $this->l()->log("Reschedule task, to update customers in Mailigen after 2 min");
-                return;
-            }
 
-            $this->l()->log("Finished updating subscribers in Mailigen");
-        } else {
-            $this->l()->log("No subscribers to sync with Mailigen");
-        }
+        /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
+        $customers = Mage::getModel('mailigen_synchronizer/customer')
+            ->getCustomerCollection($customerIds);
 
-        unset($updateCustomerIds, $updateCustomers);
+        return $customers;
+    }
 
-        /**
-         * Log update info
-         */
-        $this->_logStats();
-
-
-        /**
-         * Remove Customers from Mailigen
-         */
+    /**
+     * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
+     */
+    protected function _getUnsubscribersCollection()
+    {
         /** @var $removeCustomer Mailigen_Synchronizer_Model_Resource_Customer_Collection */
-        $removeCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
-            ->addFieldToFilter('is_removed', 1)
+        $customers = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
+        $customers->addFieldToFilter('is_removed', 1)
             ->addFieldToFilter('is_synced', 0)
             ->addFieldToFilter('store_id', $this->_storeId)
             ->addFieldToSelect(array('id', 'email'));
-        if ($removeCustomers && $removeCustomers->getSize() > 0) {
-            $this->l()->log("Started removing customers from Mailigen");
-            $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
-                $removeCustomers,
-                array($this, '_prepareCustomerDataForRemove'),
-                array($this, '_removeCustomersFromMailigen'),
-                100,
-                10000
-            );
-            /**
-             * Reschedule task, to run after 2 min
-             */
-            if ($iterator == 0) {
-                Mage::getModel('mailigen_synchronizer/schedule')->createJob(2);
-                $this->_logStats();
-                $this->l()->log("Reschedule task to remove customers in Mailigen after 2 min");
-                return;
-            }
 
-            $this->l()->log("Finished removing customers from Mailigen");
-        }
+        return $customers;
+    }
 
-        unset($removeCustomers);
+    /**
+     * Remove synced and removed customers from Flat table
+     */
+    protected function _afterUnsubscribe()
+    {
+        parent::_afterUnsubscribe();
 
-        /**
-         * Remove synced and removed customers from Flat table
-         */
         Mage::getModel('mailigen_synchronizer/customer')->removeSyncedAndRemovedCustomers();
     }
 
     /**
-     * @param Mage_Customer_Model_Customer $customer
+     * @param Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber $subscriber
      */
-    public function _prepareCustomerDataForUpdate($customer)
+    public function _prepareBatchSubscribeData($subscriber)
     {
-        $this->_batchedData[$customer->getId()] = array(
+        /*
+         * Load Basic fields
+         */
+        parent::_prepareBatchSubscribeData($subscriber);
 
-            /*
-             * Basic fields
-             */
-            'WEBSITEID'                => $customer->getWebsiteId(),
-            'STOREID'                  => $customer->getStoreId(),
-            'STORELANGUAGE'            => $this->customerHelper()->getStoreLanguage($customer->getStoreId()),
-            /*
-             * Newsletter fields
-             */
-            'NEWSLETTERTYPE'           => $this->customerHelper()->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE),
-            /**
-             * Customer info
-             */
-            'EMAIL'                    => $customer->getEmail(),
-            'FNAME'                    => $customer->getFirstname(),
-            'LNAME'                    => $customer->getLastname(),
-            'PREFIX'                   => $customer->getPrefix(),
-            'MIDDLENAME'               => $customer->getMiddlename(),
-            'SUFFIX'                   => $customer->getSuffix(),
-            'CUSTOMERGROUP'            => $this->customerHelper()->getCustomerGroup($customer->getGroupId()),
-            'PHONE'                    => $customer->getBillingTelephone(),
-            'REGISTRATIONDATE'         => $this->customerHelper()->getFormattedDate($customer->getCreatedAtTimestamp()),
-            'COUNTRY'                  => $this->customerHelper()->getFormattedCountry($customer->getBillingCountryId()),
-            'CITY'                     => $customer->getBillingCity(),
-            'REGION'                   => $this->customerHelper()->getFormattedRegion($customer->getBillingRegionId()),
-            'DATEOFBIRTH'              => $this->customerHelper()->getFormattedDate($customer->getDob()),
-            'GENDER'                   => $this->customerHelper()->getFormattedGender($customer->getGender()),
-            'LASTLOGIN'                => $this->customerHelper()->getFormattedDate($customer->getLastLoginAt()),
-            'CLIENTID'                 => $customer->getId(),
-            'STATUSOFUSER'             => $this->customerHelper()->getFormattedCustomerStatus($customer->getIsActive()),
-            'ISSUBSCRIBED'             => $this->customerHelper()->getFormattedIsSubscribed($customer->getData('is_subscribed')),
-            /**
-             * Customer orders info
-             */
-            'LASTORDERDATE'            => $customer->getData('lastorderdate'),
-            'VALUEOFLASTORDER'         => $customer->getData('valueoflastorder'),
-            'TOTALVALUEOFORDERS'       => $customer->getData('totalvalueoforders'),
-            'TOTALNUMBEROFORDERS'      => $customer->getData('totalnumberoforders'),
-            'NUMBEROFITEMSINCART'      => $customer->getData('numberofitemsincart'),
-            'VALUEOFCURRENTCART'       => $customer->getData('valueofcurrentcart'),
-            'LASTITEMINCARTADDINGDATE' => $customer->getData('lastitemincartaddingdate'),
-        );
+        /*
+         * Add Customer specific fields
+         */
+        if ($subscriber instanceof Mage_Customer_Model_Customer) {
+            $customerFields = array(
+                'FNAME'                    => $subscriber->getFirstname(),
+                'LNAME'                    => $subscriber->getLastname(),
+                'PREFIX'                   => $subscriber->getPrefix(),
+                'MIDDLENAME'               => $subscriber->getMiddlename(),
+                'SUFFIX'                   => $subscriber->getSuffix(),
+                'CUSTOMERGROUP'            => $this->customerHelper()->getCustomerGroup($subscriber->getGroupId()),
+                'PHONE'                    => $subscriber->getBillingTelephone(),
+                'REGISTRATIONDATE'         => $this->customerHelper()->getFormattedDate($subscriber->getCreatedAtTimestamp()),
+                'COUNTRY'                  => $this->customerHelper()->getFormattedCountry($subscriber->getBillingCountryId()),
+                'CITY'                     => $subscriber->getBillingCity(),
+                'REGION'                   => $this->customerHelper()->getFormattedRegion($subscriber->getBillingRegionId()),
+                'DATEOFBIRTH'              => $this->customerHelper()->getFormattedDate($subscriber->getDob()),
+                'GENDER'                   => $this->customerHelper()->getFormattedGender($subscriber->getGender()),
+                'LASTLOGIN'                => $this->customerHelper()->getFormattedDate($subscriber->getLastLoginAt()),
+                'CLIENTID'                 => $subscriber->getId(),
+                'STATUSOFUSER'             => $this->customerHelper()->getFormattedCustomerStatus($subscriber->getIsActive()),
+                'ISSUBSCRIBED'             => $this->customerHelper()->getFormattedIsSubscribed($subscriber->getData('is_subscribed')),
+                /**
+                 * Customer orders info
+                 */
+                'LASTORDERDATE'            => $subscriber->getData('lastorderdate'),
+                'VALUEOFLASTORDER'         => $subscriber->getData('valueoflastorder'),
+                'TOTALVALUEOFORDERS'       => $subscriber->getData('totalvalueoforders'),
+                'TOTALNUMBEROFORDERS'      => $subscriber->getData('totalnumberoforders'),
+                'NUMBEROFITEMSINCART'      => $subscriber->getData('numberofitemsincart'),
+                'VALUEOFCURRENTCART'       => $subscriber->getData('valueofcurrentcart'),
+                'LASTITEMINCARTADDINGDATE' => $subscriber->getData('lastitemincartaddingdate'),
+            );
+
+            $this->_batchedData[$subscriber->getId()] += $customerFields;
+        }
     }
 
     /**
      * @param $collectionInfo
      * @throws Mage_Core_Exception
      */
-    public function _updateCustomersInMailigen($collectionInfo)
+    public function _batchSubscribe($collectionInfo)
     {
         /**
          * Send API request to Mailigen
@@ -204,18 +167,10 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
     }
 
     /**
-     * @param Mage_Customer_Model_Customer $customer
-     */
-    public function _prepareCustomerDataForRemove($customer)
-    {
-        $this->_batchedData[$customer->getId()] = $customer->getEmail();
-    }
-
-    /**
      * @param $collectionInfo
      * @throws Mage_Core_Exception
      */
-    public function _removeCustomersFromMailigen($collectionInfo)
+    public function _batchUnsubscribe($collectionInfo)
     {
         /**
          * Send API request to Mailigen
@@ -229,7 +184,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
         if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
             $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
             $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $this->l()->log("Removed $curr/$total customers from Mailigen");
+            $this->l()->log("Unsubscribed $curr/$total customers from Mailigen");
         }
 
         $this->_stats['unsubscriber_count'] += count($this->_batchedData);
