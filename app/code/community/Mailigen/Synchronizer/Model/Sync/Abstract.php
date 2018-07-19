@@ -31,8 +31,19 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
      */
     protected $_stats = array();
 
+    /**
+     * @var array
+     */
+    protected $_mailigenUnsubscriberOptions = array();
+
     public function __construct()
     {
+        $this->_mailigenUnsubscriberOptions = array(
+            'delete_member' => false, // Dzest vai nedzest lietotaju no saraksta
+            'send_goodbye'  => false, // Nosutit vai nesutit pazinojumu epasta lietotajam
+            'send_notify'   => false, // Nosutit vai nesutit pazinojumu uz epastu, kas noradits saraksta opcijas
+        );
+
         $this->l()->setLogFile(Mailigen_Synchronizer_Helper_Log::SYNC_LOG_FILE);
     }
 
@@ -121,6 +132,9 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
         }
     }
 
+    /**
+     * @return Mage_Core_Model_Resource_Db_Collection_Abstract
+     */
     abstract protected function _getSubscribersCollection();
 
     protected function _subscribe()
@@ -163,6 +177,9 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
         $this->_logStats();
     }
 
+    /**
+     * @return Mage_Core_Model_Resource_Db_Collection_Abstract
+     */
     abstract protected function _getUnsubscribersCollection();
 
     protected function _unsubscribe()
@@ -226,6 +243,69 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     }
 
     /**
+     * @param $collectionInfo
+     * @throws Mage_Core_Exception
+     */
+    public function _batchSubscribe($collectionInfo)
+    {
+        /**
+         * Send API request to Mailigen
+         */
+        $api = $this->h()->getMailigenApi();
+        $apiResponse = $api->listBatchSubscribe($this->_listId, $this->_batchedData, false, true);
+
+        /**
+         * Log results
+         */
+        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
+            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
+            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
+            $this->l()->log($this->l()->__('%s subscribed %s/%s', static::SUBSCRIBER_TYPE, $curr, $total));
+        }
+
+        $this->_stats['subscriber_count'] += count($this->_batchedData);
+
+        if ($api->errorCode) {
+
+            /**
+             * Reschedule job to run after 5 min
+             */
+            Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
+            $this->_logStats();
+            $errorInfo = array(
+                'errorCode'    => $api->errorCode,
+                'errorMessage' => $api->errorMessage,
+                'apiResponse'  => $apiResponse,
+            );
+
+            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch subscribe. ' . var_export($errorInfo, true));
+
+        } else {
+
+            $this->_afterSuccessBatchSubscribe($this->_batchedData);
+
+            $this->_stats['subscriber_success_count'] += $apiResponse['success_count'];
+            $this->_stats['subscriber_error_count'] += $apiResponse['error_count'];
+            if (count($apiResponse['errors']) > 0) {
+                $this->_stats['subscriber_errors'] = array_merge_recursive($this->_stats['subscriber_errors'], $apiResponse['errors']);
+            }
+        }
+
+        /**
+         * Check if sync should be stopped
+         */
+        $this->_checkSyncStop();
+        $this->_batchedData = array();
+    }
+
+    /**
+     * @param array $batchData
+     */
+    protected function _afterSuccessBatchSubscribe(array $batchData)
+    {
+    }
+
+    /**
      * @param $unsubscriber Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber
      */
     public function _prepareBatchUnsubscribeData($unsubscriber)
@@ -234,7 +314,73 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     }
 
     /**
+     * @param $collectionInfo
+     * @throws Mage_Core_Exception
+     */
+    public function _batchUnsubscribe($collectionInfo)
+    {
+        /**
+         * Send API request to Mailigen
+         */
+        $api = $this->h()->getMailigenApi();
+        $apiResponse = $api->listBatchUnsubscribe($this->_listId, $this->_batchedData, false, true); // Newsletter
+        $apiResponse = $api->listBatchUnsubscribe($this->_listId, $this->_batchedData, true, false); // Customer
+
+        /**
+         * Log results
+         */
+        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
+            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
+            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
+            $this->l()->log($this->l()->__('%s unsubscribed %s/%s', static::SUBSCRIBER_TYPE, $curr, $total));
+        }
+
+        $this->_stats['unsubscriber_count'] += count($this->_batchedData);
+
+        if ($api->errorCode) {
+
+            /**
+             * Reschedule job to run after 5 min
+             */
+            Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
+            $this->_logStats();
+            $errorInfo = array(
+                'errorCode'    => $api->errorCode,
+                'errorMessage' => $api->errorMessage,
+                'apiResponse'  => $apiResponse,
+            );
+
+            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch unsubscribe. ' . var_export($errorInfo, true));
+
+        } else {
+
+            $this->_afterSuccessBatchUnsubscribe($this->_batchedData);
+
+            $this->_stats['unsubscriber_success_count'] += $apiResponse['success_count'];
+            $this->_stats['unsubscriber_error_count'] += $apiResponse['error_count'];
+            if (count($apiResponse['errors']) > 0) {
+                $this->_stats['unsubscriber_errors'] = array_merge_recursive($this->_stats['unsubscriber_errors'], $apiResponse['errors']);
+            }
+        }
+
+        /**
+         * Check if sync should be stopped
+         */
+        $this->_checkSyncStop();
+        $this->_batchedData = array();
+    }
+
+    /**
+     * @param array $batchData
+     */
+    protected function _afterSuccessBatchUnsubscribe(array $batchData)
+    {
+    }
+
+    /**
      * Stop sync, if force sync stop is enabled
+     *
+     * @throws Mage_Core_Exception
      */
     protected function _checkSyncStop()
     {
