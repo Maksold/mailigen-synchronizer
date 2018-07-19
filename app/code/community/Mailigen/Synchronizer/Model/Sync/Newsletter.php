@@ -16,7 +16,7 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
          */
         /** @var $subscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
         $subscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
-            ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $this->_storeId);
+            ->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, 0, $this->_storeId);
         if ($subscribers->getSize() > 0) {
             $this->l()->log("Started updating subscribers in Mailigen");
             $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
@@ -53,7 +53,7 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
          */
         /** @var $unsubscribers Mailigen_Synchronizer_Model_Resource_Subscriber_Collection */
         $unsubscribers = Mage::getResourceModel('mailigen_synchronizer/subscriber_collection')
-            ->getSubscribers(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED, 0, $this->_storeId);
+            ->getGuests(Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED, 0, $this->_storeId);
         if ($unsubscribers->getSize() > 0) {
             $this->l()->log("Started updating unsubscribers in Mailigen");
             $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
