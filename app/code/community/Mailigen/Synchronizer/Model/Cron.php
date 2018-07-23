@@ -11,7 +11,7 @@ class Mailigen_Synchronizer_Model_Cron
 {
 
     /**
-     * Sync newsletter and customers by cron job
+     * Sync guests and customers by cron job
      *
      * @return $this|string
      */
@@ -27,12 +27,12 @@ class Mailigen_Synchronizer_Model_Cron
         }
 
         /**
-         * Synchronize Newsletter
+         * Synchronize Guests
          */
         try {
-            /** @var $newsletterSync Mailigen_Synchronizer_Model_Sync_Newsletter */
-            $newsletterSync = Mage::getModel('mailigen_synchronizer/sync_newsletter');
-            $newsletterSync->sync();
+            /** @var $guestSync Mailigen_Synchronizer_Model_Sync_Guest */
+            $guestSync = Mage::getModel('mailigen_synchronizer/sync_guest');
+            $guestSync->sync();
         } catch (Exception $e) {
             $log->logException($e);
         }

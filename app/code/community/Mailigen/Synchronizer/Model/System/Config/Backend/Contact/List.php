@@ -38,12 +38,12 @@ class Mailigen_Synchronizer_Model_System_Config_Backend_Contact_List extends Mag
                 /**
                  * Set guests not synced on contact list change
                  */
-                Mage::getModel('mailigen_synchronizer/newsletter')->setNewsletterNotSynced();
+                Mage::getModel('mailigen_synchronizer/guest')->setAllNotSynced();
 
                 /**
                  * Set customers not synced on contact list change
                  */
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomersNotSynced();
+                Mage::getModel('mailigen_synchronizer/customer')->setAllNotSynced();
             }
         }
     }

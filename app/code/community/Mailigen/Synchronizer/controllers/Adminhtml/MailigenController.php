@@ -12,16 +12,14 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
     public function syncNewsletterAction()
     {
         try {
-            /** @var $helper Mailigen_Synchronizer_Helper_Data */
-            $helper = Mage::helper('mailigen_synchronizer');
             /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
             $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
 
-            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+            if ($mailigenSchedule->getLastRunningJob() === false) {
                 $mailigenSchedule->createJob();
             }
 
-            $this->_getSession()->addSuccess($this->__('Mailigen newsletter synchronization task will start shortly.'));
+            $this->_getSession()->addSuccess($this->__('Mailigen synchronization task will start shortly.'));
         } catch (Exception $e) {
             $this->_getSession()->addError($e->getMessage());
             Mage::helper('mailigen_synchronizer/log')->logException($e);
@@ -33,16 +31,14 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
     public function syncCustomersAction()
     {
         try {
-            /** @var $helper Mailigen_Synchronizer_Helper_Data */
-            $helper = Mage::helper('mailigen_synchronizer');
             /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
             $mailigenSchedule = Mage::getModel('mailigen_synchronizer/schedule');
 
-            if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
+            if ($mailigenSchedule->getLastRunningJob() === false) {
                 $mailigenSchedule->createJob();
             }
 
-            $this->_getSession()->addSuccess($this->__('Mailigen customer synchronization task will start shortly.'));
+            $this->_getSession()->addSuccess($this->__('Mailigen synchronization task will start shortly.'));
         } catch (Exception $e) {
             $this->_getSession()->addError($e->getMessage());
             Mage::helper('mailigen_synchronizer/log')->logException($e);
@@ -68,9 +64,7 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
      */
     public function resetSyncCustomersAction()
     {
-        /** @var $customer Mailigen_Synchronizer_Model_Customer */
-        $customer = Mage::getModel('mailigen_synchronizer/customer');
-        $customer->setCustomersNotSynced();
+        Mage::getModel('mailigen_synchronizer/customer')->setAllNotSynced();
 
         $this->getResponse()->setBody('1');
     }
@@ -80,9 +74,7 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
      */
     public function resetSyncNewsletterAction()
     {
-        /** @var $customer Mailigen_Synchronizer_Model_Newsletter */
-        $newsletter = Mage::getModel('mailigen_synchronizer/newsletter');
-        $newsletter->setNewsletterNotSynced();
+        Mage::getModel('mailigen_synchronizer/guest')->setAllNotSynced();
 
         $this->getResponse()->setBody('1');
     }

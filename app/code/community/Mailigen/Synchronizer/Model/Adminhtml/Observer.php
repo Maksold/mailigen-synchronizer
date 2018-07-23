@@ -41,12 +41,12 @@ class Mailigen_Synchronizer_Model_Adminhtml_Observer
                     /**
                      * Set guests not synced on contact list change
                      */
-                    Mage::getModel('mailigen_synchronizer/newsletter')->setNewsletterNotSynced();
+                    Mage::getModel('mailigen_synchronizer/guest')->setAllNotSynced();
 
                     /**
                      * Set customers not synced on contact list change
                      */
-                    Mage::getModel('mailigen_synchronizer/customer')->setCustomersNotSynced();
+                    Mage::getModel('mailigen_synchronizer/customer')->setAllNotSynced();
                 }
             }
 

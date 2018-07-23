@@ -184,11 +184,11 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param     $customerIds
+     * @param array $customerIds
      * @return int
      * @throws Mage_Core_Exception
      */
-    public function updateSyncedCustomers($customerIds)
+    public function setSynced(array $customerIds)
     {
         $tableName = $this->getResource()->getMainTable();
         $write = Mage::getSingleton('core/resource')->getConnection('core_write');
@@ -219,18 +219,18 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
 
     /**
      * @param      $customerId
-     * @param bool $is_removed
+     * @param bool $isRemoved
      * @return int
      */
-    public function setCustomerNotSynced($customerId, $is_removed = false)
+    public function setNotSynced($customerId, $isRemoved = false)
     {
         $tableName = $this->getResource()->getMainTable();
         $write = Mage::getSingleton('core/resource')->getConnection('core_write');
 
         $bind = array();
         $bind['is_synced'] = 0;
-        if (is_int($is_removed)) {
-            $bind['is_removed'] = $is_removed;
+        if (is_int($isRemoved)) {
+            $bind['is_removed'] = $isRemoved;
         }
 
         $updated = $write->update($tableName, $bind, array('id = ?' => $customerId));
@@ -239,18 +239,18 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param bool $is_removed
+     * @param bool $isRemoved
      * @return int
      */
-    public function setCustomersNotSynced($is_removed = false)
+    public function setAllNotSynced($isRemoved = false)
     {
         $tableName = $this->getResource()->getMainTable();
         $write = Mage::getSingleton('core/resource')->getConnection('core_write');
 
         $bind = array();
         $bind['is_synced'] = 0;
-        if (is_int($is_removed)) {
-            $bind['is_removed'] = $is_removed;
+        if (is_int($isRemoved)) {
+            $bind['is_removed'] = $isRemoved;
         }
 
         $updated = $write->update($tableName, $bind);

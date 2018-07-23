@@ -117,9 +117,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
      */
     protected function _afterSuccessBatchSubscribe(array $batchData)
     {
-        /** @var $customer Mailigen_Synchronizer_Model_Customer */
-        $customer = Mage::getModel('mailigen_synchronizer/customer');
-        $customer->updateSyncedCustomers(array_keys($batchData));
+        Mage::getModel('mailigen_synchronizer/customer')->setSynced(array_keys($batchData));
     }
 
     /**
@@ -129,8 +127,6 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
      */
     protected function _afterSuccessBatchUnsubscribe(array $batchData)
     {
-        /** @var $customer Mailigen_Synchronizer_Model_Customer */
-        $customer = Mage::getModel('mailigen_synchronizer/customer');
-        $customer->updateSyncedCustomers(array_keys($batchData));
+        Mage::getModel('mailigen_synchronizer/customer')->setSynced(array_keys($batchData));
     }
 }

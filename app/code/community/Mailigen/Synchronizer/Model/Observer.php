@@ -89,11 +89,11 @@ class Mailigen_Synchronizer_Model_Observer
 
                 if ($retval) {
                     // Set subscriber synced
-                    Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId(), true);
+                    Mage::getModel('mailigen_synchronizer/guest')->setSynced($subscriber->getId());
 
                     // Set customer not synced
                     if ($subscriber->getCustomerId()) {
-                        Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($subscriber->getCustomerId());
+                        Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($subscriber->getCustomerId());
                     }
                 } elseif (null !== $retval) {
                     $this->l()->log("Unable to (un)subscribe newsletter with email: $email_address. $api->errorCode: $api->errorMessage");
@@ -136,7 +136,7 @@ class Mailigen_Synchronizer_Model_Observer
                 if ($retval) {
                     // Set customer not synced
                     if ($subscriber->getCustomerId()) {
-                        Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($subscriber->getCustomerId());
+                        Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($subscriber->getCustomerId());
                     }
                 } elseif (null !== $retval) {
                     $this->l()->log("Unable to remove subscriber with email: $email_address. $api->errorCode: $api->errorMessage");
@@ -157,7 +157,7 @@ class Mailigen_Synchronizer_Model_Observer
         try {
             $customer = $observer->getDataObject();
             if ($customer && $customer->getId()) {
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId(), 1);
+                Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($customer->getId(), 1);
             }
         } catch (Exception $e) {
             $this->l()->logException($e);
@@ -172,7 +172,7 @@ class Mailigen_Synchronizer_Model_Observer
         try {
             $customer = $observer->getDataObject();
             if ($customer && $customer->getId()) {
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+                Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($customer->getId());
 
                 $listId = $this->h()->getContactList();
 
@@ -192,7 +192,7 @@ class Mailigen_Synchronizer_Model_Observer
                     if ($nameChanged && !$emailChanged) {
                         $subscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($customer->getEmail());
                         if ($subscriber->getId()) {
-                            Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId(), false);
+                            Mage::getModel('mailigen_synchronizer/guest')->setNotSynced($subscriber->getId());
                         }
                     }
 
@@ -234,7 +234,7 @@ class Mailigen_Synchronizer_Model_Observer
             $customerAddress = $observer->getDataObject();
             $customer = $customerAddress->getCustomer();
             if ($customer && $customer->getId()) {
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+                Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($customer->getId());
             }
         } catch (Exception $e) {
             $this->l()->logException($e);
@@ -249,7 +249,7 @@ class Mailigen_Synchronizer_Model_Observer
         try {
             $customer = $observer->getCustomer();
             if ($customer && $customer->getId()) {
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($customer->getId());
+                Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($customer->getId());
             }
         } catch (Exception $e) {
             $this->l()->logException($e);
@@ -264,7 +264,7 @@ class Mailigen_Synchronizer_Model_Observer
         try {
             $order = $observer->getOrder();
             if ($order && $order->getState() == Mage_Sales_Model_Order::STATE_COMPLETE && $order->getCustomerId()) {
-                Mage::getModel('mailigen_synchronizer/customer')->setCustomerNotSynced($order->getCustomerId());
+                Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($order->getCustomerId());
             }
         } catch (Exception $e) {
             $this->l()->logException($e);

@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_Model_Sync_Abstract
+class Mailigen_Synchronizer_Model_Sync_Guest extends Mailigen_Synchronizer_Model_Sync_Abstract
 {
     const SUBSCRIBER_TYPE = 'Guest';
 
@@ -35,23 +35,21 @@ class Mailigen_Synchronizer_Model_Sync_Newsletter extends Mailigen_Synchronizer_
      * Set subscriber status to Synced
      *
      * @param array $batchData
+     * @throws Mage_Core_Exception
      */
     protected function _afterSuccessBatchSubscribe(array $batchData)
     {
-        /** @var $newsletter Mailigen_Synchronizer_Model_Newsletter */
-        $newsletter = Mage::getModel('mailigen_synchronizer/newsletter');
-        $newsletter->updateSyncedNewsletter(array_keys($batchData));
+        Mage::getModel('mailigen_synchronizer/guest')->setSynced(array_keys($batchData));
     }
 
     /**
      * Set unsubscriber status to Synced
      *
      * @param array $batchData
+     * @throws Mage_Core_Exception
      */
     protected function _afterSuccessBatchUnsubscribe(array $batchData)
     {
-        /** @var $newsletter Mailigen_Synchronizer_Model_Newsletter */
-        $newsletter = Mage::getModel('mailigen_synchronizer/newsletter');
-        $newsletter->updateSyncedNewsletter(array_keys($batchData));
+        Mage::getModel('mailigen_synchronizer/guest')->setSynced(array_keys($batchData));
     }
 }

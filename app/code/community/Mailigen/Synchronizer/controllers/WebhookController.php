@@ -133,7 +133,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
                 if ($subscriberStatus == Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {
                     $subscriber = Mage::getModel('newsletter/subscriber')->loadByEmail($email);
                     if ($subscriber->getId()) {
-                        Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId());
+                        Mage::getModel('mailigen_synchronizer/guest')->setSynced($subscriber->getId());
                     }
 
                     $this->l()->log("Subscribed contact with email: $email");
@@ -177,7 +177,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
 
                 if ($subscriber->getStatus() == Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED) {
                     if ($subscriber->getId()) {
-                        Mage::getModel('mailigen_synchronizer/newsletter')->updateIsSynced($subscriber->getId());
+                        Mage::getModel('mailigen_synchronizer/guest')->setSynced($subscriber->getId());
                     }
 
                     $this->l()->log("Unsubscribed contact with email: $email");
