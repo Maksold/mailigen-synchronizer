@@ -31,19 +31,8 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
      */
     protected $_stats = array();
 
-    /**
-     * @var array
-     */
-    protected $_mailigenUnsubscriberOptions = array();
-
     public function __construct()
     {
-        $this->_mailigenUnsubscriberOptions = array(
-            'delete_member' => false, // Dzest vai nedzest lietotaju no saraksta
-            'send_goodbye'  => false, // Nosutit vai nesutit pazinojumu epasta lietotajam
-            'send_notify'   => false, // Nosutit vai nesutit pazinojumu uz epastu, kas noradits saraksta opcijas
-        );
-
         $this->l()->setLogFile(Mailigen_Synchronizer_Helper_Log::SYNC_LOG_FILE);
     }
 
@@ -54,10 +43,12 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
             'subscriber_error_count'     => 0,
             'subscriber_errors'          => array(),
             'subscriber_count'           => 0,
+            'subscriber_total'           => 0,
             'unsubscriber_success_count' => 0,
             'unsubscriber_error_count'   => 0,
             'unsubscriber_errors'        => array(),
             'unsubscriber_count'         => 0,
+            'unsubscriber_total'         => 0,
         );
     }
 
@@ -89,6 +80,7 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 ));
 
                 $environment = $emulation->startEnvironmentEmulation($this->_storeId);
+                $this->_getMailigenApi()->setStoreId($this->_storeId);
                 $this->_resetStats();
 
                 /**
@@ -140,8 +132,9 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     protected function _subscribe()
     {
         $subscribers = $this->_getSubscribersCollection();
+        $this->_stats['subscriber_total'] = $subscribers ? $subscribers->getSize() : 0;
 
-        if ($subscribers && $subscribers->getSize() > 0) {
+        if ($this->_stats['subscriber_total'] > 0) {
             $this->l()->log($this->l()->__('Started %s subscribe', static::SUBSCRIBER_TYPE));
             $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $subscribers,
@@ -185,8 +178,9 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     protected function _unsubscribe()
     {
         $unsubscribers = $this->_getUnsubscribersCollection();
+        $this->_stats['subscriber_total'] = $unsubscribers ? $unsubscribers->getSize() : 0;
 
-        if ($unsubscribers && $unsubscribers->getSize() > 0) {
+        if ($this->_stats['unsubscriber_total'] > 0) {
             $this->l()->log($this->l()->__('Started %s unsubscribe', static::SUBSCRIBER_TYPE));
             $iterator = Mage::getSingleton('mailigen_synchronizer/resource_iterator_batched')->walk(
                 $unsubscribers,
@@ -251,44 +245,34 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
         /**
          * Send API request to Mailigen
          */
-        $api = $this->h()->getMailigenApi();
-        $apiResponse = $api->listBatchSubscribe($this->_listId, $this->_batchedData, false, true);
+        $this->_getMailigenApi()->listBatchSubscribe($this->_listId, $this->_batchedData);
 
         /**
          * Log results
          */
-        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
-            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
-            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $this->l()->log($this->l()->__('%s subscribed %s/%s', static::SUBSCRIBER_TYPE, $curr, $total));
-        }
-
         $this->_stats['subscriber_count'] += count($this->_batchedData);
+        $this->l()->log($this->l()->__('%s subscribed %s/%s - %s%%', static::SUBSCRIBER_TYPE,
+            $this->_stats['subscriber_count'], $this->_stats['subscriber_total'],
+            round($this->_stats['subscriber_count'] / $this->_stats['subscriber_total'], 2) * 100
+        ));
 
-        if ($api->errorCode) {
+        if (!$this->_getMailigenApi()->hasError()) {
 
+            $this->_afterSuccessBatchSubscribe($this->_batchedData);
+
+            $this->_stats['subscriber_success_count'] += $this->_getMailigenApi()->getSuccessCount();
+            $this->_stats['subscriber_error_count'] += $this->_getMailigenApi()->getErrorCount();
+            $this->_stats['subscriber_errors'] = array_merge_recursive(
+                $this->_stats['subscriber_errors'], $this->_getMailigenApi()->getErrors()
+            );
+        } else {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             $this->_logStats();
-            $errorInfo = array(
-                'errorCode'    => $api->errorCode,
-                'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse,
-            );
 
-            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch subscribe. ' . var_export($errorInfo, true));
-
-        } else {
-
-            $this->_afterSuccessBatchSubscribe($this->_batchedData);
-
-            $this->_stats['subscriber_success_count'] += $apiResponse['success_count'];
-            $this->_stats['subscriber_error_count'] += $apiResponse['error_count'];
-            if (count($apiResponse['errors']) > 0) {
-                $this->_stats['subscriber_errors'] = array_merge_recursive($this->_stats['subscriber_errors'], $apiResponse['errors']);
-            }
+            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch subscribe. ' . $this->_getMailigenApi()->getJsonErrorInfo());
         }
 
         /**
@@ -322,45 +306,34 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
         /**
          * Send API request to Mailigen
          */
-        $api = $this->h()->getMailigenApi();
-        $apiResponse = $api->listBatchUnsubscribe($this->_listId, $this->_batchedData, false, true); // Newsletter
-        $apiResponse = $api->listBatchUnsubscribe($this->_listId, $this->_batchedData, true, false); // Customer
+        $this->_getMailigenApi()->listBatchUnsubscribe($this->_listId, $this->_batchedData);
 
         /**
          * Log results
          */
-        if (isset($collectionInfo['currentPage']) && isset($collectionInfo['pageSize']) && isset($collectionInfo['pages'])) {
-            $curr = $collectionInfo['currentPage'] * $collectionInfo['pageSize'];
-            $total = $collectionInfo['pages'] * $collectionInfo['pageSize'];
-            $this->l()->log($this->l()->__('%s unsubscribed %s/%s', static::SUBSCRIBER_TYPE, $curr, $total));
-        }
-
         $this->_stats['unsubscriber_count'] += count($this->_batchedData);
+        $this->l()->log($this->l()->__('%s unsubscribed %s/%s - %s%%', static::SUBSCRIBER_TYPE,
+            $this->_stats['unsubscriber_count'], $this->_stats['unsubscriber_total'],
+            round($this->_stats['unsubscriber_count'] / $this->_stats['unsubscriber_total'], 2) * 100
+        ));
 
-        if ($api->errorCode) {
+        if (!$this->_getMailigenApi()->hasError()) {
 
+            $this->_afterSuccessBatchUnsubscribe($this->_batchedData);
+
+            $this->_stats['unsubscriber_success_count'] += $this->_getMailigenApi()->getSuccessCount();
+            $this->_stats['unsubscriber_error_count'] += $this->_getMailigenApi()->getErrorCount();
+            $this->_stats['unsubscriber_errors'] = array_merge_recursive(
+                $this->_stats['unsubscriber_errors'], $this->_getMailigenApi()->getErrors()
+            );
+        } else {
             /**
              * Reschedule job to run after 5 min
              */
             Mage::getModel('mailigen_synchronizer/schedule')->createJob(5);
             $this->_logStats();
-            $errorInfo = array(
-                'errorCode'    => $api->errorCode,
-                'errorMessage' => $api->errorMessage,
-                'apiResponse'  => $apiResponse,
-            );
 
-            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch unsubscribe. ' . var_export($errorInfo, true));
-
-        } else {
-
-            $this->_afterSuccessBatchUnsubscribe($this->_batchedData);
-
-            $this->_stats['unsubscriber_success_count'] += $apiResponse['success_count'];
-            $this->_stats['unsubscriber_error_count'] += $apiResponse['error_count'];
-            if (count($apiResponse['errors']) > 0) {
-                $this->_stats['unsubscriber_errors'] = array_merge_recursive($this->_stats['unsubscriber_errors'], $apiResponse['errors']);
-            }
+            Mage::throwException(static::SUBSCRIBER_TYPE . ' unable to batch unsubscribe. ' . $this->_getMailigenApi()->getJsonErrorInfo());
         }
 
         /**
@@ -423,6 +396,14 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 ));
             }
         }
+    }
+
+    /**
+     * @return Mage_Core_Model_Abstract|Mailigen_Synchronizer_Model_Mailigen_Api
+     */
+    protected function _getMailigenApi()
+    {
+        return Mage::getSingleton('mailigen_synchronizer/mailigen_api');
     }
 
     /**
