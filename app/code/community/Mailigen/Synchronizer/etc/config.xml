@@ -184,16 +184,16 @@
     </adminhtml>
     <default>
         <mailigen_synchronizer>
-            <general>
-                <cron_string>0 1 * * *</cron_string>
-            </general>
+            <advanced>
+                <cron_string>*/15 * * * *</cron_string>
+            </advanced>
         </mailigen_synchronizer>
     </default>
     <crontab>
         <jobs>
             <mailigen_synchronizer>
                 <schedule>
-                    <config_path>mailigen_synchronizer/general/cron_string</config_path>
+                    <config_path>mailigen_synchronizer/advanced/cron_string</config_path>
                 </schedule>
                 <run>
                     <model>mailigen_synchronizer/cron::sync</model>

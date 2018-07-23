@@ -26,164 +26,134 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </enabled>
-                        <api_key translate="label">
-                            <label>Api Key</label>
-                            <comment>API Key - see http://admin.mailigen.com/settings/api</comment>
+                        <api_key translate="label comment">
+                            <label>Api key</label>
+                            <comment><![CDATA[See <a href="http://admin.mailigen.com/settings/api" target="_blank">Mailigen API Keys</a> for details]]></comment>
                             <frontend_type>text</frontend_type>
                             <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
                         </api_key>
-                        <account_details>
+                        <account_details translate="label">
                             <label>Account details</label>
-                            <frontend_model>mailigen_synchronizer/adminhtml_account_details</frontend_model>
+                            <frontend_model>mailigen_synchronizer/system_config_account_details</frontend_model>
                             <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
                         </account_details>
-                        <cron_string translate="label">
-                            <label>Sync schedule (cron syntax)</label>
-                            <frontend_type>text</frontend_type>
+                        <contact_list translate="label comment">
+                            <label>Contact list</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>mailigen_synchronizer/list</source_model>
+                            <backend_model>mailigen_synchronizer/system_config_backend_contact_list</backend_model>
                             <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                            <comment>If set "0 1 * * *", then sync once a day at 1:00 AM</comment>
-                        </cron_string>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel.</comment>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
+                        </contact_list>
+                        <contact_list_title translate="label comment">
+                            <label>New contact list title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>50</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>Type the title of your new list. During the save, the list will be created and it will become the current contact list.</comment>
+                            <depends>
+                                <enabled>1</enabled>
+                                <contact_list></contact_list>
+                            </depends>
+                        </contact_list_title>
+                        <handle_default_emails translate="label comment">
+                            <label>Enable default Mailigen emails</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>If set to yes, this will disable the Magento "Subscription Success","Subscription Confirmation" and the "Unsubscription Confirmation" emails. Mailigen will send these emails for you</comment>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
+                        </handle_default_emails>
                     </fields>
                 </general>
-                <newsletter translate="label" module="mailigen_synchronizer">
-                    <label>Newsletter</label>
+                <webhooks translate="label" module="mailigen_synchronizer">
+                    <label>Webhooks</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>20</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
-                        <contact_list translate="label">
-                            <label>Newsletter Contact List</label>
+                        <enabled translate="label comment">
+                            <label>Enabled</label>
                             <frontend_type>select</frontend_type>
-                            <source_model>mailigen_synchronizer/list</source_model>
-                            <backend_model>mailigen_synchronizer/system_config_backend_newsletter_list</backend_model>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
                             <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel. Attention! Please do not confuse Newsletter and Customer lists!</comment>
-                        </contact_list>
-                        <new_list_title translate="label">
-                            <label>New Contact List Title</label>
-                            <frontend_type>text</frontend_type>
+                            <comment><![CDATA[If set to yes, then each time the list on Mailigen changes an update will be sent to Magento store.<br/><b>Warning:</b> You should configure Webhooks in Mailigen account to get it working! Read more details in <a href="http://www.mailigen.com/assets/files/pdf/MailigenSynchronizer-MagentoModul-UserGuide-v1.pdf" target="_blank">documentation</a>.]]></comment>
+                        </enabled>
+                        <url translate="label">
+                            <label>URL</label>
+                            <frontend_model>mailigen_synchronizer/system_config_webhooks_url</frontend_model>
                             <sort_order>20</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>Type the title of your new list. During the save, the list will be created and it will become the current contact list.</comment>
                             <depends>
-                                <contact_list></contact_list>
+                                <enabled>1</enabled>
                             </depends>
-                        </new_list_title>
-                        <autosync translate="label">
-                            <label>Auto Sync Newsletter</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                        </url>
+                        <secret_key translate="label">
+                            <label>Secret key</label>
+                            <frontend_model>mailigen_synchronizer/system_config_webhooks_secretkey</frontend_model>
                             <sort_order>30</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
-                            <comment>If set to yes, this will perform batch synchronization of your list. You must have CRON setup on your store for this feature to work.</comment>
-                        </autosync>
-                        <handle_default_emails translate="label">
-                            <label>Enable Mailigen Emails</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>40</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>If set to yes, this will disable the Magento "Subscription Success","Subscription Confirmation" and the "Unsubscription Confirmation" emails. Mailigen will send these emails for you</comment>
-                        </handle_default_emails>
-                        <webhooks translate="label">
-                            <label>Enable Mailigen Webhooks</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>50</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment><![CDATA[If set to yes, then each time the list on Mailigen changes an update will be sent to Magento store.<br/><b>Warning:</b> You should configure Webhooks in Mailigen account to get it working! Read more details in <a href="http://www.mailigen.com/assets/files/pdf/MailigenSynchronizer-MagentoModul-UserGuide-v1.pdf">documentation</a>.]]></comment>
-                        </webhooks>
-                        <webhooks_url translate="label">
-                            <label>Mailigen Webhooks URL</label>
-                            <frontend_model>mailigen_synchronizer/adminhtml_newsletter_webhooks</frontend_model>
-                            <sort_order>60</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
                             <depends>
-                                <webhooks></webhooks>
+                                <enabled>1</enabled>
                             </depends>
-                        </webhooks_url>
-                        <webhooks_secret_key translate="label">
-                            <label>Mailigen Webhooks Secret Key</label>
-                            <frontend_model>mailigen_synchronizer/adminhtml_newsletter_secretkey</frontend_model>
-                            <sort_order>70</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <depends>
-                                <webhooks></webhooks>
-                            </depends>
-                        </webhooks_secret_key>
+                        </secret_key>
                     </fields>
-                </newsletter>
-                <customers translate="label" module="mailigen_synchronizer">
-                    <label>Customers</label>
+                </webhooks>
+                <advanced translate="label" module="mailigen_synchronizer">
+                    <label>Advanced</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>30</sort_order>
                     <show_in_default>1</show_in_default>
                     <show_in_website>1</show_in_website>
                     <show_in_store>1</show_in_store>
                     <fields>
-                        <contact_list translate="label">
-                            <label>Customers Contact List</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>mailigen_synchronizer/list</source_model>
-                            <backend_model>mailigen_synchronizer/system_config_backend_customer_list</backend_model>
+                        <cron_string translate="label comment">
+                            <label>Sync schedule (cron syntax)</label>
+                            <frontend_type>text</frontend_type>
                             <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>By selecting a new list option you'll be able to create a new Mailigen list directly from this panel. Attention! Please do not confuse Newsletter and Customer lists!</comment>
-                        </contact_list>
-                        <new_list_title translate="label">
-                            <label>New Contact List Title</label>
-                            <frontend_type>text</frontend_type>
-                            <sort_order>20</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>Type the title of your new list. During the save, the list will be created and it will become the current contact list.</comment>
-                            <depends>
-                                <contact_list></contact_list>
-                            </depends>
-                        </new_list_title>
-                        <autosync translate="label">
-                            <label>Auto Sync Customers</label>
-                            <frontend_type>select</frontend_type>
-                            <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>30</sort_order>
-                            <show_in_default>1</show_in_default>
-                            <show_in_website>1</show_in_website>
-                            <show_in_store>1</show_in_store>
-                            <comment>If set to yes, this will perform batch synchronization of your list. You must have CRON setup on your store for this feature to work.</comment>
-                        </autosync>
+                            <show_in_website>0</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>If set "*/15 * * * *", then run sync every 15 min</comment>
+                        </cron_string>
                     </fields>
-                </customers>
+                </advanced>
                 <sync translate="label" module="mailigen_synchronizer">
-                    <label>Sync Information</label>
+                    <label>Sync information</label>
                     <frontend_type>text</frontend_type>
                     <sort_order>40</sort_order>
                     <show_in_default>1</show_in_default>
@@ -192,18 +162,12 @@
                     <expanded>1</expanded>
                     <fields>
                         <information>
-                            <frontend_model>mailigen_synchronizer/adminhtml_sync_information</frontend_model>
+                            <frontend_model>mailigen_synchronizer/system_config_sync_information</frontend_model>
                             <sort_order>10</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>
                         </information>
-                        <manual_sync>
-                            <frontend_type>hidden</frontend_type>
-                            <show_in_default>0</show_in_default>
-                            <show_in_website>0</show_in_website>
-                            <show_in_store>0</show_in_store>
-                        </manual_sync>
                         <stop_sync>
                             <frontend_type>hidden</frontend_type>
                             <show_in_default>0</show_in_default>

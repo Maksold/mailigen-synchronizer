@@ -60,7 +60,7 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
         /**
          * Get Mailigen Contact lists per store
          */
-        $mailigenLists = $this->h()->getCustomerContactLists();
+        $mailigenLists = $this->h()->getContactLists();
         if (count($mailigenLists) <= 0) {
             $this->l()->log('Mailigen contact list isn\'t selected');
             return;

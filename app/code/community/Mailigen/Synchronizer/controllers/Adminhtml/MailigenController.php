@@ -19,7 +19,6 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
             if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
                 $mailigenSchedule->createJob();
-                $helper->setManualSync(1);
             }
 
             $this->_getSession()->addSuccess($this->__('Mailigen newsletter synchronization task will start shortly.'));
@@ -41,7 +40,6 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
 
             if ($mailigenSchedule->countPendingOrRunningJobs() == 0) {
                 $mailigenSchedule->createJob();
-                $helper->setManualSync(1);
             }
 
             $this->_getSession()->addSuccess($this->__('Mailigen customer synchronization task will start shortly.'));

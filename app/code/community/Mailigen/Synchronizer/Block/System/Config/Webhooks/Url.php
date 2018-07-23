@@ -7,13 +7,15 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Webhooks
+class Mailigen_Synchronizer_Block_System_Config_Webhooks_Url
     extends Mage_Adminhtml_Block_Abstract
     implements Varien_Data_Form_Element_Renderer_Interface
 {
     /**
      * @param Varien_Data_Form_Element_Abstract $element
      * @return string
+     * @throws Mage_Core_Exception
+     * @throws Mage_Core_Model_Store_Exception
      */
     public function render(Varien_Data_Form_Element_Abstract $element)
     {
@@ -27,7 +29,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Webhooks
 
         $html = '<table cellspacing="0" class="form-list">
                 <tr>
-                    <td class="label">' . $helper->__('Mailigen Webhooks URL') . '</td>
+                    <td class="label">' . trim($helper->__($element->getLabel())) . '</td>
                     <td class="value with-tooltip">
                         <a href="' . $webhooksUrl . '" target="_blank">' . $webhooksUrl . '</a>
                         <div class="field-tooltip"><div>

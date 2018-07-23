@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Secretkey
+class Mailigen_Synchronizer_Block_System_Config_Webhooks_Secretkey
     extends Mage_Adminhtml_Block_Abstract
     implements Varien_Data_Form_Element_Renderer_Interface
 {
@@ -28,7 +28,7 @@ class Mailigen_Synchronizer_Block_Adminhtml_Newsletter_Secretkey
 
         $html = '<table cellspacing="0" class="form-list">
                 <tr>
-                    <td class="label">' . $helper->__('Mailigen Webhooks Secret Key') . '</td>
+                    <td class="label">' . trim($helper->__($element->getLabel())) . '</td>
                     <td class="value">
                         <span id="webhooks_secret_key">' . $webhooksSecretKey . '</span>
                     </td>

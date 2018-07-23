@@ -34,7 +34,7 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
 
         $data = $this->getRequest()->getRawBody();
         $signature = $this->getRequest()->getHeader('X-Mailigen-Signature');
-        if (!$this->h()->verifySignature($data, $signature)) {
+        if (!$this->h()->verifyWebhooksSignature($data, $signature)) {
             $this->l()->log("Data signature is incorrect.");
             return '';
         }
@@ -84,10 +84,10 @@ class Mailigen_Synchronizer_WebhookController extends Mage_Core_Controller_Front
      */
     protected function _checkListId($listId)
     {
-        $check = $this->h()->getNewsletterContactList() == $listId;
+        $check = $this->h()->getContactList() == $listId;
 
         if (!$check) {
-            $this->l()->log("Newsletter doesn't exist with List Id: $listId");
+            $this->l()->log('Contact list with Id "' . $listId . '" doesn\'t exist');
         }
 
         return $check;

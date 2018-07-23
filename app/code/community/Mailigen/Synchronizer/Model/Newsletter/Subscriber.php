@@ -7,7 +7,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mailigen_Synchro
      */
     public function sendUnsubscriptionEmail()
     {
-        if (Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails()) {
+        if (Mage::helper('mailigen_synchronizer')->canHandleDefaultEmails()) {
             return $this;
         } else {
             return parent::sendUnsubscriptionEmail();
@@ -19,7 +19,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mailigen_Synchro
      */
     public function sendConfirmationRequestEmail()
     {
-        if (Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails()) {
+        if (Mage::helper('mailigen_synchronizer')->canHandleDefaultEmails()) {
             return $this;
         } else {
             return parent::sendConfirmationRequestEmail();
@@ -31,7 +31,7 @@ class Mailigen_Synchronizer_Model_Newsletter_Subscriber extends Mailigen_Synchro
      */
     public function sendConfirmationSuccessEmail()
     {
-        if (Mage::helper('mailigen_synchronizer')->canNewsletterHandleDefaultEmails()) {
+        if (Mage::helper('mailigen_synchronizer')->canHandleDefaultEmails()) {
             return $this;
         } else {
             return parent::sendConfirmationSuccessEmail();
