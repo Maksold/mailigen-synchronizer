@@ -32,7 +32,7 @@ class Mailigen_Synchronizer_Model_Observer
                 $api = $this->h()->getMailigenApi($storeId);
                 $newsletterListId = $this->h()->getNewsletterContactList($storeId);
                 if (!$newsletterListId) {
-                    $log->log('Newsletter contact list isn\'t selected');
+                    $this->l()->log('Newsletter contact list isn\'t selected');
                     return $this;
                 }
 
