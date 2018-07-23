@@ -23,7 +23,7 @@ class Mailigen_Synchronizer_Model_Cron
         /** @var $helper Mailigen_Synchronizer_Helper_Data */
         $helper = Mage::helper('mailigen_synchronizer');
         if (!$helper->isEnabled()) {
-            return 'Module is disabled';
+            return 'Module is disabled in config';
         }
 
         /**
