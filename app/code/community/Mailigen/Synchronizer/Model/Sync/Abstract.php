@@ -86,7 +86,7 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 /**
                  * 1. Create/update Merge fields
                  */
-                Mage::getModel('mailigen_synchronizer/merge_field_customer')
+                Mage::getModel('mailigen_synchronizer/mailigen_merge_field')
                     ->setStoreId($this->_storeId)
                     ->createMergeFields();
                 $this->l()->log('Merge fields created and updated');
