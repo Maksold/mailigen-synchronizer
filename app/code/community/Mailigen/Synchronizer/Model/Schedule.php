@@ -17,39 +17,12 @@ class Mailigen_Synchronizer_Model_Schedule
     /**
      * @var null
      */
-    protected $_countPendingOrRunningJobs;
-
-    /**
-     * @var null
-     */
     protected $_lastRunningJob;
 
     /**
      * @var null
      */
     protected $_lastPendingJob;
-
-    /**
-     * @return int|null
-     */
-    public function countPendingOrRunningJobs()
-    {
-        if (null === $this->_countPendingOrRunningJobs) {
-            $pendingOrRunningJobs = Mage::getModel('cron/schedule')->getCollection()
-                ->addFieldToFilter('job_code', $this->_jobCode)
-                ->addFieldToFilter(
-                    'status', array(
-                        'in' => array(
-                            Mage_Cron_Model_Schedule::STATUS_RUNNING,
-                            Mage_Cron_Model_Schedule::STATUS_PENDING,
-                        ),
-                    )
-                );
-            $this->_countPendingOrRunningJobs = $pendingOrRunningJobs->getSize();
-        }
-
-        return $this->_countPendingOrRunningJobs;
-    }
 
     /**
      * @return null|Mage_Cron_Model_Schedule
