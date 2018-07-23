@@ -51,17 +51,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
         return $customers;
     }
-
-    /**
-     * Remove synced and removed customers from Flat table
-     */
-    protected function _afterUnsubscribe()
-    {
-        parent::_afterUnsubscribe();
-
-        Mage::getModel('mailigen_synchronizer/customer')->removeSyncedAndRemovedCustomers();
-    }
-
+    
     /**
      * @param Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber $subscriber
      */
