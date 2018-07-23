@@ -7,24 +7,18 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
+class Mailigen_Synchronizer_Model_Mailigen_List
 {
     /**
      * @var null
      */
     protected $_lists;
 
-    public function _construct()
-    {
-        parent::_construct();
-        $this->_init('mailigen_synchronizer/list');
-    }
-
     /**
      * @param bool $forceLoad
      * @return array|null
      */
-    public function getLists($forceLoad = false)
+    protected function _getLists($forceLoad = false)
     {
         if (null === $this->_lists || $forceLoad) {
             /** @var $helper Mailigen_Synchronizer_Helper_Data */
@@ -43,14 +37,14 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
      */
     public function toOptionArray($load = false)
     {
-        $lists = $this->getLists($load);
+        $lists = $this->_getLists($load);
 
         if (is_array($lists) && !empty($lists)) {
             $array[] = array('label' => '--Create a new list--', 'value' => '');
             foreach ($lists as $list) {
                 $array[] = array(
                     'label' => $list['name'] . ' (' . $list['member_count'] . ' members)',
-                    'value' => $list['id']
+                    'value' => $list['id'],
                 );
             }
 
@@ -59,18 +53,18 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param $newListName
+     * @param $listTitle
      * @return bool|string
      */
-    public function createNewList($newListName)
+    public function create($listTitle)
     {
         //Get the list with current lists
         $lists = $this->toOptionArray();
 
         //Check if a similar list name doesn't exists already.
         foreach ($lists as $list) {
-            if ($list['label'] == $newListName) {
-                Mage::getSingleton('adminhtml/session')->addWarning("A list with name '$newListName' already existed");
+            if ($list['label'] == $listTitle) {
+                Mage::getSingleton('adminhtml/session')->addWarning("A list with name '$listTitle' already existed");
                 return $list['value'];
             }
         }
@@ -87,11 +81,11 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
             'notify_to'             => Mage::getStoreConfig('trans_email/ident_general/email'),
             'subscription_notify'   => true,
             'unsubscription_notify' => true,
-            'has_email_type_option' => true
+            'has_email_type_option' => true,
         );
 
         $api = $helper->getMailigenApi($storeId);
-        $newListId = $api->listCreate($newListName, $options);
+        $newListId = $api->listCreate($listTitle, $options);
 
         if ($api->errorCode) {
             $log->log("Unable to create list. $api->errorCode: $api->errorMessage");
@@ -104,23 +98,13 @@ class Mailigen_Synchronizer_Model_List extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param null $lists
-     * @return Mailigen_Synchronizer_Model_List
-     */
-    public function setLists($lists)
-    {
-        $this->_lists = $lists;
-        return $this;
-    }
-
-    /**
      * @param bool $forceListLoad
      * @return int
      */
     public function getTotalMembers($forceListLoad = false)
     {
         $totalMembers = 0;
-        $lists = $this->getLists($forceListLoad);
+        $lists = $this->_getLists($forceListLoad);
 
         if (is_array($lists) && count($lists)) {
             foreach ($lists as $list) {

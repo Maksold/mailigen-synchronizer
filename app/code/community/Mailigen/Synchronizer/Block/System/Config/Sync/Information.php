@@ -108,7 +108,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
                             <span class="progress-text">' . $syncedGuestsProgress['text'] . '</span>
                         </div>
                     </td>
-                    <td class="scope-label">' . $syncedGuestsProgress['button'] . '</td>
+                    <td class="scope-label" style="display: block;">' . $syncedGuestsProgress['button'] . '</td>
                     <td></td>
                 </tr>
                 <tr>
@@ -119,7 +119,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
                             <span class="progress-text">' . $syncedCustomersProgress['text'] . '</span>
                         </div>
                     </td>
-                    <td class="scope-label">' . $syncedCustomersProgress['button'] . '</td>
+                    <td class="scope-label" style="display: block;">' . $syncedCustomersProgress['button'] . '</td>
                     <td></td>
                 </tr>
             </table>';
@@ -180,7 +180,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
 
         $result['percent'] = round($syncedGuests / $totalGuests * 100, 2);
         $result['text'] = "{$result['percent']}% ($syncedGuests/$totalGuests)";
-        $result['button'] = ($this->_getMailigenSchedule()->getLastRunningJob() === false) ? $this->_getResetNewsletterSyncButton() : '';
+        $result['button'] = ($this->_getSchedule()->getLastRunningJob() === false) ? $this->_getResetGuestsSyncButton() : '';
 
         return $result;
     }
@@ -217,7 +217,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
 
         $result['percent'] = round($syncedCustomers / $totalCustomers * 100, 2);
         $result['text'] = "{$result['percent']}% ($syncedCustomers/$totalCustomers)";
-        $result['button'] = ($this->_getMailigenSchedule()->getLastRunningJob() === false) ? $this->_getResetCustomersSyncButton() : '';
+        $result['button'] = ($this->_getSchedule()->getLastRunningJob() === false) ? $this->_getResetCustomersSyncButton() : '';
 
         return $result;
     }
@@ -229,11 +229,11 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
      */
     protected function _getSyncStatusText()
     {
-        if ($this->_getMailigenSchedule()->getLastRunningJob()) {
-            $html = "Running";
-            if (strlen($this->_getMailigenSchedule()->getLastRunningJob()->getExecutedAt())) {
+        if ($this->_getSchedule()->getLastRunningJob()) {
+            $html = 'Running';
+            if (strlen($this->_getSchedule()->getLastRunningJob()->getExecutedAt())) {
                 $html .= ' (Started at: ';
-                $html .= Mage::helper('core')->formatDate($this->_getMailigenSchedule()->getLastRunningJob()->getExecutedAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($this->_getSchedule()->getLastRunningJob()->getExecutedAt(), 'medium', true);
                 $html .= ') ';
 
                 /**
@@ -241,15 +241,15 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
                  */
                 $html .= $this->_getStopSyncButton();
             }
-        } elseif ($this->_getMailigenSchedule()->getLastPendingJob()) {
-            $html = "Pending";
-            if (strlen($this->_getMailigenSchedule()->getLastPendingJob()->getScheduledAt())) {
+        } elseif ($this->_getSchedule()->getLastPendingJob()) {
+            $html = 'Pending';
+            if (strlen($this->_getSchedule()->getLastPendingJob()->getScheduledAt())) {
                 $html .= ' (Scheduled at: ';
-                $html .= Mage::helper('core')->formatDate($this->_getMailigenSchedule()->getLastPendingJob()->getScheduledAt(), 'medium', true);
+                $html .= Mage::helper('core')->formatDate($this->_getSchedule()->getLastPendingJob()->getScheduledAt(), 'medium', true);
                 $html .= ')';
             }
         } else {
-            $html = "Not scheduled";
+            $html = 'Not scheduled';
             /**
              * Show reset sync customers button
              */
@@ -285,7 +285,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
             ->setData(
                 array(
                     'id'      => 'stop_mailigen_synchronizer_button',
-                    'label'   => $this->helper('adminhtml')->__('Stop sync'),
+                    'label'   => $this->helper('adminhtml')->__('Stop Sync'),
                     'onclick' => 'javascript:stopMailigenSynchronizer(); return false;',
                 )
             );
@@ -336,7 +336,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
      *
      * @return string
      */
-    protected function _getResetNewsletterSyncButton()
+    protected function _getResetGuestsSyncButton()
     {
         $resetSyncUrl = Mage::helper('adminhtml')->getUrl('*/mailigen/resetSyncNewsletter');
         $buttonJs = '<script type="text/javascript">
@@ -361,7 +361,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
             ->setData(
                 array(
                     'id'      => 'reset_newsletter_sync__button',
-                    'label'   => $this->helper('adminhtml')->__('Reset Newsletter Sync'),
+                    'label'   => $this->helper('adminhtml')->__('Reset Guests Sync'),
                     'onclick' => 'javascript:resetNewsletterSync(); return false;',
                 )
             );
@@ -394,7 +394,7 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
     /**
      * @return Mailigen_Synchronizer_Model_Schedule
      */
-    protected function _getMailigenSchedule()
+    protected function _getSchedule()
     {
         return Mage::getSingleton('mailigen_synchronizer/schedule');
     }

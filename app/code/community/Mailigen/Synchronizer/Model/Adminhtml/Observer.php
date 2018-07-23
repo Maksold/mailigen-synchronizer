@@ -16,8 +16,8 @@ class Mailigen_Synchronizer_Model_Adminhtml_Observer
      */
     public function configChange(Varien_Event_Observer $observer)
     {
-        /** @var $list Mailigen_Synchronizer_Model_List */
-        $list = Mage::getModel('mailigen_synchronizer/list');
+        /** @var $list Mailigen_Synchronizer_Model_Mailigen_List */
+        $list = Mage::getModel('mailigen_synchronizer/mailigen_list');
         /** @var $config Mage_Core_Model_Config */
         $config = new Mage_Core_Model_Config();
         /** @var $mailigenSchedule Mailigen_Synchronizer_Model_Schedule */
@@ -32,7 +32,7 @@ class Mailigen_Synchronizer_Model_Adminhtml_Observer
 
             if ($mailigenSchedule->getLastRunningJob() === false) {
 
-                $listId = $list->createNewList($listTitle);
+                $listId = $list->create($listTitle);
 
                 if ($listId) {
                     $config->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_CONTACT_LIST, $listId, $scope, $scopeId);
