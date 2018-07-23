@@ -166,6 +166,8 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
             ->addFieldToFilter('subscriber_status', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
         if (count($scopeStoreIds) > 0) {
             $totalGuests->addFieldToFilter('store_id', $scopeStoreIds);
+        } else {
+            $totalGuests->addFieldToFilter('store_id', array('neq' => '0'));
         }
         $totalGuests = $totalGuests->getSize();
 
@@ -175,6 +177,8 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
             ->addFieldToFilter('mailigen_synced', 1);
         if (count($scopeStoreIds) > 0) {
             $syncedGuests->addFieldToFilter('store_id', $scopeStoreIds);
+        } else {
+            $syncedGuests->addFieldToFilter('store_id', array('neq' => '0'));
         }
         $syncedGuests = $syncedGuests->getSize();
 
@@ -197,6 +201,8 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
         $totalCustomers = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
         if (count($scopeStoreIds) > 0) {
             $totalCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+        } else {
+            $totalCustomers->addFieldToFilter('store_id', array('neq' => '0'));
         }
         $totalCustomers = $totalCustomers->getSize();
 
@@ -212,6 +218,8 @@ class Mailigen_Synchronizer_Block_System_Config_Sync_Information
             ->addFieldToFilter('is_synced', 1);
         if (count($scopeStoreIds) > 0) {
             $syncedCustomers->addFieldToFilter('store_id', $scopeStoreIds);
+        } else {
+            $syncedCustomers->addFieldToFilter('store_id', array('neq' => '0'));
         }
         $syncedCustomers = $syncedCustomers->getSize();
 
