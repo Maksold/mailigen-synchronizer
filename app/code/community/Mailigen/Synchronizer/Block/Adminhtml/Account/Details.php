@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Block_Adminhtml_Account_Information extends Mage_Adminhtml_Block_System_Config_Form_Field
+class Mailigen_Synchronizer_Block_Adminhtml_Account_Details extends Mage_Adminhtml_Block_System_Config_Form_Field
 {
     const MAILIGEN_ACCOUNT_DETAILS_CACHE_ID = 'mailigen_synchronizer_account_details_data';
 
