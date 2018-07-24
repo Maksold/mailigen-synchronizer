@@ -31,6 +31,19 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
      */
     protected $_stats = array();
 
+    /**
+     * @var int
+     */
+    protected $_batchSize = 0;
+
+    /**
+     * @var int
+     */
+    protected $_batchLimit = 0;
+
+    /**
+     * Mailigen_Synchronizer_Model_Sync_Abstract constructor.
+     */
     public function __construct()
     {
         $this->l()->setLogFile(Mailigen_Synchronizer_Helper_Log::SYNC_LOG_FILE);
@@ -80,8 +93,11 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 ));
 
                 $environment = $emulation->startEnvironmentEmulation($this->_storeId);
+                $this->_batchSize = $this->h()->getBatchSize($this->_storeId);
+                $this->_batchLimit = $this->h()->getBatchLimit($this->_storeId);
                 $this->_getMailigenApi()->setStoreId($this->_storeId);
                 $this->_resetStats();
+
 
                 /**
                  * 1. Create/update Merge fields
@@ -140,8 +156,8 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 $subscribers,
                 array($this, '_prepareBatchSubscribeData'),
                 array($this, '_batchSubscribe'),
-                100,
-                10000
+                $this->_batchSize,
+                $this->_batchLimit
             );
 
             /**
@@ -186,8 +202,8 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
                 $unsubscribers,
                 array($this, '_prepareBatchUnsubscribeData'),
                 array($this, '_batchUnsubscribe'),
-                100,
-                10000
+                $this->_batchSize,
+                $this->_batchLimit
             );
 
             /**

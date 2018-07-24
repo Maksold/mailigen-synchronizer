@@ -185,7 +185,9 @@
     <default>
         <mailigen_synchronizer>
             <advanced>
-                <cron_string>*/15 * * * *</cron_string>
+                <cron_string>*/10 * * * *</cron_string>
+                <batch_size>100</batch_size>
+                <batch_limit>10000</batch_limit>
             </advanced>
         </mailigen_synchronizer>
     </default>

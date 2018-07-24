@@ -16,8 +16,13 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_HANDLE_DEFAULT_EMAILS    = 'mailigen_synchronizer/general/handle_default_emails';
     const XML_PATH_WEBHOOKS_ENABLED         = 'mailigen_synchronizer/webhooks/enabled';
     const XML_PATH_WEBHOOKS_SECRET_KEY      = 'mailigen_synchronizer/webhooks/secret_key';
+    const XML_PATH_BATCH_SIZE               = 'mailigen_synchronizer/advanced/batch_size';
+    const XML_PATH_BATCH_LIMIT              = 'mailigen_synchronizer/advanced/batch_limit';
     const XML_PATH_SYNC_STOP                = 'mailigen_synchronizer/sync/stop';
     const XML_FULL_PATH_CONTACT_LIST_TITLE  = 'groups/general/fields/contact_list_title/value';
+
+    const DEFAULT_BATCH_SIZE = 100;
+    const DEFAULT_BATCH_LIMIT = 10000;
 
     protected $_mgapi = array();
     protected $_storeIds;
@@ -25,7 +30,6 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return bool
-     * @todo Check, where this function is used
      */
     public function isEnabled($storeId = null)
     {
@@ -93,6 +97,28 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
         return Mage::getStoreConfig(self::XML_PATH_WEBHOOKS_SECRET_KEY, $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return int
+     */
+    public function getBatchSize($storeId = null)
+    {
+        $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
+        $batchSize = (int)Mage::getStoreConfig(self::XML_PATH_BATCH_SIZE, $storeId);
+        return $batchSize > 0 ? $batchSize : self::DEFAULT_BATCH_SIZE;
+    }
+
+    /**
+     * @param null $storeId
+     * @return int
+     */
+    public function getBatchLimit($storeId = null)
+    {
+        $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
+        $batchLimit = (int)Mage::getStoreConfig(self::XML_PATH_BATCH_LIMIT, $storeId);
+        return $batchLimit > 0 ? $batchLimit : self::DEFAULT_BATCH_LIMIT;
     }
 
     /**

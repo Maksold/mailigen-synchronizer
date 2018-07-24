@@ -148,8 +148,26 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>0</show_in_website>
                             <show_in_store>0</show_in_store>
-                            <comment>If set "*/15 * * * *", then run sync every 15 min</comment>
+                            <comment>If set "*/10 * * * *", then run sync every 10 min.</comment>
                         </cron_string>
+                        <batch_size translate="label comment">
+                            <label>Sync batch size</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>The number of guests or customers to (un)subscribe per one API request</comment>
+                        </batch_size>
+                        <batch_limit translate="label comment">
+                            <label>Sync batch limit</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>The number of guests or customers to (un)subscribe per one cronjob run</comment>
+                        </batch_limit>
                     </fields>
                 </advanced>
                 <sync translate="label" module="mailigen_synchronizer">

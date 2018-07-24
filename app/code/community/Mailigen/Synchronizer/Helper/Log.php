@@ -9,12 +9,12 @@
  */
 class Mailigen_Synchronizer_Helper_Log extends Mage_Core_Helper_Abstract
 {
-    const MAIN_LOG_FILE = 'mailigen_synchronizer.log';
-    const MAIN_EXCEPTION_LOG_FILE = 'mailigen_synchronizer_exception.log';
-    const SYNC_LOG_FILE = 'mailigen_synchronizer_sync.log';
-    const SYNC_EXCEPTION_LOG_FILE = 'mailigen_synchronizer_sync_exception.log';
-    const WEBHOOK_LOG_FILE = 'mailigen_synchronizer_webhook.log';
-    const WEBHOOK_EXCEPTION_LOG_FILE = 'mailigen_synchronizer_webhook_exception.log';
+    const MAIN_LOG_FILE                 = 'mailigen_synchronizer.log';
+    const MAIN_EXCEPTION_LOG_FILE       = 'mailigen_synchronizer_exception.log';
+    const SYNC_LOG_FILE                 = 'mailigen_synchronizer_sync.log';
+    const SYNC_EXCEPTION_LOG_FILE       = 'mailigen_synchronizer_sync_exception.log';
+    const WEBHOOK_LOG_FILE              = 'mailigen_synchronizer_webhook.log';
+    const WEBHOOK_EXCEPTION_LOG_FILE    = 'mailigen_synchronizer_webhook_exception.log';
 
     /**
      * @var string
