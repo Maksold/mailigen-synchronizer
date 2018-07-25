@@ -9,17 +9,18 @@
  */
 class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 {
-    const XML_PATH_ENABLED                  = 'mailigen_synchronizer/general/enabled';
-    const XML_PATH_API_KEY                  = 'mailigen_synchronizer/general/api_key';
-    const XML_PATH_CONTACT_LIST             = 'mailigen_synchronizer/general/contact_list';
-    const XML_PATH_CONTACT_LIST_TITLE       = 'mailigen_synchronizer/general/contact_list_title';
-    const XML_PATH_HANDLE_DEFAULT_EMAILS    = 'mailigen_synchronizer/general/handle_default_emails';
-    const XML_PATH_WEBHOOKS_ENABLED         = 'mailigen_synchronizer/webhooks/enabled';
-    const XML_PATH_WEBHOOKS_SECRET_KEY      = 'mailigen_synchronizer/webhooks/secret_key';
-    const XML_PATH_BATCH_SIZE               = 'mailigen_synchronizer/advanced/batch_size';
-    const XML_PATH_BATCH_LIMIT              = 'mailigen_synchronizer/advanced/batch_limit';
-    const XML_PATH_SYNC_STOP                = 'mailigen_synchronizer/sync/stop';
-    const XML_FULL_PATH_CONTACT_LIST_TITLE  = 'groups/general/fields/contact_list_title/value';
+    const XML_PATH_ENABLED = 'mailigen_synchronizer/general/enabled';
+    const XML_PATH_API_KEY = 'mailigen_synchronizer/general/api_key';
+    const XML_PATH_CONTACT_LIST = 'mailigen_synchronizer/general/contact_list';
+    const XML_PATH_CONTACT_LIST_TITLE = 'mailigen_synchronizer/general/contact_list_title';
+    const XML_PATH_CUSTOMER_SYNC_TYPE = 'mailigen_synchronizer/general/customer_sync_type';
+    const XML_PATH_HANDLE_DEFAULT_EMAILS = 'mailigen_synchronizer/general/handle_default_emails';
+    const XML_PATH_WEBHOOKS_ENABLED = 'mailigen_synchronizer/webhooks/enabled';
+    const XML_PATH_WEBHOOKS_SECRET_KEY = 'mailigen_synchronizer/webhooks/secret_key';
+    const XML_PATH_BATCH_SIZE = 'mailigen_synchronizer/advanced/batch_size';
+    const XML_PATH_BATCH_LIMIT = 'mailigen_synchronizer/advanced/batch_limit';
+    const XML_PATH_SYNC_STOP = 'mailigen_synchronizer/sync/stop';
+    const XML_FULL_PATH_CONTACT_LIST_TITLE = 'groups/general/fields/contact_list_title/value';
 
     const DEFAULT_BATCH_SIZE = 100;
     const DEFAULT_BATCH_LIMIT = 10000;
@@ -67,6 +68,34 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     {
         $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
         return Mage::getStoreConfig(self::XML_PATH_CONTACT_LIST, $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return int
+     */
+    public function getCustomerSyncType($storeId = null)
+    {
+        $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
+        return (int)Mage::getStoreConfig(self::XML_PATH_CUSTOMER_SYNC_TYPE, $storeId);
+    }
+
+    /**
+     * @param null $storeId
+     * @return bool
+     */
+    public function isSyncAllCustomers($storeId = null)
+    {
+        return $this->getCustomerSyncType($storeId) === Mailigen_Synchronizer_Model_Config_Customer_Sync_Type::SYNC_ALL_CUSTOMERS;
+    }
+
+    /**
+     * @param null $storeId
+     * @return bool
+     */
+    public function isSyncSubscribedCustomers($storeId = null)
+    {
+        return $this->getCustomerSyncType($storeId) === Mailigen_Synchronizer_Model_Config_Customer_Sync_Type::SYNC_SUBSCRIBED_CUSTOMERS;
     }
 
     /**
