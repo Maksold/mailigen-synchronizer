@@ -23,6 +23,20 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
     }
 
     /**
+     * Delete unsubscribed customers from Mailige list, if configured to sync only subscribed customers
+     */
+    protected function _beforeUnsubscribe()
+    {
+        parent::_beforeUnsubscribe();
+
+        if ($this->h()->isSyncSubscribedCustomers($this->_storeId)) {
+            $this->_getMailigenApi()->unsubscribeDeleteMember = true;
+        } else {
+            $this->_getMailigenApi()->unsubscribeDeleteMember = false;
+        }
+    }
+
+    /**
      * @return Mage_Customer_Model_Resource_Customer_Collection
      */
     protected function _getSubscribersCollection()
@@ -30,15 +44,17 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
         $customerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->getAllIds(0, 0, $this->_storeId);
 
+        $onlySubscribedCustomers = $this->h()->isSyncSubscribedCustomers($this->_storeId);
         /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
         $customers = Mage::getModel('mailigen_synchronizer/customer')
-            ->getCustomerCollection($customerIds);
+            ->getCustomerCollection($customerIds, $onlySubscribedCustomers);
 
         return $customers;
     }
 
     /**
      * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
+     * @todo Check 'is_removed' and get REAL unsubscribers
      */
     protected function _getUnsubscribersCollection()
     {
@@ -51,7 +67,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
         return $customers;
     }
-    
+
     /**
      * @param Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber $subscriber
      */

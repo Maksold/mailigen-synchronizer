@@ -116,11 +116,12 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
     }
 
     /**
-     * @param $customerIds
+     * @param array   $customerIds
+     * @param boolean $isSubscribed
      * @return Mage_Customer_Model_Resource_Customer_Collection
      * @throws Mage_Core_Exception
      */
-    public function getCustomerCollection($customerIds)
+    public function getCustomerCollection($customerIds, $isSubscribed = false)
     {
         /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
         $customers = Mage::getModel('customer/customer')->getCollection()
@@ -179,6 +180,11 @@ class Mailigen_Synchronizer_Model_Customer extends Mage_Core_Model_Abstract
             'is_subscribed' => 'subscriber_status',
         ), null, 'left'
         );
+
+        if ($isSubscribed) {
+            $newsletterTableName = $customers->getTable('newsletter/subscriber');
+            $customers->getSelect()->where($newsletterTableName . '.subscriber_status = ?', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
+        }
 
         return $customers;
     }
