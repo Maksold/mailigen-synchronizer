@@ -17,12 +17,12 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
     /**
      * Retrieve all ids for collection
      *
-     * @param bool $is_synced
-     * @param bool $is_removed
-     * @param int $store_id
+     * @param bool $isSynced
+     * @param bool $isRemoved
+     * @param int  $storeId
      * @return array
      */
-    public function getAllIds($is_synced = false, $is_removed = false, $store_id = null)
+    public function getAllIds($isSynced = false, $isRemoved = false, $storeId = null)
     {
         $idsSelect = clone $this->getSelect();
         $idsSelect->reset(Zend_Db_Select::ORDER);
@@ -30,16 +30,16 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
         $idsSelect->reset(Zend_Db_Select::LIMIT_OFFSET);
         $idsSelect->reset(Zend_Db_Select::COLUMNS);
 
-        if (is_int($is_synced)) {
-            $idsSelect->where('is_synced = ?', $is_synced);
+        if (is_int($isSynced)) {
+            $idsSelect->where('is_synced = ?', $isSynced);
         }
 
-        if (is_int($is_removed)) {
-            $idsSelect->where('is_removed = ?', $is_removed);
+        if (is_int($isRemoved)) {
+            $idsSelect->where('is_removed = ?', $isRemoved);
         }
 
-        if (null !== $store_id) {
-            $idsSelect->where('store_id = ?', $store_id);
+        if (null !== $storeId) {
+            $idsSelect->where('store_id = ?', $storeId);
         }
 
         $idsSelect->columns($this->getResource()->getIdFieldName(), 'main_table');

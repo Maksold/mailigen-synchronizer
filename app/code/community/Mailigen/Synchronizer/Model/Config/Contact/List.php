@@ -7,7 +7,7 @@
  * @package     Mailigen_Synchronizer
  * @author      Maksim Soldatjonok <maksold@gmail.com>
  */
-class Mailigen_Synchronizer_Model_System_Config_Backend_Contact_List extends Mage_Core_Model_Config_Data
+class Mailigen_Synchronizer_Model_Config_Contact_List extends Mage_Core_Model_Config_Data
 {
     /**
      * Processing object before save data

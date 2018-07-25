@@ -53,7 +53,7 @@
                             <label>Contact list</label>
                             <frontend_type>select</frontend_type>
                             <source_model>mailigen_synchronizer/mailigen_list</source_model>
-                            <backend_model>mailigen_synchronizer/system_config_backend_contact_list</backend_model>
+                            <backend_model>mailigen_synchronizer/config_contact_list</backend_model>
                             <sort_order>40</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
@@ -76,11 +76,23 @@
                                 <contact_list></contact_list>
                             </depends>
                         </contact_list_title>
+                        <customer_sync_type translate="label">
+                            <label>Customer sync type</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>mailigen_synchronizer/config_customer_sync_type</source_model>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <enabled>1</enabled>
+                            </depends>
+                        </customer_sync_type>
                         <handle_default_emails translate="label comment">
                             <label>Enable default Mailigen emails</label>
                             <frontend_type>select</frontend_type>
                             <source_model>adminhtml/system_config_source_yesno</source_model>
-                            <sort_order>60</sort_order>
+                            <sort_order>70</sort_order>
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>1</show_in_store>

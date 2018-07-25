@@ -184,6 +184,9 @@
     </adminhtml>
     <default>
         <mailigen_synchronizer>
+            <general>
+                <customer_sync_type>1</customer_sync_type>
+            </general>
             <advanced>
                 <cron_string>*/10 * * * *</cron_string>
                 <batch_size>100</batch_size>
