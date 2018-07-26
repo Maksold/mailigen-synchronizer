@@ -31,20 +31,24 @@ class Mailigen_Synchronizer_Model_Config_Contact_List extends Mage_Core_Model_Co
                  * Deny config modification, until synchronization will not be finished
                  */
                 $this->_dataSaveAllowed = false;
-                Mage::getSingleton('adminhtml/session')->addNotice($helper->__("You can't change contact list until synchronization will not be finished."));
+                Mage::getSingleton('adminhtml/session')->addNotice($helper->__('You can\'t change contact list until synchronization will not be finished.  Please try again after ~10 seconds.'));
+
+                $helper->setStopSync(1);
 
             } else {
 
                 /**
-                 * Set guests not synced on contact list change
+                 * Set guests not synced after contact list change
                  */
                 Mage::getModel('mailigen_synchronizer/guest')->setAllNotSynced();
 
                 /**
-                 * Set customers not synced on contact list change
+                 * Set customers not synced after contact list change
                  */
                 Mage::getModel('mailigen_synchronizer/customer')->setAllNotSynced();
             }
         }
+
+        return $this;
     }
 }
