@@ -12,6 +12,17 @@ class Mailigen_Synchronizer_Model_Sync_Guest extends Mailigen_Synchronizer_Model
     const SUBSCRIBER_TYPE = 'Guest';
 
     /**
+     * Delete unsubscribed guests from Mailige list
+     */
+    protected function _beforeUnsubscribe()
+    {
+        parent::_beforeUnsubscribe();
+
+        $this->_getMailigenApi()->unsubscribeDeleteMember = true;
+        $this->_getMailigenApi()->unsubscribeSendGoodbuy = true;
+    }
+
+    /**
      * @return Mailigen_Synchronizer_Model_Resource_Subscriber_Collection
      */
     protected function _getSubscribersCollection()

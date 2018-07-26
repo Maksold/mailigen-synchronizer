@@ -23,13 +23,14 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
     }
 
     /**
-     * Delete unsubscribed customers from Mailige list, if configured to sync only subscribed customers
+     * Delete unsubscribed or removed customers from Mailige list
      */
     protected function _beforeUnsubscribe()
     {
         parent::_beforeUnsubscribe();
 
         $this->_getMailigenApi()->unsubscribeDeleteMember = true;
+        $this->_getMailigenApi()->unsubscribeSendGoodbuy = true;
     }
 
     /**
