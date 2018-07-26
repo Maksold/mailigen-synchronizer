@@ -38,6 +38,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
     /**
      * @return Mage_Customer_Model_Resource_Customer_Collection
+     * @throws Mage_Core_Exception
      */
     protected function _getSubscribersCollection()
     {
@@ -45,9 +46,11 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
             ->getAllIds(0, 0, $this->_storeId);
 
         $onlySubscribedCustomers = $this->h()->isSyncSubscribedCustomers($this->_storeId);
-        /** @var $customers Mage_Customer_Model_Resource_Customer_Collection */
-        $customers = Mage::getModel('mailigen_synchronizer/customer')
-            ->getCustomerCollection($customerIds, $onlySubscribedCustomers);
+
+        /** @var $customers Mailigen_Synchronizer_Model_Resource_Default_Customer_Collection */
+        $customers = Mage::getResourceModel('mailigen_synchronizer/default_customer_collection');
+        $customers->getFullCustomerDataByIds($customerIds);
+        $customers->addSubscriberStatusFilter($onlySubscribedCustomers);
 
         return $customers;
     }
