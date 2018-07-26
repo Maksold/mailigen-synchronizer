@@ -76,26 +76,22 @@ class Mailigen_Synchronizer_Model_Resource_Default_Customer_Collection extends M
      */
     public function joinNewsletterSubscriber()
     {
-        $this->joinTable(
-            'newsletter/subscriber', 'customer_id = entity_id', array(
-            'is_subscribed' => 'subscriber_status',
-        ), null, 'left'
+        $this->joinTable('newsletter/subscriber',
+            'customer_id = entity_id',
+            array('subscriber_status'),
+            null, 'left'
         );
 
         return $this;
     }
 
     /**
-     * @param bool $isSubscribed
      * @return Mage_Customer_Model_Resource_Customer_Collection
-     * @throws Mage_Core_Exception
      */
-    public function addSubscriberStatusFilter(bool $isSubscribed = false)
+    public function addSubscribedFilter()
     {
-        if ($isSubscribed) {
-            $newsletterTableName = $this->getTable('newsletter/subscriber');
-            $this->getSelect()->where($newsletterTableName . '.subscriber_status = ?', Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
-        }
+        $newsletterTableName = $this->getTable('newsletter/subscriber');
+        $this->getSelect()->where("{$newsletterTableName}.subscriber_status = ?", Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED);
 
         return $this;
     }

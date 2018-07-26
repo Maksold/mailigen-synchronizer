@@ -29,11 +29,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
     {
         parent::_beforeUnsubscribe();
 
-        if ($this->h()->isSyncSubscribedCustomers($this->_storeId)) {
-            $this->_getMailigenApi()->unsubscribeDeleteMember = true;
-        } else {
-            $this->_getMailigenApi()->unsubscribeDeleteMember = false;
-        }
+        $this->_getMailigenApi()->unsubscribeDeleteMember = true;
     }
 
     /**
@@ -45,28 +41,42 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
         $customerIds = Mage::getModel('mailigen_synchronizer/customer')->getCollection()
             ->getAllIds(0, 0, $this->_storeId);
 
-        $onlySubscribedCustomers = $this->h()->isSyncSubscribedCustomers($this->_storeId);
-
         /** @var $customers Mailigen_Synchronizer_Model_Resource_Default_Customer_Collection */
         $customers = Mage::getResourceModel('mailigen_synchronizer/default_customer_collection');
         $customers->getFullCustomerDataByIds($customerIds);
-        $customers->addSubscriberStatusFilter($onlySubscribedCustomers);
+
+        if ($this->h()->isSyncSubscribedCustomers($this->_storeId)) {
+            /*
+             * Subscribe only subscribed customers
+             */
+            $customers->addSubscribedFilter();
+        }
 
         return $customers;
     }
 
     /**
      * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
-     * @todo Check 'is_removed' and get REAL unsubscribers
      */
     protected function _getUnsubscribersCollection()
     {
         /** @var $removeCustomer Mailigen_Synchronizer_Model_Resource_Customer_Collection */
         $customers = Mage::getModel('mailigen_synchronizer/customer')->getCollection();
-        $customers->addFieldToFilter('is_removed', 1)
-            ->addFieldToFilter('is_synced', 0)
-            ->addFieldToFilter('store_id', $this->_storeId)
+        $customers->addFieldToFilter('is_synced', 0)
+            ->addStoreFilter($this->_storeId)
             ->addFieldToSelect(array('id', 'email'));
+
+        if ($this->h()->isSyncAllCustomers($this->_storeId)) {
+            /*
+             * Unsubscribe removed customers
+             */
+            $customers->addIsRemovedFilter(true);
+        } else {
+            /*
+            * Unsubscribe unsubscribed OR removed customers
+            */
+            $customers->addUnsubscribedOrIsRemovedFilter(true);
+        }
 
         return $customers;
     }
@@ -102,7 +112,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
                 'LASTLOGIN'                => $this->customerHelper()->getFormattedDate($subscriber->getLastLoginAt()),
                 'CLIENTID'                 => $subscriber->getId(),
                 'STATUSOFUSER'             => $this->customerHelper()->getFormattedCustomerStatus($subscriber->getIsActive()),
-                'ISSUBSCRIBED'             => $this->customerHelper()->getFormattedIsSubscribed($subscriber->getData('is_subscribed')),
+                'ISSUBSCRIBED'             => $this->customerHelper()->getFormattedIsSubscribed($subscriber->getData('subscriber_status')),
                 /**
                  * Customer orders info
                  */

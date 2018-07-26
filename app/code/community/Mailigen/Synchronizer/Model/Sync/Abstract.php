@@ -194,7 +194,7 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     protected function _unsubscribe()
     {
         $unsubscribers = $this->_getUnsubscribersCollection();
-        $this->_stats['subscriber_total'] = $unsubscribers ? $unsubscribers->getSize() : 0;
+        $this->_stats['unsubscriber_total'] = $unsubscribers ? $unsubscribers->getSize() : 0;
 
         if ($this->_stats['unsubscriber_total'] > 0) {
             $this->l()->log($this->l()->__('Started %s unsubscribe', static::SUBSCRIBER_TYPE));

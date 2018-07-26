@@ -45,4 +45,64 @@ class Mailigen_Synchronizer_Model_Resource_Customer_Collection extends Mage_Core
         $idsSelect->columns($this->getResource()->getIdFieldName(), 'main_table');
         return $this->getConnection()->fetchCol($idsSelect);
     }
+
+    /**
+     * Filter collection by specified store ids
+     *
+     * @param array|int $storeId
+     * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
+     */
+    public function addStoreFilter($storeId)
+    {
+        if (is_array($storeId)) {
+            $this->addFieldToFilter('main_table.store_id', array('in' => $storeId));
+        } elseif (is_numeric($storeId)) {
+            $this->addFieldToFilter('main_table.store_id', array('eq' => $storeId));
+
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function joinNewsletterSubscriber()
+    {
+        $this->getSelect()->joinLeft(
+            array($this->getTable('newsletter/subscriber')),
+            $this->getTable('newsletter/subscriber') . '.customer_id = main_table.id',
+            'subscriber_status'
+        );
+
+        return $this;
+    }
+
+    /**
+     * @param bool $isRemoved
+     * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
+     */
+    public function addIsRemovedFilter($isRemoved = true)
+    {
+        $this->addFieldToFilter('main_table.is_removed', array('eq' => $isRemoved));
+
+        return $this;
+    }
+
+    /**
+     * @param bool $isRemoved
+     * @return $this
+     */
+    public function addUnsubscribedOrIsRemovedFilter($isRemoved = true)
+    {
+        $this->joinNewsletterSubscriber();
+        $subscriberStatusField = $this->getTable('newsletter/subscriber') . '.subscriber_status';
+
+        $this->getSelect()->where(
+            "({$subscriberStatusField} != ? OR {$subscriberStatusField} IS NULL) OR main_table.is_removed = ?",
+            Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED, $isRemoved
+        );
+
+        return $this;
+    }
 }
