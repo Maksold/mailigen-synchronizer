@@ -24,7 +24,7 @@ class Mailigen_Synchronizer_Block_System_Config_Webhooks_Url
         $storeId = $helper->getScopeStoreId();
 
         $webhooksUrl = Mage::app()->getStore($storeId)->getBaseUrl() . 'mailigen/webhook/';
-        $webhooksSetupImg = $this->getSkinUrl('mailigen_synchronizer/Mailigen_webhooks_setup_instruction.jpg');
+        $webhooksSetupImg = $this->getSkinUrl('mailigen_synchronizer/Mailigen_webhooks_setup_instruction_v2.jpg');
         $webhooksSetupText = $helper->__('Mailigen webhooks setup instruction');
 
         $html = '<table cellspacing="0" class="form-list">
