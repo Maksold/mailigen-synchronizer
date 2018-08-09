@@ -12,12 +12,12 @@ $installer->startSetup();
 
 $configModel = new Mage_Core_Model_Config();
 $configMapping = array(
-    'mailigen_settings/mailigen_general_group/mailigen_general_status'   => Mailigen_Synchronizer_Helper_Data::XML_PATH_ENABLED,
-    'mailigen_settings/mailigen_general_group/mailigen_general_api_key'  => Mailigen_Synchronizer_Helper_Data::XML_PATH_API_KEY,
-    'mailigen_settings/mailigen_general_group/mailigen_general_new_list' => Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_NEW_LIST_TITLE,
-    'mailigen_settings/mailigen_general_group/mailigen_autosync_list'    => Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_AUTOSYNC,
-    'mailigen_settings/mailigen_general_group/mailigen_default_emails'   => Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_HANDLE_DEFAULT_EMAILS,
-    'mailigen_settings/mailigen_general_group/mailigen_general_list'     => Mailigen_Synchronizer_Helper_Data::XML_PATH_NEWSLETTER_CONTACT_LIST,
+    'mailigen_settings/mailigen_general_group/mailigen_general_status'   => 'mailigen_synchronizer/general/enabled',
+    'mailigen_settings/mailigen_general_group/mailigen_general_api_key'  => 'mailigen_synchronizer/general/api_key',
+    'mailigen_settings/mailigen_general_group/mailigen_general_new_list' => 'mailigen_synchronizer/newsletter/new_list_title',
+    'mailigen_settings/mailigen_general_group/mailigen_autosync_list'    => 'mailigen_synchronizer/newsletter/autosync',
+    'mailigen_settings/mailigen_general_group/mailigen_default_emails'   => 'mailigen_synchronizer/newsletter/handle_default_emails',
+    'mailigen_settings/mailigen_general_group/mailigen_general_list'     => 'mailigen_synchronizer/newsletter/contact_list',
 );
 
 foreach ($configMapping as $oldConfig => $newConfig) {
