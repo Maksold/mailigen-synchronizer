@@ -32,7 +32,7 @@ class Mailigen_Synchronizer_Block_System_Config_Webhooks_Secretkey
                     <td class="value">
                         <span id="webhooks_secret_key">' . $webhooksSecretKey . '</span>
                     </td>
-                    <td class="scope-label">' . $this->_getGenerateButton() . '</td>
+                    <td class="scope-label" style="display: block;">' . $this->_getGenerateButton() . '</td>
                     <td></td>
                 </tr>
             </table>';
