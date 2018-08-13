@@ -93,6 +93,30 @@ class Mailigen_Synchronizer_Adminhtml_MailigenController extends Mage_Adminhtml_
         $this->getResponse()->setBody($secretKey);
     }
 
+    public function resetMapFieldsAction()
+    {
+        $scope = $this->getRequest()->getParam('scope');
+        $storeId = $this->getRequest()->getParam('scopeId');
+
+        /** @var $helper Mailigen_Synchronizer_Helper_Data */
+        $helper = Mage::helper('mailigen_synchronizer');
+
+        $mapFields = json_encode($helper->getMapFields($storeId));
+        $defaultMapFields = json_encode($helper->getDefaultMapFields($storeId));
+
+        if ($mapFields !== $defaultMapFields) {
+            Mage::getConfig()->saveConfig(Mailigen_Synchronizer_Helper_Data::XML_PATH_MAP_FIELDS, $defaultMapFields, $scope, $storeId);
+
+            // Reinit config
+            Mage::getConfig()->reinit();
+            Mage::app()->reinitStores();
+        }
+
+        $this->_getSession()->addSuccess($this->__('Customer fields mapping config was reset.'));
+
+        $this->getResponse()->setBody('1');
+    }
+
     /**
      * @return mixed
      */

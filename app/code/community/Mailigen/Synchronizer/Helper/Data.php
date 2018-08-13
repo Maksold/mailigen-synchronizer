@@ -97,6 +97,17 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     }
 
     /**
+     * @return mixed
+     */
+    public function getDefaultMapFields()
+    {
+        $defaultMapFields = Mage::getConfig()
+            ->loadModulesConfiguration('config.xml')
+            ->getNode('default/' . Mailigen_Synchronizer_Helper_Data::XML_PATH_MAP_FIELDS);
+        return json_decode($defaultMapFields, true);
+    }
+
+    /**
      * @param null $storeId
      * @return bool
      * @throws Mage_Core_Exception

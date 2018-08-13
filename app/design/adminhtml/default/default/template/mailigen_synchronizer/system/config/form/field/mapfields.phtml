@@ -22,10 +22,14 @@ $_colspan = $_colspan > 1 ? 'colspan="' . $_colspan . '"' : '';
         </tr>
 
         <tr id="addRow<?php echo $_htmlId ?>">
-            <td colspan="<?php echo count($this->_columns) ?>"></td>
+            <td colspan="<?php echo count($this->_columns) ?>">
+                <button style="" onclick="" class="scalable" type="button" id="resetToDefault<?php echo $_htmlId ?>">
+                    <span><span><span><?php echo $this->h()->__('Reset fields to default') ?></span></span></span>
+                </button>
+            </td>
             <td <?php echo $_colspan ?>>
                 <button style="" onclick="" class="scalable add" type="button" id="addToEndBtn<?php echo $_htmlId ?>">
-                    <span><span><span><?php echo Mage::helper('mailigen_synchronizer')->__('Add new row') ?></span></span></span>
+                    <span><span><span><?php echo $this->h()->__('Add new row') ?></span></span></span>
                 </button>
             </td>
         </tr>
@@ -104,6 +108,28 @@ $_colspan = $_colspan > 1 ? 'colspan="' . $_colspan . '"' : '';
             this.rowsCount += 1;
         },
 
+        resetToDefault: function () {
+            <?php
+            $scope = $this->h()->getCurrentScope();
+            $url = $this->getUrl('*/mailigen/resetMapFields', array(
+                'scope'   => $scope['scope'],
+                'scopeId' => $scope['scope_id'],
+            ));
+            ?>
+            var url = '<?php echo $url; ?>';
+            new Ajax.Request(url, {
+                method: "get",
+                onSuccess: function(transport){
+                    if (transport.responseText == "1"){
+                        window.location.reload();
+                    }
+                    else {
+                        alert(transport.responseText);
+                    }
+                }
+            });
+        },
+
         del : function(rowId)
         {
             $(rowId).remove();
@@ -122,6 +148,7 @@ $_colspan = $_colspan > 1 ? 'colspan="' . $_colspan . '"' : '';
 
     // bind add action to "Add" button in last row
     Event.observe('addToEndBtn<?php echo $_htmlId ?>', 'click', arrayRow<?php echo $_htmlId ?>.add.bind(arrayRow<?php echo $_htmlId ?>, '', ''));
+    Event.observe('resetToDefault<?php echo $_htmlId ?>', 'click', arrayRow<?php echo $_htmlId ?>.resetToDefault.bind(this));
 
     // add existing rows
     <?php
