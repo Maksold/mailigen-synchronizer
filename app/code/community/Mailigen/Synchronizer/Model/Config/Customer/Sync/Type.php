@@ -27,6 +27,7 @@ class Mailigen_Synchronizer_Model_Config_Customer_Sync_Type extends Mage_Core_Mo
      * Processing object before save data
      *
      * @return Mage_Core_Model_Abstract
+     * @throws Mage_Core_Exception
      */
     protected function _beforeSave()
     {
