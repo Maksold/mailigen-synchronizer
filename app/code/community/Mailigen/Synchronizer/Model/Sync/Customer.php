@@ -58,6 +58,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
     /**
      * @return Mailigen_Synchronizer_Model_Resource_Customer_Collection
+     * @throws Mage_Core_Exception
      */
     protected function _getUnsubscribersCollection()
     {
@@ -84,6 +85,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
     /**
      * @param Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber $subscriber
+     * @throws Mage_Core_Exception
      */
     public function _prepareBatchSubscribeData($subscriber)
     {
@@ -97,34 +99,14 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
          */
         if ($subscriber instanceof Mage_Customer_Model_Customer) {
             $customerFields = array(
-                'FNAME'                    => $subscriber->getFirstname(),
-                'LNAME'                    => $subscriber->getLastname(),
-                'PREFIX'                   => $subscriber->getPrefix(),
-                'MIDDLENAME'               => $subscriber->getMiddlename(),
-                'SUFFIX'                   => $subscriber->getSuffix(),
-                'CUSTOMERGROUP'            => $this->customerHelper()->getCustomerGroup($subscriber->getGroupId()),
-                'PHONE'                    => $subscriber->getBillingTelephone(),
-                'REGISTRATIONDATE'         => $this->customerHelper()->getFormattedDate($subscriber->getCreatedAtTimestamp()),
-                'COUNTRY'                  => $this->customerHelper()->getFormattedCountry($subscriber->getBillingCountryId()),
-                'CITY'                     => $subscriber->getBillingCity(),
-                'REGION'                   => $this->customerHelper()->getFormattedRegion($subscriber->getBillingRegionId()),
-                'DATEOFBIRTH'              => $this->customerHelper()->getFormattedDate($subscriber->getDob()),
-                'GENDER'                   => $this->customerHelper()->getFormattedGender($subscriber->getGender()),
-                'LASTLOGIN'                => $this->customerHelper()->getFormattedDate($subscriber->getLastLoginAt()),
-                'CLIENTID'                 => $subscriber->getId(),
-                'STATUSOFUSER'             => $this->customerHelper()->getFormattedCustomerStatus($subscriber->getIsActive()),
-                'ISSUBSCRIBED'             => $this->customerHelper()->getFormattedIsSubscribed($subscriber->getData('subscriber_status')),
-                /**
-                 * Customer orders info
-                 */
-                'LASTORDERDATE'            => $subscriber->getData('lastorderdate'),
-                'VALUEOFLASTORDER'         => $subscriber->getData('valueoflastorder'),
-                'TOTALVALUEOFORDERS'       => $subscriber->getData('totalvalueoforders'),
-                'TOTALNUMBEROFORDERS'      => $subscriber->getData('totalnumberoforders'),
-                'NUMBEROFITEMSINCART'      => $subscriber->getData('numberofitemsincart'),
-                'VALUEOFCURRENTCART'       => $subscriber->getData('valueofcurrentcart'),
-                'LASTITEMINCARTADDINGDATE' => $subscriber->getData('lastitemincartaddingdate'),
+                'FNAME' => $subscriber->getFirstname(),
+                'LNAME' => $subscriber->getLastname(),
             );
+
+            $mappedFields = $this->mapfieldHelper()->getCustomerMappedFields($this->_storeId);
+            foreach ($mappedFields as $_attributeCode => $_fieldTitle) {
+                $customerFields[$_fieldTitle] = $this->mapfieldHelper()->getMappedFieldValue($_attributeCode, $subscriber);
+            }
 
             $this->_batchedData[$subscriber->getId()] += $customerFields;
         }
@@ -134,6 +116,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
      * Set customer (subscriber) status to Synced
      *
      * @param array $batchData
+     * @throws Mage_Core_Exception
      */
     protected function _afterSuccessBatchSubscribe(array $batchData)
     {
@@ -144,6 +127,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
      * Set customer (unsubscriber) status to Synced
      *
      * @param array $batchData
+     * @throws Mage_Core_Exception
      */
     protected function _afterSuccessBatchUnsubscribe(array $batchData)
     {

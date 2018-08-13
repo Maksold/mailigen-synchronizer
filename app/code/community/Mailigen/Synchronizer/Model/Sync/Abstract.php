@@ -234,20 +234,21 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
 
     /**
      * @param Mage_Customer_Model_Customer|Mage_Newsletter_Model_Subscriber $subscriber
+     * @throws Mage_Core_Exception
      */
     public function _prepareBatchSubscribeData($subscriber)
     {
         /*
          * Basic fields
          */
-        $_subscriberType = $subscriber->getType() ? $subscriber->getType() : Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE;
         $basicFields = array(
-            'EMAIL'          => $subscriber->getEmail(),
-            'NEWSLETTERTYPE' => $this->customerHelper()->getSubscriberType($_subscriberType),
-            'WEBSITEID'      => $subscriber->getWebsiteId(),
-            'STOREID'        => $subscriber->getStoreId(),
-            'STORELANGUAGE'  => $this->customerHelper()->getStoreLanguage($subscriber->getStoreId()),
+            'EMAIL' => $subscriber->getEmail(),
         );
+
+        $mappedFields = $this->mapfieldHelper()->getBasicMappedFields($this->_storeId);
+        foreach ($mappedFields as $_attributeCode => $_fieldTitle) {
+            $basicFields[$_fieldTitle] = $this->mapfieldHelper()->getMappedFieldValue($_attributeCode, $subscriber);
+        }
 
         $this->_batchedData[$subscriber->getId()] = $basicFields;
     }
@@ -439,10 +440,10 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
     }
 
     /**
-     * @return Mailigen_Synchronizer_Helper_Customer
+     * @return Mailigen_Synchronizer_Helper_Mapfield
      */
-    protected function customerHelper()
+    protected function mapfieldHelper()
     {
-        return Mage::helper('mailigen_synchronizer/customer');
+        return Mage::helper('mailigen_synchronizer/mapfield');
     }
 }
