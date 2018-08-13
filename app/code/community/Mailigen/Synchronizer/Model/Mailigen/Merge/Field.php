@@ -38,7 +38,7 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
         $mapFields = $this->h()->getMapFields($this->getStoreId());
 
         foreach ($mapFields as $_mapField) {
-            $mergeFields[$_mapField['mailigen']] = $this->_getMergeFieldData($_mapField['magento']);
+            $mergeFields[$_mapField['mailigen']] = $this->_getMergeField($_mapField['magento']);
         }
 
         return $mergeFields;
@@ -77,10 +77,10 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
             if (isset($createdFields[$tag])) {
                 /**
                  * Merge Field already created
-                 * Force update 'CUSTOMERGROUP' field, to make actual 'predefined_values'
-                 * @todo Replace 'CUSTOMERGROUP'
+                 * Force update "Customer Group" field, to make actual 'predefined_values'
                  */
-                if ($tag == 'CUSTOMERGROUP') {
+                if ($options['_attribute_code'] === Mailigen_Synchronizer_Helper_Mapfield::CUSTOMER_GROUP) {
+                    unset($options['_attribute_code']);
                     $api->listMergeVarUpdate($listId, $tag, $options);
                     if ($api->errorCode) {
                         Mage::throwException("Unable to update merge var. $api->errorCode: $api->errorMessage");
@@ -91,6 +91,7 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
                  * Create new merge field
                  */
                 $name = $options['title'];
+                unset($options['_attribute_code']);
                 $api->listMergeVarAdd($listId, $tag, $name, $options);
                 if ($api->errorCode) {
                     Mage::throwException("Unable to add merge var. $api->errorCode: $api->errorMessage");
@@ -155,9 +156,10 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
      * @return array
      * @throws Mage_Core_Exception
      */
-    protected function _getMergeFieldData($id)
+    protected function _getMergeField($id)
     {
         // Default values
+        $attributeCode = $id;
         $fieldType = 'text';
         $predefinedValues = null;
         $required = false;
@@ -171,10 +173,11 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
 
             if (isset($attributes[$id])) {
                 // Get title
+                $attributeCode = $attributes[$id]['attribute_code'];
                 $title = $attributes[$id]['frontend_label'];
 
                 // Get field_type, predefined_values, required
-                switch ($attributes[$id]['attribute_code']) {
+                switch ($attributeCode) {
                     case 'group_id':
                         $fieldType = 'dropdown';
                         $predefinedValues = $this->_getFormattedPredefinedValues($this->customerHelper()->getCustomerGroups());
@@ -231,6 +234,7 @@ class Mailigen_Synchronizer_Model_Mailigen_Merge_Field
         }
 
         return array(
+            '_attribute_code'   => $attributeCode,
             'title'             => $title,
             'field_type'        => $fieldType,
             'predefined_values' => $predefinedValues,
