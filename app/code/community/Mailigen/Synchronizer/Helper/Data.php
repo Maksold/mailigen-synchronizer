@@ -14,6 +14,8 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     const XML_PATH_CONTACT_LIST = 'mailigen_synchronizer/general/contact_list';
     const XML_PATH_CONTACT_LIST_TITLE = 'mailigen_synchronizer/general/contact_list_title';
     const XML_PATH_CUSTOMER_SYNC_TYPE = 'mailigen_synchronizer/general/customer_sync_type';
+    const XML_PATH_MAP_FIELDS = 'mailigen_synchronizer/general/map_fields';
+    const XML_PATH_ADDITIONAL_MAP_FIELDS = 'mailigen_synchronizer/general/additional_map_fields';
     const XML_PATH_HANDLE_DEFAULT_EMAILS = 'mailigen_synchronizer/general/handle_default_emails';
     const XML_PATH_WEBHOOKS_ENABLED = 'mailigen_synchronizer/webhooks/enabled';
     const XML_PATH_WEBHOOKS_SECRET_KEY = 'mailigen_synchronizer/webhooks/secret_key';
@@ -298,5 +300,102 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
         $secretKey = $this->getWebhooksSecretKey($storeId);
         $hash = hash_hmac('sha1', $data, $secretKey);
         return $signature === 'sha1=' . $hash;
+    }
+
+    /**
+     * Create string for current scope with format scope-scopeId.
+     *
+     * @return array
+     * @throws Mage_Core_Exception
+     */
+    public function getCurrentScope()
+    {
+        $scopeIdArray = $this->getConfigScopeId();
+        $scopeArray = array();
+        if (isset($scopeIdArray['websiteId'])) {
+            $scopeArray['scope'] = 'websites';
+            $scopeArray['scope_id'] = $scopeIdArray['websiteId'];
+        } elseif (isset($scopeIdArray['storeId'])) {
+            $scopeArray['scope'] = 'stores';
+            $scopeArray['scope_id'] = $scopeIdArray['storeId'];
+        } else {
+            $scopeArray['scope'] = 'default';
+            $scopeArray['scope_id'] = 0;
+        }
+        return $scopeArray;
+    }
+
+    /**
+     * Get storeId and/or websiteId if scope selected on back end
+     *
+     * @param  null $storeId
+     * @param  null $websiteId
+     * @return array
+     * @throws Mage_Core_Exception
+     */
+    public function getConfigScopeId($storeId = null, $websiteId = null)
+    {
+        $scopeArray = array();
+        if ($code = Mage::getSingleton('adminhtml/config_data')->getStore()) {
+            // store level
+            $storeId = Mage::getModel('core/store')->load($code)->getId();
+        } elseif ($code = Mage::getSingleton('adminhtml/config_data')->getWebsite()) {
+            // website level
+            $websiteId = Mage::getModel('core/website')->load($code)->getId();
+            $storeId = Mage::app()->getWebsite($websiteId)->getDefaultStore()->getId();
+        }
+        $scopeArray['websiteId'] = $websiteId;
+        $scopeArray['storeId'] = $storeId;
+        return $scopeArray;
+    }
+
+    /**
+     * Get Config value for certain scope.
+     *
+     * @param       $path
+     * @param       $scopeId
+     * @param  null $scope
+     * @return mixed
+     * @throws Mage_Core_Exception
+     */
+    public function getConfigValueForScope($path, $scopeId, $scope = null)
+    {
+        if ($scope === 'websites') {
+            $configValue = Mage::app()->getWebsite($scopeId)->getConfig($path);
+        } else {
+            $configValue = Mage::getStoreConfig($path, $scopeId);
+        }
+        return $configValue;
+    }
+
+
+    /**
+     * Get custom merge fields configured for the given scope.
+     *
+     * @param       $scopeId
+     * @param  null $scope
+     * @return mixed
+     * @throws Mage_Core_Exception
+     */
+    public function getAdditionalMergeFieldsSerialized($scopeId, $scope = null)
+    {
+        return $this->getConfigValueForScope(Mailigen_Synchronizer_Helper_Data::XML_PATH_ADDITIONAL_MAP_FIELDS, $scopeId, $scope);
+    }
+
+    /**
+     * Get custom merge fields for given scope as an array.
+     *
+     * @param       $scopeId
+     * @param  null $scope
+     * @return array|mixed
+     * @throws Mage_Core_Exception
+     */
+    public function getAdditionalMergeFields($scopeId, $scope = null)
+    {
+        $customMergeFields = unserialize($this->getAdditionalMergeFieldsSerialized($scopeId, $scope));
+        if (!$customMergeFields) {
+            $customMergeFields = array();
+        }
+        return $customMergeFields;
     }
 }
