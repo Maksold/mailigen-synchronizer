@@ -36,7 +36,7 @@ class Mailigen_Synchronizer_Model_Observer
                     return $this;
                 }
 
-                $email_address = $subscriber->getSubscriberEmail();
+                $email = $subscriber->getEmail();
 
                 /**
                  * Create or update Merge fields
@@ -52,36 +52,43 @@ class Mailigen_Synchronizer_Model_Observer
                      */
                     /** @var $customerHelper Mailigen_Synchronizer_Helper_Customer */
                     $customerHelper = Mage::helper('mailigen_synchronizer/customer');
+                    $website = $customerHelper->getWebsite($storeId);
+                    $subscriber->setWebsiteId($website ? $website->getId() : 0);
+                    $subscriber->setType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_GUEST_TYPE);
 
                     // Prepare Merge vars
-                    $website = $customerHelper->getWebsite($storeId);
-                    $merge_vars = array(
-                        'EMAIL'          => $subscriber->getSubscriberEmail(),
-                        'WEBSITEID'      => $website ? $website->getId() : 0,
-                        'NEWSLETTERTYPE' => $customerHelper->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_GUEST_TYPE),
-                        'STOREID'        => $storeId,
-                        'STORELANGUAGE'  => $customerHelper->getStoreLanguage($storeId),
+                    $mergeVars = array(
+                        'EMAIL' => $subscriber->getEmail(),
                     );
 
                     // If is a customer we also grab firstname and lastname
                     if ($subscriber->getCustomerId()) {
+                        $subscriber->setType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE);
+
                         $customer = Mage::getModel('customer/customer')->load($subscriber->getCustomerId());
-                        $merge_vars['FNAME'] = $customer->getFirstname();
-                        $merge_vars['LNAME'] = $customer->getLastname();
-                        $merge_vars['NEWSLETTERTYPE'] = $customerHelper->getSubscriberType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE);
+                        $mergeVars['FNAME'] = $customer->getFirstname();
+                        $mergeVars['LNAME'] = $customer->getLastname();
                     }
 
-                    $send_welcome = $this->h()->canHandleDefaultEmails($storeId);
+                    // Prepare basic mapped Merge vars
+                    $mappedFields = $this->mapfieldHelper()->getBasicMappedFields($storeId);
+                    foreach ($mappedFields as $_attributeCode => $_fieldTitle) {
+                        $mergeVars[$_fieldTitle] = $this->mapfieldHelper()->getMappedFieldValue($_attributeCode, $subscriber);
+                    }
 
-                    $retval = $api->listSubscribe($listId, $email_address, $merge_vars, 'html', false, true, $send_welcome);
-                    $this->l()->log('Subscribed newsletter with email: ' . $email_address);
+                    $canHandleDefaultEmails = $this->h()->canHandleDefaultEmails($storeId);
+
+                    $retval = $api->listSubscribe($listId, $email, $mergeVars, 'html', false, true, $canHandleDefaultEmails);
+                    $this->l()->log('Subscribed newsletter with email: ' . $email);
+
                 } elseif ($subscriber->getSubscriberStatus() === Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED) {
                     /**
                      * Unsubscribe newsletter
                      */
-                    $send_goodbye = $this->h()->canHandleDefaultEmails($storeId);
-                    $retval = $api->listUnsubscribe($listId, $email_address, false, $send_goodbye, true);
-                    $this->l()->log('Unsubscribed newsletter with email: ' . $email_address);
+                    $canHandleDefaultEmails = $this->h()->canHandleDefaultEmails($storeId);
+                    $retval = $api->listUnsubscribe($listId, $email, false, $canHandleDefaultEmails, true);
+                    $this->l()->log('Unsubscribed newsletter with email: ' . $email);
+
                 } else {
                     // @todo Check Not Activated or Removed status?
                     $retval = null;
@@ -96,7 +103,7 @@ class Mailigen_Synchronizer_Model_Observer
                         Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($subscriber->getCustomerId());
                     }
                 } elseif (null !== $retval) {
-                    $this->l()->log("Unable to (un)subscribe newsletter with email: $email_address. $api->errorCode: $api->errorMessage");
+                    $this->l()->log("Unable to (un)subscribe newsletter with email: $email. $api->errorCode: $api->errorMessage");
                 }
             }
         } catch (Exception $e) {
@@ -124,14 +131,14 @@ class Mailigen_Synchronizer_Model_Observer
                     return $this;
                 }
 
-                $email_address = $subscriber->getSubscriberEmail();
+                $email = $subscriber->getEmail();
 
                 /**
                  * Remove subscriber
                  */
-                $send_goodbye = $this->h()->canHandleDefaultEmails($storeId);
-                $retval = $api->listUnsubscribe($listId, $email_address, true, $send_goodbye, true);
-                $this->l()->log('Remove subscriber with email: ' . $email_address);
+                $canHandleDefaultEmails = $this->h()->canHandleDefaultEmails($storeId);
+                $retval = $api->listUnsubscribe($listId, $email, true, $canHandleDefaultEmails, true);
+                $this->l()->log('Remove subscriber with email: ' . $email);
 
                 if ($retval) {
                     // Set customer not synced
@@ -139,7 +146,7 @@ class Mailigen_Synchronizer_Model_Observer
                         Mage::getModel('mailigen_synchronizer/customer')->setNotSynced($subscriber->getCustomerId());
                     }
                 } elseif (null !== $retval) {
-                    $this->l()->log("Unable to remove subscriber with email: $email_address. $api->errorCode: $api->errorMessage");
+                    $this->l()->log("Unable to remove subscriber with email: $email. $api->errorCode: $api->errorMessage");
                 }
             }
         } catch (Exception $e) {
@@ -209,8 +216,8 @@ class Mailigen_Synchronizer_Model_Observer
                             /**
                              * Remove subscriber
                              */
-                            $send_goodbye = $this->h()->canHandleDefaultEmails();
-                            $retval = $api->listUnsubscribe($listId, $oldEmail, true, $send_goodbye, true);
+                            $canHandleDefaultEmails = $this->h()->canHandleDefaultEmails();
+                            $retval = $api->listUnsubscribe($listId, $oldEmail, true, $canHandleDefaultEmails, true);
                             $this->l()->log('Remove subscriber with email: ' . $oldEmail);
 
                             if (!$retval) {
@@ -285,5 +292,13 @@ class Mailigen_Synchronizer_Model_Observer
     protected function l()
     {
         return Mage::helper('mailigen_synchronizer/log');
+    }
+
+    /**
+     * @return Mailigen_Synchronizer_Helper_Mapfield
+     */
+    protected function mapfieldHelper()
+    {
+        return Mage::helper('mailigen_synchronizer/mapfield');
     }
 }

@@ -245,6 +245,10 @@ abstract class Mailigen_Synchronizer_Model_Sync_Abstract
             'EMAIL' => $subscriber->getEmail(),
         );
 
+        if (!is_numeric($subscriber->getType())) {
+            $subscriber->setType(Mailigen_Synchronizer_Helper_Customer::SUBSCRIBER_CUSTOMER_TYPE);
+        }
+
         $mappedFields = $this->mapfieldHelper()->getBasicMappedFields($this->_storeId);
         foreach ($mappedFields as $_attributeCode => $_fieldTitle) {
             $basicFields[$_fieldTitle] = $this->mapfieldHelper()->getMappedFieldValue($_attributeCode, $subscriber);
