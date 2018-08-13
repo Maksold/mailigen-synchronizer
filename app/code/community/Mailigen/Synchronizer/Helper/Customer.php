@@ -55,7 +55,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
         1 => 'Subscribed',
         2 => 'Not Activated',
         3 => 'Unsubscribed',
-        4 => 'Unconfirmed'
+        4 => 'Unconfirmed',
     );
 
     /**
@@ -94,6 +94,7 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
     /**
      * @param $gender
      * @return string
+     * @throws Mage_Core_Exception
      */
     public function getFormattedGender($gender)
     {
@@ -243,5 +244,23 @@ class Mailigen_Synchronizer_Helper_Customer extends Mage_Core_Helper_Abstract
         } else {
             return Mage::helper('newsletter')->__('Unknown');
         }
+    }
+
+    /**
+     * @return array
+     */
+    public function getAttributes()
+    {
+        $result = array();
+        $attributes = Mage::getResourceModel('eav/entity_attribute_collection')
+            ->setEntityTypeFilter(1)
+            ->addSetInfo()
+            ->getData();
+
+        foreach ($attributes as $_attribute) {
+            $result[$_attribute['attribute_id']] = $_attribute;
+        }
+
+        return $result;
     }
 }

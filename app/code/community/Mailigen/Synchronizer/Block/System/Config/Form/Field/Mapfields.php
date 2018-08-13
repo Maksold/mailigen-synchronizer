@@ -44,12 +44,10 @@ class Mailigen_Synchronizer_Block_System_Config_Form_Field_Mapfields extends Mag
         if ($this->_customerAttributes === null) {
 
             $this->_customerAttributes = array();
-            $attrSetId = Mage::getResourceModel('eav/entity_attribute_collection')
-                ->setEntityTypeFilter(1)
-                ->addSetInfo()
-                ->getData();
 
-            foreach ($attrSetId as $option) {
+            $attributes = Mage::helper('mailigen_synchronizer/customer')->getAttributes();
+
+            foreach ($attributes as $option) {
                 if ($option['frontend_label']) {
                     $this->_customerAttributes[$option['attribute_id']] = $option['frontend_label'];
                 }
@@ -63,21 +61,20 @@ class Mailigen_Synchronizer_Block_System_Config_Form_Field_Mapfields extends Mag
 
     /**
      * @return array|null
+     * @throws Mage_Core_Exception
      */
     protected function _getAdditionalAttributes()
     {
         if ($this->_additionalAttributes === null) {
 
             $this->_additionalAttributes = array();
-            $scopeArray = $this->h()->getCurrentScope();
-            $mapFields = $this->h()->getAdditionalMergeFieldsSerialized($scopeArray['scope_id'], $scopeArray['scope']);
-            $customFieldTypes = unserialize($mapFields);
 
-            if (is_array($customFieldTypes)) {
-                foreach ($customFieldTypes as $customFieldType) {
-                    $label = $customFieldType['label'];
-                    $value = $customFieldType['value'];
-                    $this->_additionalAttributes[$value] = $label;
+            $scopeArray = $this->h()->getCurrentScope();
+            $additionalFields = $this->h()->getAdditionalMapFields($scopeArray['scope_id'], $scopeArray['scope']);
+
+            foreach ($additionalFields as $additionalField) {
+                if ($additionalField['value']) {
+                    $this->_additionalAttributes[$additionalField['value']] = $additionalField['label'];
                 }
             }
 

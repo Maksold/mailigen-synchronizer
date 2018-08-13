@@ -55,6 +55,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return mixed
+     * @throws Mage_Core_Exception
      */
     public function getApiKey($storeId = null)
     {
@@ -65,6 +66,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return mixed
+     * @throws Mage_Core_Exception
      */
     public function getContactList($storeId = null)
     {
@@ -75,6 +77,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function getCustomerSyncType($storeId = null)
     {
@@ -84,7 +87,19 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
 
     /**
      * @param null $storeId
+     * @return mixed
+     * @throws Mage_Core_Exception
+     */
+    public function getMapFields($storeId = null)
+    {
+        $storeId = null === $storeId ? $this->getDefaultStoreId() : $storeId;
+        return json_decode(Mage::getStoreConfig(self::XML_PATH_MAP_FIELDS, $storeId), true);
+    }
+
+    /**
+     * @param null $storeId
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function isSyncAllCustomers($storeId = null)
     {
@@ -94,6 +109,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function isSyncSubscribedCustomers($storeId = null)
     {
@@ -103,6 +119,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function canHandleDefaultEmails($storeId = null)
     {
@@ -113,6 +130,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function enabledWebhooks($storeId = null)
     {
@@ -123,6 +141,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return mixed
+     * @throws Mage_Core_Exception
      */
     public function getWebhooksSecretKey($storeId = null)
     {
@@ -133,6 +152,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function getBatchSize($storeId = null)
     {
@@ -144,6 +164,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return int
+     * @throws Mage_Core_Exception
      */
     public function getBatchLimit($storeId = null)
     {
@@ -178,6 +199,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
     /**
      * @param null $storeId
      * @return MGAPI|mixed
+     * @throws Mage_Core_Exception
      */
     public function getMailigenApi($storeId = null)
     {
@@ -294,6 +316,7 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
      * @param      $signature
      * @param null $storeId
      * @return bool
+     * @throws Mage_Core_Exception
      */
     public function verifyWebhooksSignature($data, $signature, $storeId = null)
     {
@@ -368,20 +391,6 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
         return $configValue;
     }
 
-
-    /**
-     * Get custom merge fields configured for the given scope.
-     *
-     * @param       $scopeId
-     * @param  null $scope
-     * @return mixed
-     * @throws Mage_Core_Exception
-     */
-    public function getAdditionalMergeFieldsSerialized($scopeId, $scope = null)
-    {
-        return $this->getConfigValueForScope(Mailigen_Synchronizer_Helper_Data::XML_PATH_ADDITIONAL_MAP_FIELDS, $scopeId, $scope);
-    }
-
     /**
      * Get custom merge fields for given scope as an array.
      *
@@ -390,12 +399,34 @@ class Mailigen_Synchronizer_Helper_Data extends Mage_Core_Helper_Abstract
      * @return array|mixed
      * @throws Mage_Core_Exception
      */
-    public function getAdditionalMergeFields($scopeId, $scope = null)
+    public function getAdditionalMapFields($scopeId, $scope = null)
     {
-        $customMergeFields = unserialize($this->getAdditionalMergeFieldsSerialized($scopeId, $scope));
-        if (!$customMergeFields) {
-            $customMergeFields = array();
+        $additionalMapFields = $this->getConfigValueForScope(Mailigen_Synchronizer_Helper_Data::XML_PATH_ADDITIONAL_MAP_FIELDS, $scopeId, $scope);
+        $additionalMapFields = json_decode($additionalMapFields, true);
+        if (!$additionalMapFields) {
+            $additionalMapFields = array();
         }
-        return $customMergeFields;
+
+        return $additionalMapFields;
+    }
+
+    /**
+     * @param      $code
+     * @param      $scopeId
+     * @param null $scope
+     * @return mixed|null
+     * @throws Mage_Core_Exception
+     */
+    public function getAdditionalMapFieldByCode($code, $scopeId, $scope = null)
+    {
+        $additionalMapFields = $this->getAdditionalMapFields($scopeId, $scope);
+
+        foreach ($additionalMapFields as $additionalMapField) {
+            if ($additionalMapField['value'] === $code) {
+                return $additionalMapField;
+            }
+        }
+
+        return null;
     }
 }
