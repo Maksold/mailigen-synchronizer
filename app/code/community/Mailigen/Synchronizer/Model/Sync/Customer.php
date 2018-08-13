@@ -44,7 +44,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
 
         /** @var $customers Mailigen_Synchronizer_Model_Resource_Default_Customer_Collection */
         $customers = Mage::getResourceModel('mailigen_synchronizer/default_customer_collection');
-        $customers->getFullCustomerDataByIds($customerIds);
+        $customers->getFullCustomerDataByIds($customerIds, $this->_storeId);
 
         if ($this->h()->isSyncSubscribedCustomers($this->_storeId)) {
             /*
@@ -103,7 +103,7 @@ class Mailigen_Synchronizer_Model_Sync_Customer extends Mailigen_Synchronizer_Mo
                 'LNAME' => $subscriber->getLastname(),
             );
 
-            $mappedFields = $this->mapfieldHelper()->getCustomerMappedFields($this->_storeId);
+            $mappedFields = $this->mapfieldHelper()->getNoneBasicMappedFields($this->_storeId);
             foreach ($mappedFields as $_attributeCode => $_fieldTitle) {
                 $customerFields[$_fieldTitle] = $this->mapfieldHelper()->getMappedFieldValue($_attributeCode, $subscriber);
             }

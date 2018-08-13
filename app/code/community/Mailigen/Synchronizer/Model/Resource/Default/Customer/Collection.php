@@ -14,24 +14,25 @@ class Mailigen_Synchronizer_Model_Resource_Default_Customer_Collection extends M
      * @return Mage_Customer_Model_Resource_Customer_Collection
      * @throws Mage_Core_Exception
      */
-    public function getFullCustomerDataByIds($customerIds)
+    public function getFullCustomerDataByIds($customerIds, $storeId)
     {
-        $this->addAttributeToSelect(
-            array(
-                'email',
-                'firstname',
-                'lastname',
-                'prefix',
-                'middlename',
-                'suffix',
-                'store_id',
-                'group_id',
-                'created_at',
-                'dob',
-                'gender',
-                'is_active',
-            )
-        )->addAttributeToFilter('entity_id', array('in' => $customerIds));
+        $customerAttributes = array(
+            'email',
+            'firstname',
+            'lastname',
+            'website_id',
+            'store_id',
+            'created_at',
+            'is_active',
+        );
+
+        /** @var $mapfieldHelper Mailigen_Synchronizer_Helper_Mapfield */
+        $mapfieldHelper = Mage::helper('mailigen_synchronizer/mapfield');
+        $mappedCustomerAttributes = array_keys($mapfieldHelper->getCustomerMappedFields($storeId));
+        $customerAttributes = array_unique(array_merge($customerAttributes, $mappedCustomerAttributes));
+
+        $this->addAttributeToSelect($customerAttributes)
+            ->addAttributeToFilter('entity_id', array('in' => $customerIds));
 
         /**
          * Join Customer default billing address info

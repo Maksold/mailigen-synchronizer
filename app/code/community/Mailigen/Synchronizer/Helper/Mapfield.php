@@ -39,10 +39,12 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
 
     /**
      * @param null $storeId
+     * @param bool $customerFields
+     * @param bool $additionalFields
      * @return array
      * @throws Mage_Core_Exception
      */
-    public function getMappedFields($storeId = null)
+    protected function _getMappedFields($storeId = null, $customerFields = true, $additionalFields = true)
     {
         $result = array();
         $customerAttributes = Mage::helper('mailigen_synchronizer/customer')->getAttributes();
@@ -51,11 +53,14 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
         foreach ($mapFields as $_mapField) {
             $attributeId = $_mapField['magento'];
 
-            if (is_numeric($attributeId) && isset($customerAttributes[$attributeId])) {
+            if ($customerFields && is_numeric($attributeId) && isset($customerAttributes[$attributeId])) {
                 $attributeId = $customerAttributes[$attributeId]['attribute_code'];
-            }
 
-            $result[$attributeId] = $_mapField['mailigen'];
+                $result[$attributeId] = $_mapField['mailigen'];
+            } elseif ($additionalFields) {
+
+                $result[$attributeId] = $_mapField['mailigen'];
+            }
         }
 
         return $result;
@@ -66,9 +71,29 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
      * @return array
      * @throws Mage_Core_Exception
      */
+    public function getAllMappedFields($storeId = null)
+    {
+        return $this->_getMappedFields($storeId, true, true);
+    }
+
+    /**
+     * @param null $storeId
+     * @return array
+     * @throws Mage_Core_Exception
+     */
+    public function getCustomerMappedFields($storeId = null)
+    {
+        return $this->_getMappedFields($storeId, true, false);
+    }
+
+    /**
+     * @param null $storeId
+     * @return array
+     * @throws Mage_Core_Exception
+     */
     public function getBasicMappedFields($storeId = null)
     {
-        return array_filter($this->getMappedFields($storeId),
+        return array_filter($this->getAllMappedFields($storeId),
             function ($_attributeCode) {
                 return in_array($_attributeCode, $this->_basicFields, true);
             },
@@ -81,9 +106,9 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
      * @return array
      * @throws Mage_Core_Exception
      */
-    public function getCustomerMappedFields($storeId = null)
+    public function getNoneBasicMappedFields($storeId = null)
     {
-        return array_filter($this->getMappedFields($storeId),
+        return array_filter($this->getAllMappedFields($storeId),
             function ($_attributeCode) {
                 return !in_array($_attributeCode, $this->_basicFields, true);
             },
@@ -139,6 +164,10 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
             default:
                 $value = $_subscriber->getData($_attributeCode);
                 break;
+        }
+
+        if ($value === null) {
+            $value = '';
         }
 
         return $value;
