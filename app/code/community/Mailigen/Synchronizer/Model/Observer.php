@@ -28,6 +28,7 @@ class Mailigen_Synchronizer_Model_Observer
             if ($subscriber && $this->h()->isEnabled($subscriber->getStoreId())
                 && ($subscriber->getIsStatusChanged() == true || $subscriber->getOrigData('subscriber_status') != $subscriber->getData('subscriber_status'))
             ) {
+                $subscriberStatus = (int)$subscriber->getData('subscriber_status');
                 $storeId = $subscriber->getStoreId();
                 $api = $this->h()->getMailigenApi($storeId);
                 $listId = $this->h()->getContactList($storeId);
@@ -46,7 +47,7 @@ class Mailigen_Synchronizer_Model_Observer
                     ->createMergeFields();
                 $this->l()->log('Merge fields created and updated');
 
-                if ($subscriber->getSubscriberStatus() === Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {
+                if ($subscriberStatus === Mage_Newsletter_Model_Subscriber::STATUS_SUBSCRIBED) {
                     /**
                      * Subscribe newsletter
                      */
@@ -81,7 +82,7 @@ class Mailigen_Synchronizer_Model_Observer
                     $retval = $api->listSubscribe($listId, $email, $mergeVars, 'html', false, true, $canHandleDefaultEmails);
                     $this->l()->log('Subscribed newsletter with email: ' . $email);
 
-                } elseif ($subscriber->getSubscriberStatus() === Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED) {
+                } elseif ($subscriberStatus === Mage_Newsletter_Model_Subscriber::STATUS_UNSUBSCRIBED) {
                     /**
                      * Unsubscribe newsletter
                      */
