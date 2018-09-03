@@ -10,6 +10,44 @@
 class Mailigen_Synchronizer_Model_Observer
 {
     /**
+     * Add original data to subscriber model
+     *
+     * @param Varien_Event_Observer $observer
+     * @return $this
+     */
+    public function newsletterSubscriberSaveBefore(Varien_Event_Observer $observer)
+    {
+        /**
+         * Check if it was webhook save
+         */
+        if (Mage::registry('mailigen_webhook')) {
+            return $this;
+        }
+
+        $subscriber = $observer->getDataObject();
+
+        try {
+            if ($subscriber
+                && !$subscriber->isObjectNew()
+                && !$subscriber->getOrigData()
+                && $this->h()->isEnabled($subscriber->getStoreId())
+            ) {
+                $origSusbcriber = Mage::getModel('newsletter/subscriber')->load($subscriber->getId());
+
+                if ($origSusbcriber) {
+                    foreach ($origSusbcriber->getData() as $k => $v) {
+                        $subscriber->setOrigData($k, $v);
+                    }
+                }
+            }
+        } catch (Exception $e) {
+            $this->l()->logException($e);
+        }
+
+        return $this;
+    }
+
+    /**
      * @param Varien_Event_Observer $observer
      * @return $this
      */
