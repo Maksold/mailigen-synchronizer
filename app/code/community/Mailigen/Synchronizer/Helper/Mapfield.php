@@ -9,22 +9,22 @@
  */
 class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
 {
-    const WEBSITE_ID = 'website_id';
-    const STORE_ID = 'store_id';
-    const STORE_LANGUAGE = 'store_language';
+    const WEBSITE_ID      = 'website_id';
+    const STORE_ID        = 'store_id';
+    const STORE_LANGUAGE  = 'store_language';
     const NEWSLETTER_TYPE = 'newsletter_type';
-    const IS_SUBSCRIBED = 'is_subscribed';
+    const IS_SUBSCRIBED   = 'is_subscribed';
 
-    const CUSTOMER_ID = 'client_id';
-    const CUSTOMER_GROUP = 'group_id';
-    const CUSTOMER_CREATED_AT = 'registration_date';
+    const CUSTOMER_ID            = 'client_id';
+    const CUSTOMER_GROUP         = 'group_id';
+    const CUSTOMER_CREATED_AT    = 'registration_date';
     const CUSTOMER_DATE_OF_BIRTH = 'dob';
-    const CUSTOMER_GENDER = 'gender';
-    const CUSTOMER_LAST_LOG_IN = 'last_login';
-    const CUSTOMER_IS_ACTIVE = 'status_of_user';
-    const BILLING_COUNTRY = 'billing_country';
-    const BILLING_CITY = 'billing_city';
-    const BILLING_REGION = 'billing_region';
+    const CUSTOMER_GENDER        = 'gender';
+    const CUSTOMER_LAST_LOG_IN   = 'last_login';
+    const CUSTOMER_IS_ACTIVE     = 'status_of_user';
+    const BILLING_COUNTRY        = 'billing_country';
+    const BILLING_CITY           = 'billing_city';
+    const BILLING_REGION         = 'billing_region';
 
     /**
      * @var array
@@ -179,5 +179,31 @@ class Mailigen_Synchronizer_Helper_Mapfield extends Mage_Core_Helper_Abstract
     protected function customerHelper()
     {
         return Mage::helper('mailigen_synchronizer/customer');
+    }
+
+    /**
+     * @param array $mapFields
+     * @return array
+     */
+    public function reformatMailigenMergeFields($mapFields)
+    {
+        $reformattedMapFields = array();
+
+        if (count($mapFields)) {
+            foreach ($mapFields as $mapFieldKey => $mapField) {
+                // Replace whitespaces with "_"
+                $mapField['mailigen'] = preg_replace('/[\s]/', '_', trim($mapField['mailigen']));
+                // Remove all extra symbols, except letters, digits and "-", "_"
+                $mapField['mailigen'] = preg_replace('/[^a-zA-Z0-9\-\_]/', '', $mapField['mailigen']);
+                // Convert to UPPERCASE
+                $mapField['mailigen'] = strtoupper($mapField['mailigen']);
+
+                if ($mapField['mailigen'] !== '') {
+                    $reformattedMapFields[$mapFieldKey] = $mapField;
+                }
+            }
+        }
+
+        return $reformattedMapFields;
     }
 }

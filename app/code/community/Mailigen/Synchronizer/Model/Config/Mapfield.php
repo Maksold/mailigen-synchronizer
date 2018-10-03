@@ -43,10 +43,14 @@ class Mailigen_Synchronizer_Model_Config_Mapfield extends Mage_Adminhtml_Model_S
      */
     protected function _beforeSave()
     {
+        /** @var $mapFieldHelper Mailigen_Synchronizer_Helper_Mapfield */
+        $mapFieldHelper = Mage::helper('mailigen_synchronizer/mapfield');
+
         $value = $this->getValue();
         if (is_array($value)) {
             unset($value['__empty']);
         }
+        $value = $mapFieldHelper->reformatMailigenMergeFields($value);
         $this->setValue($value);
 
         if (is_array($this->getValue())) {
