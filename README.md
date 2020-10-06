@@ -1,6 +1,6 @@
 # Magento 1: Mailigen Synchronizer
 
-Get the most out of two-way synchronization between your Magento email newsletter subscriber list and your Mailigen email list, and one-way synchronization between your Magento customer list and your Mailigen email list. It is easy and quick to install and configure, no complex actions or knowledge of programming needed.
+Two-way sync for Magneto newsletter subscribers and one-way sync for Magnento customers.
 
 ## Features
 - Automatic synchronization between your Magento email subscriber list and one of your Mailigen email lists. When users subscribe to the newsletter in Magento, they will be added to the selected Mailigen contact list.
